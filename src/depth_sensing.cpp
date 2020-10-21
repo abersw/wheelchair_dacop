@@ -13,12 +13,14 @@ using namespace std;
 
 struct DetectedObjects {
     string object_name;
-    std_msgs::Float32 object_confidence;
-    std_msgs::Float32 box_x;
-    std_msgs::Float32 box_y;
-    std_msgs::Float32 box_width;
-    std_msgs::Float32 box_height;
-    std_msgs::Int16 totalObjectsInFrame;
+    float object_confidence;
+    float box_x;
+    float box_y;
+    float box_width;
+    float box_height;
+    int totalObjectsInFrame;
+
+    float distance;
 };
 
 struct DetectedObjects detectedObjects[100];
@@ -39,8 +41,18 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     //ROS_INFO("Center distance : %g m", depths[centerIdx]);
 
     float* depths = (float*)(&dpth->data[0]);
-    cout << "things \n";
 
+    //image coordinates of the center of the bounding box
+    int totalObjectsDetected = detectedObjects[0].totalObjectsInFrame;
+    int objectNo = 0;
+    for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
+        int centerWidth = detectedObjects[objectNo].box_x + detectedObjects[objectNo].box_width / 2;
+        int centerHeight = detectedObjects[objectNo].box_y + detectedObjects[objectNo].box_height / 2;
+
+        //linear index of the pixel
+        int centerIdx = centerWidth + dpth->width * centerHeight;
+        detectedObjects[objectNo].distance = centerIdx;
+    }
 }
 
 void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
@@ -49,6 +61,11 @@ void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
         //detectedObjects[objectNo].object_name = obj->object_name->[0];
         detectedObjects[objectNo].object_name = obj->object_name[objectNo];
+        detectedObjects[objectNo].object_confidence = obj->object_confidence[objectNo];
+        detectedObjects[objectNo].box_x = obj->box_x[objectNo];
+        detectedObjects[objectNo].box_y = obj->box_y[objectNo];
+        detectedObjects[objectNo].box_width = obj->box_width[objectNo];
+        detectedObjects[objectNo].box_height = obj->box_height[objectNo];
         cout << detectedObjects[objectNo].object_name << "\n";
     }
     //cout << totalObjectsDetected;
