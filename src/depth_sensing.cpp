@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ros/ros.h" //main ROS library
 #include "wheelchair_msgs/mobilenet.h"
 #include "std_msgs/String.h"
@@ -11,7 +12,7 @@
 using namespace std;
 
 struct DetectedObjects {
-    std_msgs::String object_name;
+    string object_name;
     std_msgs::Float32 object_confidence;
     std_msgs::Float32 box_x;
     std_msgs::Float32 box_y;
@@ -43,10 +44,16 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
 }
 
 void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    //int totalObjectsDetected = (int)obj->totalObjectsInFrame;
+    int totalObjectsDetected = (int)obj->totalObjectsInFrame;
+    int objectNo = 0;
+    for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
+        //detectedObjects[objectNo].object_name = obj->object_name->[0];
+        detectedObjects[objectNo].object_name = obj->object_name[objectNo];
+        cout << detectedObjects[objectNo].object_name << "\n";
+    }
     //cout << totalObjectsDetected;
-    //cout << "total objs " << totalObjectsDetected << "\n";
-    cout << "others\n";
+    cout << "total objs " << totalObjectsDetected << "\n";
+    //cout << "others\n";
 }
 
 int main(int argc, char **argv) {
