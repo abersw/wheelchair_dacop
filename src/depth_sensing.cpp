@@ -27,6 +27,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
 
     ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 10, depthCallback);
+    ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects")
 
     ros::spin();
 
