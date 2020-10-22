@@ -23,6 +23,8 @@ struct DetectedObjects {
     float distance;
 };
 
+int totalObjectsDetected;
+
 struct DetectedObjects detectedObjects[100];
 
 void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
@@ -43,7 +45,6 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     float* depths = (float*)(&dpth->data[0]);
 
     //image coordinates of the center of the bounding box
-    int totalObjectsDetected = detectedObjects[0].totalObjectsInFrame;
     int objectNo = 0;
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
         int centerWidth = detectedObjects[objectNo].box_x + detectedObjects[objectNo].box_width / 2;
@@ -51,12 +52,14 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
 
         //linear index of the pixel
         int centerIdx = centerWidth + dpth->width * centerHeight;
-        detectedObjects[objectNo].distance = centerIdx;
+        detectedObjects[objectNo].distance = depths[centerIdx];
+        cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n"; 
     }
+    //cout << "dpth" << "\n";
 }
 
 void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    int totalObjectsDetected = (int)obj->totalObjectsInFrame;
+    totalObjectsDetected = (int)obj->totalObjectsInFrame;
     int objectNo = 0;
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
         //detectedObjects[objectNo].object_name = obj->object_name->[0];
@@ -66,10 +69,10 @@ void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
         detectedObjects[objectNo].box_y = obj->box_y[objectNo];
         detectedObjects[objectNo].box_width = obj->box_width[objectNo];
         detectedObjects[objectNo].box_height = obj->box_height[objectNo];
-        cout << detectedObjects[objectNo].object_name << "\n";
+        //cout << detectedObjects[objectNo].object_name << "\n";
     }
     //cout << totalObjectsDetected;
-    cout << "total objs " << totalObjectsDetected << "\n";
+    //cout << "total objs " << totalObjectsDetected << "\n";
     //cout << "others\n";
 }
 
