@@ -8,6 +8,10 @@
 #include "std_msgs/Float32.h"
 #include "sensor_msgs/Image.h"
 
+//experimental
+#include "geometry_msgs/PointStamped.h"
+#include "tf/transform_listener.h"
+
 #include <sstream>
 using namespace std;
 
@@ -58,6 +62,23 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     //cout << "dpth" << "\n";
 }
 
+void cloudCallback(const geometry_msgs::PointStamped::ConstPtr& cloud) {
+    int objectNo = 0;
+    for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
+        geometry_msgs::PointStamped pt;
+        geometry_msgs::PointStamped pt_transformed;
+
+        int centerWidth = detectedObjects[objectNo].box_x + detectedObjects[objectNo].box_width / 2;
+        int centerHeight = detectedObjects[objectNo].box_y + detectedObjects[objectNo].box_height / 2;
+
+        pt.header = cloud->header;
+        pt.point.x = centerWidth;
+        pt.point.y = centerHeight;
+        pt.point.z = cloud->point.z;
+
+    }
+}
+
 void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     totalObjectsDetected = (int)obj->totalObjectsInFrame;
     int objectNo = 0;
@@ -82,6 +103,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
 
     ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
+    //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
     ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 10, objectDepth);
     cout << "spin \n";
     ros::spin();
