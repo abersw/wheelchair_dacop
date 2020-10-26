@@ -10,7 +10,13 @@
 
 //experimental
 #include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/TransformStamped.h"
 #include "tf/transform_listener.h"
+#include <cmath>
+//#include "tf2/utils.h"
 
 #include <sstream>
 using namespace std;
@@ -30,6 +36,10 @@ struct DetectedObjects {
 int totalObjectsDetected;
 
 struct DetectedObjects detectedObjects[100];
+
+void broadcastTransform(float extractDepth) {
+    
+}
 
 void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     //get a pointer to the depth values casting the data
@@ -56,8 +66,17 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
 
         //linear index of the pixel
         int centerIdx = centerWidth + dpth->width * centerHeight;
-        detectedObjects[objectNo].distance = depths[centerIdx];
-        cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n"; 
+        float extractDepth = depths[centerIdx];
+        //check if pixel is nan
+        if (isnan(extractDepth)) {
+            //what should I do if NaN is detected - probably take an average from several pixels?
+        }
+        else {
+            detectedObjects[objectNo].distance = extractDepth;
+            cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n";
+            broadcastTransform(extractDepth);
+        }
+        
     }
     //cout << "dpth" << "\n";
 }
