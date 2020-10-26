@@ -38,8 +38,11 @@ int totalObjectsDetected;
 struct DetectedObjects detectedObjects[100];
 
 void broadcastTransform(float extractDepth) {
-    
-}
+    geometry_msgs::TransformStamped tfStamp;
+
+    //float x_offset 
+    //x_offset = (self.x-(self.imageX/2))/1000
+	//y_offset = (self.y-(self.imageY/2))/1000
 
 void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     //get a pointer to the depth values casting the data
