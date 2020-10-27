@@ -61,9 +61,9 @@ void broadcastTransform(int objectId, float extractDepth) {
     ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, x_offset, y_offset);
 
     tfStamp.header.stamp = ros::Time::now();
-    tfStamp.header.frame_id = "zed_left_camera_depth_link";
+    tfStamp.header.frame_id = "base_footprint";
 
-    string frameName = "target_frame" + objectId;
+    string frameName = "target_frame";
 
     tfStamp.child_frame_id = frameName;
 
