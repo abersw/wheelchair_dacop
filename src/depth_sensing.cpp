@@ -18,6 +18,7 @@
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include <tf2/LinearMath/Quaternion.h>
 #include <cmath>
 
 
@@ -61,13 +62,28 @@ void broadcastTransform(int objectId, float extractDepth) {
     tfStamp.header.stamp = ros::Time::now();
     tfStamp.header.frame_id = "zed_left_camera_depth_link";
 
-    tfStamp.child_frame_id = "target_frame";
+    string frameName = "target_frame" + objectId;
+
+    tfStamp.child_frame_id = frameName;
 
     tfStamp.transform.translation.x = extractDepth;
     tfStamp.transform.translation.y = 0-x_offset;
     tfStamp.transform.translation.z = 0-y_offset;
 
-    tf_conversions quart;
+    //tf_conversions::transformations quart;
+    //quaternion:: quart;
+    tf2::Quaternion quat;
+    tfStamp.transform.rotation.x = quat[0];
+    tfStamp.transform.rotation.y = quat[1];
+    tfStamp.transform.rotation.z = quat[2];
+    tfStamp.transform.rotation.w = quat[3];
+
+
+    /*q = tf_conversions.transformations.quaternion_from_euler(0, 0, 0)
+    t.transform.rotation.x = q[0]
+    t.transform.rotation.y = q[1]
+    t.transform.rotation.z = q[2]
+    t.transform.rotation.w = q[3]*/
 }
 
 void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
