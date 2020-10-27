@@ -14,12 +14,20 @@
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/TransformStamped.h"
-#include "tf/transform_listener.h"
+
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include <cmath>
-//#include "tf2/utils.h"
+
+
 
 #include <sstream>
 using namespace std;
+
+bool gotResolution = 0;
+int imageHeight = 0;
+int imageWidth = 0;
 
 struct DetectedObjects {
     string object_name;
@@ -37,14 +45,39 @@ int totalObjectsDetected;
 
 struct DetectedObjects detectedObjects[100];
 
-void broadcastTransform(float extractDepth) {
+void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
+    imageHeight = dpth->height;
+    imageWidth = dpth->width;
+}
+
+void broadcastTransform(int objectId, float extractDepth) {
     geometry_msgs::TransformStamped tfStamp;
 
-    //float x_offset 
-    //x_offset = (self.x-(self.imageX/2))/1000
-	//y_offset = (self.y-(self.imageY/2))/1000
+    float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2)/1000);
+    float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2)/1000);
+
+    ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, x_offset, y_offset);
+
+    tfStamp.header.stamp = ros::Time::now();
+    tfStamp.header.frame_id = "zed_left_camera_depth_link";
+
+    tfStamp.child_frame_id = "target_frame";
+
+    tfStamp.transform.translation.x = extractDepth;
+    tfStamp.transform.translation.y = 0-x_offset;
+    tfStamp.transform.translation.z = 0-y_offset;
+
+    tf_conversions quart;
+}
 
 void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
+
+    //get image resolution on startup only
+    if (gotResolution == 0) {
+        getResolutionOnStartup(dpth);
+        gotResolution = 1;
+    }
+
     //get a pointer to the depth values casting the data
     //pointer to floating point
     //float* depths = (float*)(&dpth->data[0]);
@@ -58,6 +91,8 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
 
     //output the measure
     //ROS_INFO("Center distance : %g m", depths[centerIdx]);
+
+    //get image height and width
 
     float* depths = (float*)(&dpth->data[0]);
 
@@ -77,14 +112,14 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         else {
             detectedObjects[objectNo].distance = extractDepth;
             cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n";
-            broadcastTransform(extractDepth);
+            broadcastTransform(objectNo, extractDepth);
         }
         
     }
     //cout << "dpth" << "\n";
 }
 
-void cloudCallback(const geometry_msgs::PointStamped::ConstPtr& cloud) {
+/*void cloudCallback(const geometry_msgs::PointStamped::ConstPtr& cloud) {
     int objectNo = 0;
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
         geometry_msgs::PointStamped pt;
@@ -99,7 +134,7 @@ void cloudCallback(const geometry_msgs::PointStamped::ConstPtr& cloud) {
         pt.point.z = cloud->point.z;
 
     }
-}
+}*/
 
 void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     totalObjectsDetected = (int)obj->totalObjectsInFrame;
@@ -123,6 +158,10 @@ int main(int argc, char **argv) {
     //stuff to go here
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
+
+    tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
+    tf2_ros::TransformBroadcaster tb;
 
     ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
