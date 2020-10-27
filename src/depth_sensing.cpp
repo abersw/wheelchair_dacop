@@ -53,6 +53,7 @@ void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
 
 void broadcastTransform(int objectId, float extractDepth) {
     geometry_msgs::TransformStamped tfStamp;
+    static tf2_ros::TransformBroadcaster br;
 
     float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2)/1000);
     float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2)/1000);
@@ -73,10 +74,13 @@ void broadcastTransform(int objectId, float extractDepth) {
     //tf_conversions::transformations quart;
     //quaternion:: quart;
     tf2::Quaternion quat;
-    tfStamp.transform.rotation.x = quat[0];
-    tfStamp.transform.rotation.y = quat[1];
-    tfStamp.transform.rotation.z = quat[2];
-    tfStamp.transform.rotation.w = quat[3];
+    quat.setRPY(0, 0, 0);
+    tfStamp.transform.rotation.x = quat.x();
+    tfStamp.transform.rotation.y = quat.y();
+    tfStamp.transform.rotation.z = quat.z();
+    tfStamp.transform.rotation.w = quat.w();
+
+    br.sendTransform(tfStamp);
 
 
     /*q = tf_conversions.transformations.quaternion_from_euler(0, 0, 0)
