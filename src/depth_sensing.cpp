@@ -55,21 +55,21 @@ void broadcastTransform(int objectId, float extractDepth) {
     geometry_msgs::TransformStamped tfStamp;
     static tf2_ros::TransformBroadcaster br;
 
-    float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2)/1000);
-    float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2)/1000);
+    //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
+    //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
 
-    ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, x_offset, y_offset);
+    ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
 
     tfStamp.header.stamp = ros::Time::now();
-    tfStamp.header.frame_id = "base_footprint";
+    tfStamp.header.frame_id = "zed_left_camera_depth_link";
 
     string frameName = "target_frame";
 
     tfStamp.child_frame_id = frameName;
 
     tfStamp.transform.translation.x = extractDepth;
-    tfStamp.transform.translation.y = 0-x_offset;
-    tfStamp.transform.translation.z = 0-y_offset;
+    tfStamp.transform.translation.y = detectedObjects[objectId].box_y;
+    tfStamp.transform.translation.z = detectedObjects[objectId].box_x;
 
     //tf_conversions::transformations quart;
     //quaternion:: quart;
