@@ -58,7 +58,7 @@ void broadcastTransform(int objectId, float extractDepth) {
     //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
     //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
 
-    ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
+    /*ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
 
     tfStamp.header.stamp = ros::Time::now();
     tfStamp.header.frame_id = "zed_left_camera_depth_link";
@@ -66,10 +66,10 @@ void broadcastTransform(int objectId, float extractDepth) {
     string frameName = "target_frame";
 
     tfStamp.child_frame_id = frameName;
-
+    cout << extractDepth << "\n";
     tfStamp.transform.translation.x = extractDepth;
-    tfStamp.transform.translation.y = detectedObjects[objectId].box_y;
-    tfStamp.transform.translation.z = detectedObjects[objectId].box_x;
+    tfStamp.transform.translation.y = detectedObjects[objectId].box_x;
+    tfStamp.transform.translation.z = detectedObjects[objectId].box_y;
 
     //tf_conversions::transformations quart;
     //quaternion:: quart;
@@ -80,7 +80,7 @@ void broadcastTransform(int objectId, float extractDepth) {
     tfStamp.transform.rotation.z = quat.z();
     tfStamp.transform.rotation.w = quat.w();
 
-    br.sendTransform(tfStamp);
+    br.sendTransform(tfStamp);*/
 
 
     /*q = tf_conversions.transformations.quaternion_from_euler(0, 0, 0)
@@ -126,14 +126,14 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         int centerIdx = centerWidth + dpth->width * centerHeight;
         float extractDepth = depths[centerIdx];
         //check if pixel is nan
-        if (isnan(extractDepth)) {
+        //if (isnan(extractDepth)) {
             //what should I do if NaN is detected - probably take an average from several pixels?
-        }
-        else {
+        //}
+        //else {
             detectedObjects[objectNo].distance = extractDepth;
             cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n";
             broadcastTransform(objectNo, extractDepth);
-        }
+        //}
         
     }
     //cout << "dpth" << "\n";
@@ -179,9 +179,9 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
-    tf2_ros::Buffer tfBuffer;
-    tf2_ros::TransformListener tfListener(tfBuffer);
-    tf2_ros::TransformBroadcaster tb;
+    //tf2_ros::Buffer tfBuffer;
+    //tf2_ros::TransformListener tfListener(tfBuffer);
+    //tf2_ros::TransformBroadcaster tb;
 
     ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
