@@ -140,6 +140,19 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         centerIdx = centerWidth+1 + dpth->width * centerHeight-1;
         extractDepths[2] = depths[centerIdx]; //2
 
+        centerIdx = centerWidth-1 + dpth->width * centerHeight;
+        extractDepths[3] = depths[centerIdx]; //3
+        centerIdx = centerWidth + dpth->width * centerHeight;
+        extractDepths[4] = depths[centerIdx]; //4
+        centerIdx = centerWidth+1 + dpth->width * centerHeight;
+        extractDepths[5] = depths[centerIdx]; //5
+
+        centerIdx = centerWidth-1 + dpth->width * centerHeight+1;
+        extractDepths[6] = depths[centerIdx]; //6
+        centerIdx = centerWidth + dpth->width * centerHeight+1;
+        extractDepths[7] = depths[centerIdx]; //7
+        centerIdx = centerWidth+1 + dpth->width * centerHeight+1;
+        extractDepths[8] = depths[centerIdx]; //8
 
 
 
