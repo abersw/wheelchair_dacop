@@ -29,6 +29,7 @@ using namespace std;
 bool gotResolution = 0;
 int imageHeight = 0;
 int imageWidth = 0;
+int pixelSampleNo = 9;
 
 struct DetectedObjects {
     string object_name;
@@ -124,7 +125,7 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         int centerWidth = detectedObjects[objectNo].box_x + detectedObjects[objectNo].box_width / 2;
         int centerHeight = detectedObjects[objectNo].box_y + detectedObjects[objectNo].box_height / 2;
 
-        float extractDepths[9];
+        float extractDepths[pixelSampleNo];
         /*
         Sample pixel layout
             0 1 2
@@ -154,7 +155,9 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         centerIdx = centerWidth+1 + dpth->width * centerHeight+1;
         extractDepths[8] = depths[centerIdx]; //8
 
+        for (int isPixel = 0; isPixel < pixelSampleNo; isPixel++) {
 
+        }
 
 
 
