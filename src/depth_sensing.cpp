@@ -49,6 +49,7 @@ struct DetectedObjects detectedObjects[100];
 void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
     imageHeight = dpth->height;
     imageWidth = dpth->width;
+    cout << imageHeight << "x" << imageWidth << "\n";
 }
 
 void broadcastTransform(int objectId, float extractDepth) {
@@ -118,14 +119,34 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     //image coordinates of the center of the bounding box
     int objectNo = 0;
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
+        //get center of bounding box
+        //and offset +-3 on both axis, then take average, ignoring nan values
         int centerWidth = detectedObjects[objectNo].box_x + detectedObjects[objectNo].box_width / 2;
         int centerHeight = detectedObjects[objectNo].box_y + detectedObjects[objectNo].box_height / 2;
 
+        float extractDepths[9];
+        /*
+        Sample pixel layout
+            0 1 2
+            3 4 5
+            6 7 8
+        */
         //linear index of the pixel
-        int centerIdx = centerWidth + dpth->width * centerHeight;
-        float extractDepth = depths[centerIdx];
+        int centerIdx = 0;
+        centerIdx = centerWidth-1 + dpth->width * centerHeight-1;
+        extractDepths[0] = depths[centerIdx]; //0
+        centerIdx = centerWidth + dpth->width * centerHeight-1;
+        extractDepths[1] = depths[centerIdx]; //1
+        centerIdx = centerWidth+1 + dpth->width * centerHeight-1;
+        extractDepths[2] = depths[centerIdx]; //2
+
+
+
+
+
+
         //check if pixel is nan
-        if (isnan(extractDepth)) {
+        /*if (isnan(extractDepth)) {
             //what should I do if NaN is detected - probably take an average from several pixels?
             cout << "nan detected \n";
             extractDepth = 0;
@@ -136,8 +157,8 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
             //broadcastTransform(objectNo, extractDepth);
         }
         else {
-            cout << "what does this do \n";
-        }
+            cout << "catchment for errors \n";
+        }*/
         
     }
     //cout << "dpth" << "\n";
