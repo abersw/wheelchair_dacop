@@ -115,7 +115,6 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     //get image height and width
 
     float* depths = (float*)(&dpth->data[0]);
-
     //image coordinates of the center of the bounding box
     int objectNo = 0;
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
@@ -126,14 +125,19 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         int centerIdx = centerWidth + dpth->width * centerHeight;
         float extractDepth = depths[centerIdx];
         //check if pixel is nan
-        //if (isnan(extractDepth)) {
+        if (isnan(extractDepth)) {
             //what should I do if NaN is detected - probably take an average from several pixels?
-        //}
-        //else {
+            cout << "nan detected \n";
+            extractDepth = 0;
+        }
+        else if (extractDepth > 0) {
             detectedObjects[objectNo].distance = extractDepth;
             cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n";
-            broadcastTransform(objectNo, extractDepth);
-        //}
+            //broadcastTransform(objectNo, extractDepth);
+        }
+        else {
+            cout << "what does this do \n";
+        }
         
     }
     //cout << "dpth" << "\n";
@@ -156,7 +160,8 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
     }
 }*/
 
-void objectDepth(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
+void objectsFound(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
+    //get depth data on each publish from mobilenet
     totalObjectsDetected = (int)obj->totalObjectsInFrame;
     int objectNo = 0;
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
@@ -182,10 +187,10 @@ int main(int argc, char **argv) {
     //tf2_ros::Buffer tfBuffer;
     //tf2_ros::TransformListener tfListener(tfBuffer);
     //tf2_ros::TransformBroadcaster tb;
-
+    ros::Rate rate(20);
     ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
-    ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 10, objectDepth);
+    ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
     cout << "spin \n";
     ros::spin();
 
