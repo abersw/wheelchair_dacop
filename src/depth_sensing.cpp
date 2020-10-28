@@ -155,10 +155,22 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         centerIdx = centerWidth+1 + dpth->width * centerHeight+1;
         extractDepths[8] = depths[centerIdx]; //8
 
+        int depthsReceived = 0;
+        float extractDepth = 0;
+        float addAverageDepths = 0;
         for (int isPixel = 0; isPixel < pixelSampleNo; isPixel++) {
-
+            if (isnan(extractDepths[isPixel])) {
+                //don't add a nan to the equation
+            }
+            else {
+                addAverageDepths += extractDepths[isPixel];
+                depthsReceived++;
+            }
         }
-
+        extractDepth = addAverageDepths / depthsReceived;
+        detectedObjects[objectNo].distance = extractDepth;
+        cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n";
+        //broadcastTransform(objectNo, detectedObjects[objectNo].distance)
 
 
         //check if pixel is nan
@@ -177,6 +189,7 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         }*/
         
     }
+    //broadcastTransform may be better here
     //cout << "dpth" << "\n";
 }
 
