@@ -53,9 +53,39 @@ void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
     cout << imageHeight << "x" << imageWidth << "\n";
 }
 
-void broadcastTransform(int objectId, float extractDepth) {
-    geometry_msgs::TransformStamped tfStamp;
-    static tf2_ros::TransformBroadcaster br;
+void broadcastTransform() {
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        geometry_msgs::TransformStamped tfStamp;
+        static tf2_ros::TransformBroadcaster br;
+
+
+        //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
+        //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
+
+        //ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
+
+
+        tfStamp.header.stamp = ros::Time::now();
+        tfStamp.header.frame_id = "zed_left_camera_depth_link";
+
+        string frameName = "target_frame";
+        tfStamp.child_frame_id = frameName;
+
+        tfStamp.transform.translation.x = detectedObjects[isObject].distance;
+        tfStamp.transform.translation.y = detectedObjects[isObject].box_x; //was offset x
+        tfStamp.transform.translation.z = detectedObjects[isObject].box_y; //was offset y
+
+        tf2::Quaternion quat;
+        quat.setRPY(0, 0, 0);
+        tfStamp.transform.rotation.x = quat.x();
+        tfStamp.transform.rotation.y = quat.y();
+        tfStamp.transform.rotation.z = quat.z();
+        tfStamp.transform.rotation.w = quat.w();
+
+        br.sendTransform(tfStamp);
+    }
+
+
 
     //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
     //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
@@ -190,6 +220,7 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         
     }
     //broadcastTransform may be better here
+    broadcastTransform(); //send transform of objects
     //cout << "dpth" << "\n";
 }
 
