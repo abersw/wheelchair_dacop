@@ -54,9 +54,11 @@ void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
 }
 
 void broadcastTransform() {
+    tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
+    tf2_ros::TransformBroadcaster br;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         geometry_msgs::TransformStamped tfStamp;
-        static tf2_ros::TransformBroadcaster br;
 
 
         //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
@@ -265,9 +267,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
-    //tf2_ros::Buffer tfBuffer;
-    //tf2_ros::TransformListener tfListener(tfBuffer);
-    //tf2_ros::TransformBroadcaster tb;
     ros::Rate rate(20);
     ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
