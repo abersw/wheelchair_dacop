@@ -15,16 +15,22 @@
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/TransformStamped.h"
 
-#include "tf2_ros/transform_listener.h"
-#include "tf2_ros/transform_broadcaster.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-#include <tf2/LinearMath/Quaternion.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+
+#include "tf/transform_listener.h"
+#include "tf/transform_broadcaster.h"
+#include "tf/transform_datatypes.h"
+//#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+//#include <tf/LinearMath/Quaternion.h>
 #include <cmath>
 
 
 
 #include <sstream>
 using namespace std;
+//using namespace message_filters;
+//using namespace sensor_msgs;
 
 bool gotResolution = 0;
 int imageHeight = 0;
@@ -54,37 +60,43 @@ void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
 }
 
 void broadcastTransform() {
-    tf2_ros::Buffer tfBuffer;
-    tf2_ros::TransformListener tfListener(tfBuffer);
-    tf2_ros::TransformBroadcaster br;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        geometry_msgs::TransformStamped tfStamp;
+        cout << detectedObjects[isObject].distance << "\n";
+        if (!isnan(detectedObjects[isObject].distance)) {
+            //tf::TransformListener listener;
+            //get transform listener code in here
+            
+            
 
 
-        //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
-        //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
+            //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
+            //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
 
-        //ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
+            //ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
 
 
-        tfStamp.header.stamp = ros::Time::now();
-        tfStamp.header.frame_id = "zed_left_camera_depth_link";
+            /*tfStamp.header.stamp = ros::Time::now();
+            tfStamp.header.frame_id = "zed_left_camera_depth_link";
 
-        string frameName = "target_frame";
-        tfStamp.child_frame_id = frameName;
+            string frameName = "target_frame " + isObject;
+            tfStamp.child_frame_id = frameName;
 
-        tfStamp.transform.translation.x = detectedObjects[isObject].distance;
-        tfStamp.transform.translation.y = detectedObjects[isObject].box_x; //was offset x
-        tfStamp.transform.translation.z = detectedObjects[isObject].box_y; //was offset y
+            tfStamp.transform.translation.x = detectedObjects[isObject].distance;
+            tfStamp.transform.translation.y = detectedObjects[isObject].box_x; //was offset x
+            tfStamp.transform.translation.z = detectedObjects[isObject].box_y; //was offset y
 
-        tf2::Quaternion quat;
-        quat.setRPY(0, 0, 0);
-        tfStamp.transform.rotation.x = quat.x();
-        tfStamp.transform.rotation.y = quat.y();
-        tfStamp.transform.rotation.z = quat.z();
-        tfStamp.transform.rotation.w = quat.w();
+            tf2::Quaternion quat;
+            quat.setRPY(0, 0, 0);
+            tfStamp.transform.rotation.x = quat.x();
+            tfStamp.transform.rotation.y = quat.y();
+            tfStamp.transform.rotation.z = quat.z();
+            tfStamp.transform.rotation.w = quat.w();
 
-        br.sendTransform(tfStamp);
+            br.sendTransform(tfStamp);*/
+        }
+        else {
+            cout << "object returns depth nan - don't broadcast transform \n";
+        }
     }
 
 
@@ -222,7 +234,7 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
         
     }
     //broadcastTransform may be better here
-    broadcastTransform(); //send transform of objects
+    //broadcastTransform(); //send transform of objects
     //cout << "dpth" << "\n";
 }
 
@@ -245,8 +257,9 @@ void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
 
 void objectsFound(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     //get depth data on each publish from mobilenet
-    totalObjectsDetected = (int)obj->totalObjectsInFrame;
+    totalObjectsDetected = obj->totalObjectsInFrame;
     int objectNo = 0;
+    //cout << "start frame \n";
     for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
         //detectedObjects[objectNo].object_name = obj->object_name->[0];
         detectedObjects[objectNo].object_name = obj->object_name[objectNo];
@@ -268,9 +281,13 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
 
     ros::Rate rate(20);
-    ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
+    //ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
-    ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
+    //ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
+
+    //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "/zed_node/depth/depth_registered", 1);
+    //message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "/wheelchair_robot/mobilenet/detected_objects", 1);
+    //TimeSynchronizer<sensor_msgs::Image, wheelchair_msgs::mobilenet> sync(depth_sub, objects_sub, 10);
     cout << "spin \n";
     ros::spin();
 
