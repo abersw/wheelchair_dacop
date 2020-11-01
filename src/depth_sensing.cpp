@@ -224,7 +224,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         /*  Broadcast transform  */
         tf::TransformListener listener;
         tf::TransformBroadcaster br;
-
+/*
         for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
             tf::StampedTransform tfStamp;
             tf::TransformBroadcaster br;
@@ -246,7 +246,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             //X = Z / fx * (u - cx)
             //Y = Z / fy * (v - cy)
             //[Z = D]
-
+/*
             float r = -1.5708;
             float p = 0;
             float y = -3.1415;
@@ -257,15 +257,19 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             tfStamp.setRotation(quat);
             //tfStamp.header.stamp = ros::Time::now();
             string framename = "target_frame "+ isObject;
-            br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_depth_link",framename));
-
+            if (!isnan(detectedObjects[isObject].distance)) {
+                br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_depth_link",framename));
+            }
+            else {
+                //don't publish
+            }
 
             //tfStamp.header.stamp = ros::Time::now();
             //tfStamp.header.frame_id = "zed_left_camera_depth_link";
 
             //string frameName = "target_frame " + isObject;
             //tfStamp.child_frame_id = frameName;
-        }
+        }*/
     }
 }
 
