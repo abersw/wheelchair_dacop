@@ -1,0 +1,4 @@
+<launch>
+
+<node pkg="wheelchair_dacop" name="depth_sensing" type="depth_sensing" output="screen" launch-prefix="valgrind -v"></node>
+</launch>

@@ -162,19 +162,29 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         detectedObjects[isObject].box_y = obj->box_y[isObject];
         detectedObjects[isObject].box_width = obj->box_width[isObject];
         detectedObjects[isObject].box_height = obj->box_height[isObject];
-        //cout << detectedObjects[isObject].object_name << "\n";
+        cout << detectedObjects[isObject].object_name << "\n";
     }
 
     /*  Get depths from bounding box data  */
-    float* depthsPtr = (float*)(&dpth->data[0]);
-
+    
+    //float* depthsPtr;
+    //depthsPtr = (float*)&dpth->data[0];
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        float* depths = (float*)(&dpth->data[0]);
+        //int u = dpth->width / 2;
+        //int v = dpth->height / 2;
+        int u = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2;
+        int v = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2;
+        int centerIdx = u + dpth->width * v;
+        ROS_INFO_STREAM("Center distance : " << detectedObjects[isObject].object_name << " is " << depths[centerIdx] << "\n");
+        /*
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
         int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
         detectedObjects[isObject].centerX = centerWidth;
         detectedObjects[isObject].centerY = centerHeight;
 
-        float extractDepths[pixelSampleNo];
+
+*
         /*
         Sample pixel layout
             0 1 2
@@ -182,10 +192,20 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             6 7 8
         */
         //linear index of the pixel
-        int centerIdx = 0;
-        centerIdx = centerWidth-1 + dpth->width * centerHeight-1;
-        extractDepths[0] = depthsPtr[centerIdx]; //0
-        centerIdx = centerWidth + dpth->width * centerHeight-1;
+       // float extractDepths[pixelSampleNo];
+        //int centerIdx = 0;
+        //centerIdx = centerWidth-1 + imageWidth * centerHeight-1;
+        
+            //cout << depthsPtr[centerIdx] << "\n";
+        //free(depthsPtr);
+        //cout << centerIdx << "\n";
+        //float myDepth = (float)depthsPtr[centerIdx];
+        //float getDepthValue = depthsPtr[centerIdx];
+        /*if (!isnan(getDepthValue)) {
+            extractDepths[0] =  getDepthValue;//0
+        }*/
+        
+        /*centerIdx = centerWidth + dpth->width * centerHeight-1;
         extractDepths[1] = depthsPtr[centerIdx]; //1
         centerIdx = centerWidth+1 + dpth->width * centerHeight-1;
         extractDepths[2] = depthsPtr[centerIdx]; //2
@@ -203,9 +223,9 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         centerIdx = centerWidth + dpth->width * centerHeight+1;
         extractDepths[7] = depthsPtr[centerIdx]; //7
         centerIdx = centerWidth+1 + dpth->width * centerHeight+1;
-        extractDepths[8] = depthsPtr[centerIdx]; //8
+        extractDepths[8] = depthsPtr[centerIdx]; //8*/
 
-        int depthsReceived = 0;
+        /*int depthsReceived = 0;
         float extractDepth = 0;
         float addAverageDepths = 0;
         for (int isPixel = 0; isPixel < pixelSampleNo; isPixel++) {
@@ -220,10 +240,10 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         extractDepth = addAverageDepths / depthsReceived;
         detectedObjects[isObject].distance = extractDepth;
         cout << "distance of " << detectedObjects[isObject].object_name << " is " << detectedObjects[isObject].distance << "\n";
-
+*/
         /*  Broadcast transform  */
-        tf::TransformListener listener;
-        tf::TransformBroadcaster br;
+        //tf::TransformListener listener;
+        //tf::TransformBroadcaster br;
 /*
         for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
             tf::StampedTransform tfStamp;
@@ -282,7 +302,7 @@ int main(int argc, char **argv) {
     //ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
     //ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
-    ros::Rate rate(20);
+    //ros::Rate rate(20);
     message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, wheelchair_msgs::mobilenet> MySyncPolicy;
