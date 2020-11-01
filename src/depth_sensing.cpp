@@ -176,71 +176,18 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         int u = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2;
         int v = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2;
         int centerIdx = u + dpth->width * v;
-        ROS_INFO_STREAM("Center distance : " << detectedObjects[isObject].object_name << " is " << depths[centerIdx] << "\n");
-        /*
-        int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
-        int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
-        detectedObjects[isObject].centerX = centerWidth;
-        detectedObjects[isObject].centerY = centerHeight;
+        detectedObjects[isObject].distance = depths[centerIdx];
+        ROS_INFO_STREAM("Center distance : " << detectedObjects[isObject].object_name << " is " << detectedObjects[isObject].distance << "\n");
 
 
-*
         /*
         Sample pixel layout
             0 1 2
             3 4 5
             6 7 8
         */
-        //linear index of the pixel
-       // float extractDepths[pixelSampleNo];
-        //int centerIdx = 0;
-        //centerIdx = centerWidth-1 + imageWidth * centerHeight-1;
         
-            //cout << depthsPtr[centerIdx] << "\n";
-        //free(depthsPtr);
-        //cout << centerIdx << "\n";
-        //float myDepth = (float)depthsPtr[centerIdx];
-        //float getDepthValue = depthsPtr[centerIdx];
-        /*if (!isnan(getDepthValue)) {
-            extractDepths[0] =  getDepthValue;//0
-        }*/
-        
-        /*centerIdx = centerWidth + dpth->width * centerHeight-1;
-        extractDepths[1] = depthsPtr[centerIdx]; //1
-        centerIdx = centerWidth+1 + dpth->width * centerHeight-1;
-        extractDepths[2] = depthsPtr[centerIdx]; //2
 
-        centerIdx = centerWidth-1 + dpth->width * centerHeight;
-        extractDepths[3] = depthsPtr[centerIdx]; //3
-        centerIdx = centerWidth + dpth->width * centerHeight;
-        extractDepths[4] = depthsPtr[centerIdx]; //4
-        
-        centerIdx = centerWidth+1 + dpth->width * centerHeight;
-        extractDepths[5] = depthsPtr[centerIdx]; //5
-
-        centerIdx = centerWidth-1 + dpth->width * centerHeight+1;
-        extractDepths[6] = depthsPtr[centerIdx]; //6
-        centerIdx = centerWidth + dpth->width * centerHeight+1;
-        extractDepths[7] = depthsPtr[centerIdx]; //7
-        centerIdx = centerWidth+1 + dpth->width * centerHeight+1;
-        extractDepths[8] = depthsPtr[centerIdx]; //8*/
-
-        /*int depthsReceived = 0;
-        float extractDepth = 0;
-        float addAverageDepths = 0;
-        for (int isPixel = 0; isPixel < pixelSampleNo; isPixel++) {
-            if (isnan(extractDepths[isPixel])) {
-                //don't add a nan to the equation
-            }
-            else {
-                addAverageDepths += extractDepths[isPixel];
-                depthsReceived++;
-            }
-        }
-        extractDepth = addAverageDepths / depthsReceived;
-        detectedObjects[isObject].distance = extractDepth;
-        cout << "distance of " << detectedObjects[isObject].object_name << " is " << detectedObjects[isObject].distance << "\n";
-*/
         /*  Broadcast transform  */
         //tf::TransformListener listener;
         //tf::TransformBroadcaster br;
