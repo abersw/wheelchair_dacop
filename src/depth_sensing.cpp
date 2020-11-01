@@ -278,7 +278,81 @@ void objectsFound(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
 }
 
 void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    cout << "running time sync \n";
+    //notes save float pointer of depth to staticesque variable float
+    //cout << "running time sync \n";
+    /*  Get resolution of camera image */
+    if (gotResolution == 0) {
+        getResolutionOnStartup(dpth);
+        gotResolution = 1;
+    }
+
+    /*  Deserialise the detected object */
+    totalObjectsDetected = obj->totalObjectsInFrame;
+    //cout << totalObjectsDetected << "\n";
+
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        detectedObjects[isObject].object_name = obj->object_name[isObject];
+        detectedObjects[isObject].object_confidence = obj->object_confidence[isObject];
+        detectedObjects[isObject].box_x = obj->box_x[isObject];
+        detectedObjects[isObject].box_y = obj->box_y[isObject];
+        detectedObjects[isObject].box_width = obj->box_width[isObject];
+        detectedObjects[isObject].box_height = obj->box_height[isObject];
+        //cout << detectedObjects[isObject].object_name << "\n";
+    }
+
+    /*  Get depths from bounding box data  */
+    float* depthsPtr = (float*)(&dpth->data[0]);
+
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
+        int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
+
+        float extractDepths[pixelSampleNo];
+        /*
+        Sample pixel layout
+            0 1 2
+            3 4 5
+            6 7 8
+        */
+        //linear index of the pixel
+        int centerIdx = 0;
+        centerIdx = centerWidth-1 + dpth->width * centerHeight-1;
+        extractDepths[0] = depthsPtr[centerIdx]; //0
+        centerIdx = centerWidth + dpth->width * centerHeight-1;
+        extractDepths[1] = depthsPtr[centerIdx]; //1
+        centerIdx = centerWidth+1 + dpth->width * centerHeight-1;
+        extractDepths[2] = depthsPtr[centerIdx]; //2
+
+        centerIdx = centerWidth-1 + dpth->width * centerHeight;
+        extractDepths[3] = depthsPtr[centerIdx]; //3
+        centerIdx = centerWidth + dpth->width * centerHeight;
+        extractDepths[4] = depthsPtr[centerIdx]; //4
+        centerIdx = centerWidth+1 + dpth->width * centerHeight;
+        extractDepths[5] = depthsPtr[centerIdx]; //5
+
+        centerIdx = centerWidth-1 + dpth->width * centerHeight+1;
+        extractDepths[6] = depthsPtr[centerIdx]; //6
+        centerIdx = centerWidth + dpth->width * centerHeight+1;
+        extractDepths[7] = depthsPtr[centerIdx]; //7
+        centerIdx = centerWidth+1 + dpth->width * centerHeight+1;
+        extractDepths[8] = depthsPtr[centerIdx]; //8
+
+        int depthsReceived = 0;
+        float extractDepth = 0;
+        float addAverageDepths = 0;
+        for (int isPixel = 0; isPixel < pixelSampleNo; isPixel++) {
+            if (isnan(extractDepths[isPixel])) {
+                //don't add a nan to the equation
+            }
+            else {
+                addAverageDepths += extractDepths[isPixel];
+                depthsReceived++;
+            }
+        }
+        extractDepth = addAverageDepths / depthsReceived;
+        detectedObjects[isObject].distance = extractDepth;
+        cout << "distance of " << detectedObjects[isObject].object_name << " is " << detectedObjects[isObject].distance << "\n";
+    }
 }
 
 int main(int argc, char **argv) {
@@ -296,6 +370,7 @@ int main(int argc, char **argv) {
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
+
     cout << "spin \n";
     ros::spin();
 
