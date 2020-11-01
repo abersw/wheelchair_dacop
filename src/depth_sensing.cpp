@@ -49,6 +49,9 @@ struct DetectedObjects {
     int totalObjectsInFrame;
 
     float distance;
+    int centerX;
+    int centerY;
+    int centerZ;
 };
 
 int totalObjectsDetected;
@@ -168,6 +171,8 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
         int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
+        detectedObjects[isObject].centerX = centerWidth;
+        detectedObjects[isObject].centerY = centerHeight;
 
         float extractDepths[pixelSampleNo];
         /*
@@ -189,6 +194,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         extractDepths[3] = depthsPtr[centerIdx]; //3
         centerIdx = centerWidth + dpth->width * centerHeight;
         extractDepths[4] = depthsPtr[centerIdx]; //4
+        
         centerIdx = centerWidth+1 + dpth->width * centerHeight;
         extractDepths[5] = depthsPtr[centerIdx]; //5
 
@@ -217,17 +223,19 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
 
         /*  Broadcast transform  */
         tf::TransformListener listener;
+        tf::TransformBroadcaster br;
 
         for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
             tf::StampedTransform tfStamp;
-            try{
+            tf::TransformBroadcaster br;
+            /*try{
                 listener.lookupTransform("/map", "/base_footprint", ros::Time(0), tfStamp);
             }
             catch (tf::TransformException &ex) {
                 ROS_ERROR("%s",ex.what());
                 ros::Duration(1.0).sleep();
                 continue;
-            }
+            }*/
             //https://stackoverflow.com/questions/38909696/2d-coordinate-to-3d-world-coordinate
             //general equation is
             //u = fx * (X / Z) + cx
@@ -239,8 +247,17 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             //Y = Z / fy * (v - cy)
             //[Z = D]
 
+            float r = -1.5708;
+            float p = 0;
+            float y = -3.1415;
 
-
+            tfStamp.setOrigin(tf::Vector3(detectedObjects[isObject].centerX, detectedObjects[isObject].centerY, detectedObjects[isObject].distance));
+            tf::Quaternion quat;
+            quat.setRPY(r,p,y);  //where r p y are fixed 
+            tfStamp.setRotation(quat);
+            //tfStamp.header.stamp = ros::Time::now();
+            string framename = "target_frame "+ isObject;
+            br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_depth_link",framename));
 
 
             //tfStamp.header.stamp = ros::Time::now();
