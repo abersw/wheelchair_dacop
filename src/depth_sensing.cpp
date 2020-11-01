@@ -138,144 +138,6 @@ void broadcastTransform() {
     t.transform.rotation.w = q[3]*/
 }
 
-void depthCallback(const sensor_msgs::Image::ConstPtr& dpth) {
-
-    //get image resolution on startup only
-    if (gotResolution == 0) {
-        getResolutionOnStartup(dpth);
-        gotResolution = 1;
-    }
-
-    //get a pointer to the depth values casting the data
-    //pointer to floating point
-    //float* depths = (float*)(&dpth->data[0]);
-
-    //image coordinates of the center pixel
-    //int u = dpth->width / 2;
-    //int v = dpth->height / 2;
-
-    //linear index of the center pixel
-    //int centerIdx = u + dpth->width * v;
-
-    //output the measure
-    //ROS_INFO("Center distance : %g m", depths[centerIdx]);
-
-    //get image height and width
-
-    float* depths = (float*)(&dpth->data[0]);
-    //image coordinates of the center of the bounding box
-    int objectNo = 0;
-    for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
-        //get center of bounding box
-        //and offset +-3 on both axis, then take average, ignoring nan values
-        int centerWidth = detectedObjects[objectNo].box_x + detectedObjects[objectNo].box_width / 2;
-        int centerHeight = detectedObjects[objectNo].box_y + detectedObjects[objectNo].box_height / 2;
-
-        float extractDepths[pixelSampleNo];
-        /*
-        Sample pixel layout
-            0 1 2
-            3 4 5
-            6 7 8
-        */
-        //linear index of the pixel
-        int centerIdx = 0;
-        centerIdx = centerWidth-1 + dpth->width * centerHeight-1;
-        extractDepths[0] = depths[centerIdx]; //0
-        centerIdx = centerWidth + dpth->width * centerHeight-1;
-        extractDepths[1] = depths[centerIdx]; //1
-        centerIdx = centerWidth+1 + dpth->width * centerHeight-1;
-        extractDepths[2] = depths[centerIdx]; //2
-
-        centerIdx = centerWidth-1 + dpth->width * centerHeight;
-        extractDepths[3] = depths[centerIdx]; //3
-        centerIdx = centerWidth + dpth->width * centerHeight;
-        extractDepths[4] = depths[centerIdx]; //4
-        centerIdx = centerWidth+1 + dpth->width * centerHeight;
-        extractDepths[5] = depths[centerIdx]; //5
-
-        centerIdx = centerWidth-1 + dpth->width * centerHeight+1;
-        extractDepths[6] = depths[centerIdx]; //6
-        centerIdx = centerWidth + dpth->width * centerHeight+1;
-        extractDepths[7] = depths[centerIdx]; //7
-        centerIdx = centerWidth+1 + dpth->width * centerHeight+1;
-        extractDepths[8] = depths[centerIdx]; //8
-
-        int depthsReceived = 0;
-        float extractDepth = 0;
-        float addAverageDepths = 0;
-        for (int isPixel = 0; isPixel < pixelSampleNo; isPixel++) {
-            if (isnan(extractDepths[isPixel])) {
-                //don't add a nan to the equation
-            }
-            else {
-                addAverageDepths += extractDepths[isPixel];
-                depthsReceived++;
-            }
-        }
-        extractDepth = addAverageDepths / depthsReceived;
-        detectedObjects[objectNo].distance = extractDepth;
-        cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n";
-        //broadcastTransform(objectNo, detectedObjects[objectNo].distance)
-
-
-        //check if pixel is nan
-        /*if (isnan(extractDepth)) {
-            //what should I do if NaN is detected - probably take an average from several pixels?
-            cout << "nan detected \n";
-            extractDepth = 0;
-        }
-        else if (extractDepth > 0) {
-            detectedObjects[objectNo].distance = extractDepth;
-            cout << "distance of " << detectedObjects[objectNo].object_name << " is " << detectedObjects[objectNo].distance << "\n";
-            //broadcastTransform(objectNo, extractDepth);
-        }
-        else {
-            cout << "catchment for errors \n";
-        }*/
-        
-    }
-    //broadcastTransform may be better here
-    //broadcastTransform(); //send transform of objects
-    //cout << "dpth" << "\n";
-}
-
-/*void cloudCallback(const geometry_msgs::PointStamped::ConstPtr& cloud) {
-    int objectNo = 0;
-    for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
-        geometry_msgs::PointStamped pt;
-        geometry_msgs::PointStamped pt_transformed;
-
-        int centerWidth = detectedObjects[objectNo].box_x + detectedObjects[objectNo].box_width / 2;
-        int centerHeight = detectedObjects[objectNo].box_y + detectedObjects[objectNo].box_height / 2;
-
-        pt.header = cloud->header;
-        pt.point.x = centerWidth;
-        pt.point.y = centerHeight;
-        pt.point.z = cloud->point.z;
-
-    }
-}*/
-
-void objectsFound(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    //get depth data on each publish from mobilenet
-    totalObjectsDetected = obj->totalObjectsInFrame;
-    int objectNo = 0;
-    //cout << "start frame \n";
-    for (objectNo = 0; objectNo < totalObjectsDetected; objectNo++) {
-        //detectedObjects[objectNo].object_name = obj->object_name->[0];
-        detectedObjects[objectNo].object_name = obj->object_name[objectNo];
-        detectedObjects[objectNo].object_confidence = obj->object_confidence[objectNo];
-        detectedObjects[objectNo].box_x = obj->box_x[objectNo];
-        detectedObjects[objectNo].box_y = obj->box_y[objectNo];
-        detectedObjects[objectNo].box_width = obj->box_width[objectNo];
-        detectedObjects[objectNo].box_height = obj->box_height[objectNo];
-        //cout << detectedObjects[objectNo].object_name << "\n";
-    }
-    //cout << totalObjectsDetected;
-    //cout << "total objs " << totalObjectsDetected << "\n";
-    //cout << "others\n";
-}
 
 void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     //notes save float pointer of depth to staticesque variable float
@@ -352,6 +214,41 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         extractDepth = addAverageDepths / depthsReceived;
         detectedObjects[isObject].distance = extractDepth;
         cout << "distance of " << detectedObjects[isObject].object_name << " is " << detectedObjects[isObject].distance << "\n";
+
+        /*  Broadcast transform  */
+        tf::TransformListener listener;
+
+        for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+            tf::StampedTransform tfStamp;
+            try{
+                listener.lookupTransform("/map", "/base_footprint", ros::Time(0), tfStamp);
+            }
+            catch (tf::TransformException &ex) {
+                ROS_ERROR("%s",ex.what());
+                ros::Duration(1.0).sleep();
+                continue;
+            }
+            //https://stackoverflow.com/questions/38909696/2d-coordinate-to-3d-world-coordinate
+            //general equation is
+            //u = fx * (X / Z) + cx
+            //v = fy * (Y / Z) + cy
+
+            //So it is then straightforward to compute the 3D-coordinates:
+
+            //X = Z / fx * (u - cx)
+            //Y = Z / fy * (v - cy)
+            //[Z = D]
+
+
+
+
+
+            //tfStamp.header.stamp = ros::Time::now();
+            //tfStamp.header.frame_id = "zed_left_camera_depth_link";
+
+            //string frameName = "target_frame " + isObject;
+            //tfStamp.child_frame_id = frameName;
+        }
     }
 }
 
@@ -364,7 +261,7 @@ int main(int argc, char **argv) {
     //ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
     //ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
-
+    ros::Rate rate(20);
     message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, wheelchair_msgs::mobilenet> MySyncPolicy;
