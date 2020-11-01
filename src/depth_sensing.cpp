@@ -17,6 +17,8 @@
 
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
@@ -276,7 +278,7 @@ void objectsFound(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
 }
 
 void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-
+    cout << "running time sync \n";
 }
 
 int main(int argc, char **argv) {
@@ -284,15 +286,16 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
-    ros::Rate rate(20);
-    ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
+    //ros::Rate rate(20);
+    //ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
     //ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
 
-    message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "/zed_node/depth/depth_registered", 1);
-    message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "/wheelchair_robot/mobilenet/detected_objects", 1);
-    message_filters::TimeSynchronizer<sensor_msgs::Image, wheelchair_msgs::mobilenet> sync(depth_sub, objects_sub, 10);
-    sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
+    message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
+    message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, wheelchair_msgs::mobilenet> MySyncPolicy;
+    message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
+    depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
     cout << "spin \n";
     ros::spin();
 
