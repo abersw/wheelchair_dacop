@@ -193,7 +193,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         //tf::TransformListener listener;
         //tf::TransformBroadcaster br;
 
-        for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        //for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
             tf::StampedTransform tfStamp;
             tf::TransformBroadcaster br;
             /*try{
@@ -224,8 +224,9 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             quat.setRPY(r,p,y);  //where r p y are fixed 
             tfStamp.setRotation(quat);
             //tfStamp.header.stamp = ros::Time::now();
-            string framename = "target_frame "+ isObject;
+            std::string framename = "target_frame_" + std::to_string(isObject);
             if (!isnan(detectedObjects[isObject].distance)) {
+                ROS_INFO_STREAM("frame name is " << framename);
                 br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_optical_frame",framename));
             }
             else {
@@ -237,7 +238,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
 
             //string frameName = "target_frame " + isObject;
             //tfStamp.child_frame_id = frameName;
-        }
+        //}
     }
 }
 
