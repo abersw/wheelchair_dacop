@@ -215,11 +215,20 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             //Y = Z / fy * (v - cy)
             //[Z = D]
 
+            /*
+            #use x,y pixel point to give offset on y and z (assuming 1:10 then down to m)
+		    x_offset = (self.x-(self.imageX/2))/1000
+		    y_offset = (self.y-(self.imageY/2))/1000
+            */
+           int x_offset = (detectedObjects[isObject].centerX-(imageWidth/2)/1000);
+           int y_offset = (detectedObjects[isObject].centerY-(imageHeight/2)/1000);
+
             float r = -1.5708;
             float p = 0;
             float y = -3.1415;
 
-            tfStamp.setOrigin(tf::Vector3(detectedObjects[isObject].centerX, detectedObjects[isObject].centerY, detectedObjects[isObject].distance));
+            //tfStamp.setOrigin(tf::Vector3(detectedObjects[isObject].centerX, detectedObjects[isObject].centerY, detectedObjects[isObject].distance));
+            tfStamp.setOrigin(tf::Vector3(x_offset, y_offset, detectedObjects[isObject].distance));
             tf::Quaternion quat;
             quat.setRPY(r,p,y);  //where r p y are fixed 
             tfStamp.setRotation(quat);
