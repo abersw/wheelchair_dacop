@@ -196,6 +196,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         //for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
             tf::StampedTransform tfStamp;
             tf::TransformBroadcaster br;
+            tf::TransformListener ls;
             /*try{
                 listener.lookupTransform("/map", "/base_footprint", ros::Time(0), tfStamp);
             }
@@ -236,6 +237,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             std::string framename = "target_frame_" + std::to_string(isObject);
             if (!isnan(detectedObjects[isObject].distance)) {
                 ROS_INFO_STREAM("frame name is " << framename);
+                //ls.lookupTransform("/map", framename, ros::Time::now(), tfStamp);
                 br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_optical_frame",framename));
             }
             else {
@@ -256,11 +258,12 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
-    //ros::Rate rate(20);
+    //ros::Rate rate(10);
     //ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
     //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
     //ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
     //ros::Rate rate(20);
+    //while()
     message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, wheelchair_msgs::mobilenet> MySyncPolicy;
@@ -269,6 +272,7 @@ int main(int argc, char **argv) {
 
     cout << "spin \n";
     ros::spin();
+    //rate.sleep();
 
     return 0;
 }
