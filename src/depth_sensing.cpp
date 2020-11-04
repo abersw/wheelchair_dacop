@@ -196,7 +196,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         //for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
             tf::StampedTransform tfStamp;
             tf::TransformBroadcaster br;
-            tf::TransformListener ls;
+            //tf::TransformListener ls;
             /*try{
                 listener.lookupTransform("/map", "/base_footprint", ros::Time(0), tfStamp);
             }
@@ -221,15 +221,33 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
 		    x_offset = (self.x-(self.imageX/2))/1000
 		    y_offset = (self.y-(self.imageY/2))/1000
             */
-           int x_offset = (detectedObjects[isObject].centerX-(imageWidth/2)/1000);
-           int y_offset = (detectedObjects[isObject].centerY-(imageHeight/2)/1000);
+           /*
+           [LEFT_CAM_HD]
+            fx=700.819
+            fy=700.819
+            cx=665.465
+            cy=371.953
+            k1=-0.174318
+            k2=0.0261121
+            */
+           int cx = 655.465;
+           int cy = 371.953;
+           int fx = 700.819;
+           int fy = 700.819;
+
+           float x_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerX - cx) / fx;
+           float y_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerY - cy) / fy;
+           //int x_offset = (detectedObjects[isObject].centerX-(imageWidth/2)/1000);
+           //int y_offset = (detectedObjects[isObject].centerY-(imageHeight/2)/1000);
+           cout << "x: " << x_offset << "y: " << y_offset << "\n";
+
 
             float r = -1.5708;
             float p = 0;
             float y = -3.1415;
 
             //tfStamp.setOrigin(tf::Vector3(detectedObjects[isObject].centerX, detectedObjects[isObject].centerY, detectedObjects[isObject].distance));
-            tfStamp.setOrigin(tf::Vector3(x_offset, y_offset, detectedObjects[isObject].distance));
+            tfStamp.setOrigin(tf::Vector3(0-x_offset, 0-y_offset, detectedObjects[isObject].distance));
             tf::Quaternion quat;
             quat.setRPY(r,p,y);  //where r p y are fixed 
             tfStamp.setRotation(quat);
