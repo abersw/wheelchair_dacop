@@ -170,6 +170,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
     
     //float* depthsPtr;
     //depthsPtr = (float*)&dpth->data[0];
+    //not sure if a depth image is going to work now....
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         float* depths = (float*)(&dpth->data[0]);
         //int u = dpth->width / 2;
@@ -194,8 +195,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
         //tf::TransformBroadcaster br;
 
         //for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-            tf::StampedTransform tfStamp;
-            tf::TransformBroadcaster br;
+            
             //tf::TransformListener ls;
             /*try{
                 listener.lookupTransform("/map", "/base_footprint", ros::Time(0), tfStamp);
@@ -230,16 +230,20 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             k1=-0.174318
             k2=0.0261121
             */
-           int cx = 655.465;
-           int cy = 371.953;
-           int fx = 700.819;
-           int fy = 700.819;
 
-           float x_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerX - cx) / fx;
-           float y_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerY - cy) / fy;
-           //int x_offset = (detectedObjects[isObject].centerX-(imageWidth/2)/1000);
-           //int y_offset = (detectedObjects[isObject].centerY-(imageHeight/2)/1000);
-           cout << "x: " << x_offset << "y: " << y_offset << "\n";
+            tf::StampedTransform tfStamp;
+            tf::TransformBroadcaster br;
+
+            int cx = 655.465;
+            int cy = 371.953;
+            int fx = 700.819;
+            int fy = 700.819;
+
+            float x_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerX - cx) / fx;
+            float y_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerY - cy) / fy;
+            //int x_offset = (detectedObjects[isObject].centerX-(imageWidth/2)/1000);
+            //int y_offset = (detectedObjects[isObject].centerY-(imageHeight/2)/1000);
+            cout << "x: " << x_offset << "y: " << y_offset << "\n";
 
 
             float r = -1.5708;
