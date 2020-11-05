@@ -141,6 +141,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/wheelchair_dacop_node.cpp)
 add_executable(depth_sensing src/depth_sensing.cpp)
+add_executable(cloud_transform src/cloud_transform.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +158,7 @@ add_executable(depth_sensing src/depth_sensing.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(depth_sensing ${catkin_LIBRARIES})
+target_link_libraries(cloud_transform ${catkin_LIBRARIES})
 
 #############
 ## Install ##
