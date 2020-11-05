@@ -229,6 +229,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         ROS_INFO_STREAM("frame name is " << framename);
         //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
         br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", framename));
+        br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
     }
 }
 
