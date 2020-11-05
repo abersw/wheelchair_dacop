@@ -182,6 +182,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     my_pcl = *dpth;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         tf::StampedTransform tfStamp;
+        tf::TransformBroadcaster br;
 
         int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
 
@@ -210,6 +211,14 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         float y = -3.1415;
 
         tfStamp.setOrigin(tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z));
+        tf::Quaternion quat;
+        quat.setRPY(r,p,y);  //where r p y are fixed 
+        tfStamp.setRotation(quat);
+
+        std::string framename = "target_frame_" + std::to_string(isObject);
+        ROS_INFO_STREAM("frame name is " << framename);
+        //ls.lookupTransform("/map", framename, ros::Time::now(), tfStamp);
+        br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_optical_frame",framename));
 
     }
     //original depth image code
