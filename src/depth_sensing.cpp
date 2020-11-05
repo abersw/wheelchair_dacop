@@ -66,6 +66,8 @@ int totalObjectsDetected;
 
 struct DetectedObjects detectedObjects[100];
 
+tf::StampedTransform transform;
+
 sensor_msgs::PointCloud2 my_pcl;
 sensor_msgs::PointCloud2 depth;
 pcl::PointCloud < pcl::PointXYZ > pcl_cloud;
@@ -198,11 +200,15 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         memcpy(&Y, &my_pcl.data[arrayPosY], sizeof(float));
         memcpy(&Z, &my_pcl.data[arrayPosZ], sizeof(float));
 
-        geometry_msgs::Point objectPoint;
 
-        objectPoint.x = X;
-        objectPoint.y = Y;
-        objectPoint.z = Z;
+        geometry_msgs::PointStamped objectPoint;
+        std::string framename = "target_frame_" + std::to_string(isObject);
+
+        objectPoint.header.frame_id = framename;
+        objectPoint.header.stamp = ros::Time::now();
+        objectPoint.point.x = X;
+        objectPoint.point.y = Y;
+        objectPoint.point.z = Z;
 
         cout << "Point is " << objectPoint << "\n";
 
@@ -210,16 +216,15 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         float p = 0;
         float y = -3.1415;
 
-        tfStamp.setOrigin(tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z));
+        tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed 
         tfStamp.setRotation(quat);
 
-        std::string framename = "target_frame_" + std::to_string(isObject);
+        
         ROS_INFO_STREAM("frame name is " << framename);
-        //ls.lookupTransform("/map", framename, ros::Time::now(), tfStamp);
         br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_optical_frame",framename));
-
+        
     }
     //original depth image code
     //float* depthsPtr;
