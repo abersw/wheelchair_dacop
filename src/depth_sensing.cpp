@@ -220,6 +220,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         float y = -3.1415;
 
         tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
+        transform.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed 
         tfStamp.setRotation(quat);
