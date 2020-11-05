@@ -183,9 +183,10 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
     /*  Get depths from bounding box data  */
     my_pcl = *dpth;
+    tf::TransformBroadcaster br;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         tf::StampedTransform tfStamp;
-        tf::TransformBroadcaster br;
+        
 
         int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
 
@@ -234,7 +235,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
 
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
