@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   tf
+  pcl_conversions
+  pcl_ros
   geometry_msgs
   std_msgs
   wheelchair_msgs

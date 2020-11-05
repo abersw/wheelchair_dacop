@@ -7,6 +7,7 @@
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
 #include "sensor_msgs/Image.h"
+#include "sensor_msgs/PointCloud2.h"
 
 //experimental
 #include "geometry_msgs/PointStamped.h"
@@ -19,6 +20,12 @@
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+
+#include <pcl/point_types.h>
+#include <pcl_ros/transforms.h>
+#include <pcl/conversions.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
 
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
@@ -58,6 +65,10 @@ struct DetectedObjects {
 int totalObjectsDetected;
 
 struct DetectedObjects detectedObjects[100];
+
+sensor_msgs::PointCloud2 my_pcl;
+sensor_msgs::PointCloud2 depth;
+pcl::PointCloud < pcl::PointXYZ > pcl_cloud;
 
 void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
     imageHeight = dpth->height;
@@ -143,12 +154,12 @@ void broadcastTransform() {
 }
 
 
-void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
+void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     //notes save float pointer of depth to staticesque variable float
     //cout << "running time sync \n";
     /*  Get resolution of camera image */
     if (gotResolution == 0) {
-        getResolutionOnStartup(dpth);
+        //getResolutionOnStartup(dpth);
         gotResolution = 1;
     }
 
@@ -167,11 +178,28 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
     }
 
     /*  Get depths from bounding box data  */
-    
+
+    my_pcl = *dpth;
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
+
+        int arrayPosX = arrayPosition + my_pcl.fields[0].offset; // X has an offset of 0
+        int arrayPosY = arrayPosition + my_pcl.fields[1].offset; // Y has an offset of 4
+        int arrayPosZ = arrayPosition + my_pcl.fields[2].offset; // Z has an offset of 8
+
+        float X;
+        float Y;
+        float Z;
+
+        memcpy(&X, &my_pcl.data[arrayPosX], sizeof(float));
+        memcpy(&Y, &my_pcl.data[arrayPosY], sizeof(float));
+        memcpy(&Z, &my_pcl.data[arrayPosZ], sizeof(float));
+    }
+    //original depth image code
     //float* depthsPtr;
     //depthsPtr = (float*)&dpth->data[0];
     //not sure if a depth image is going to work now....
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+    /*for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         float* depths = (float*)(&dpth->data[0]);
         //int u = dpth->width / 2;
         //int v = dpth->height / 2;
@@ -230,7 +258,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             k1=-0.174318
             k2=0.0261121
             */
-
+/*
             tf::StampedTransform tfStamp;
             tf::TransformBroadcaster br;
 
@@ -272,7 +300,7 @@ void objectDepthCallback(const sensor_msgs::Image::ConstPtr& dpth, const wheelch
             //string frameName = "target_frame " + isObject;
             //tfStamp.child_frame_id = frameName;
         //}
-    }
+    }*/
 }
 
 int main(int argc, char **argv) {
@@ -286,9 +314,10 @@ int main(int argc, char **argv) {
     //ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
     //ros::Rate rate(20);
     //while()
-    message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
+    //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, wheelchair_msgs::mobilenet> MySyncPolicy;
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
 
