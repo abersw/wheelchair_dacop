@@ -65,12 +65,14 @@ struct DetectedObjects {
 int totalObjectsDetected;
 
 struct DetectedObjects detectedObjects[100];
-
 tf::StampedTransform transform;
 
 sensor_msgs::PointCloud2 my_pcl;
 sensor_msgs::PointCloud2 depth;
 pcl::PointCloud < pcl::PointXYZ > pcl_cloud;
+
+pcl::PointCloud<pcl::PointXYZRGB> cloud_in;
+pcl::PointCloud<pcl::PointXYZRGB> cloud_trans;
 
 void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
     imageHeight = dpth->height;
@@ -180,7 +182,6 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     }
 
     /*  Get depths from bounding box data  */
-
     my_pcl = *dpth;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         tf::StampedTransform tfStamp;
@@ -223,115 +224,8 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
         
         ROS_INFO_STREAM("frame name is " << framename);
-        br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_optical_frame",framename));
-        
+        br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
     }
-    //original depth image code
-    //float* depthsPtr;
-    //depthsPtr = (float*)&dpth->data[0];
-    //not sure if a depth image is going to work now....
-    /*for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        float* depths = (float*)(&dpth->data[0]);
-        //int u = dpth->width / 2;
-        //int v = dpth->height / 2;
-        int u = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2;
-        int v = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2;
-        int centerIdx = u + dpth->width * v;
-        detectedObjects[isObject].distance = depths[centerIdx];
-        ROS_INFO_STREAM("Center distance : " << detectedObjects[isObject].object_name << " is " << detectedObjects[isObject].distance << "\n");
-
-
-        /*
-        Sample pixel layout
-            0 1 2
-            3 4 5
-            6 7 8
-        */
-        
-
-        /*  Broadcast transform  */
-        //tf::TransformListener listener;
-        //tf::TransformBroadcaster br;
-
-        //for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-            
-            //tf::TransformListener ls;
-            /*try{
-                listener.lookupTransform("/map", "/base_footprint", ros::Time(0), tfStamp);
-            }
-            catch (tf::TransformException &ex) {
-                ROS_ERROR("%s",ex.what());
-                ros::Duration(1.0).sleep();
-                continue;
-            }*/
-            //https://stackoverflow.com/questions/38909696/2d-coordinate-to-3d-world-coordinate
-            //general equation is
-            //u = fx * (X / Z) + cx
-            //v = fy * (Y / Z) + cy
-
-            //So it is then straightforward to compute the 3D-coordinates:
-
-            //X = Z / fx * (u - cx)
-            //Y = Z / fy * (v - cy)
-            //[Z = D]
-
-            /*
-            #use x,y pixel point to give offset on y and z (assuming 1:10 then down to m)
-		    x_offset = (self.x-(self.imageX/2))/1000
-		    y_offset = (self.y-(self.imageY/2))/1000
-            */
-           /*
-           [LEFT_CAM_HD]
-            fx=700.819
-            fy=700.819
-            cx=665.465
-            cy=371.953
-            k1=-0.174318
-            k2=0.0261121
-            */
-/*
-            tf::StampedTransform tfStamp;
-            tf::TransformBroadcaster br;
-
-            int cx = 655.465;
-            int cy = 371.953;
-            int fx = 700.819;
-            int fy = 700.819;
-
-            float x_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerX - cx) / fx;
-            float y_offset = detectedObjects[isObject].distance*(detectedObjects[isObject].centerY - cy) / fy;
-            //int x_offset = (detectedObjects[isObject].centerX-(imageWidth/2)/1000);
-            //int y_offset = (detectedObjects[isObject].centerY-(imageHeight/2)/1000);
-            cout << "x: " << x_offset << "y: " << y_offset << "\n";
-
-
-            float r = -1.5708;
-            float p = 0;
-            float y = -3.1415;
-
-            //tfStamp.setOrigin(tf::Vector3(detectedObjects[isObject].centerX, detectedObjects[isObject].centerY, detectedObjects[isObject].distance));
-            tfStamp.setOrigin(tf::Vector3(0-x_offset, 0-y_offset, detectedObjects[isObject].distance));
-            tf::Quaternion quat;
-            quat.setRPY(r,p,y);  //where r p y are fixed 
-            tfStamp.setRotation(quat);
-            //tfStamp.header.stamp = ros::Time::now();
-            std::string framename = "target_frame_" + std::to_string(isObject);
-            if (!isnan(detectedObjects[isObject].distance)) {
-                ROS_INFO_STREAM("frame name is " << framename);
-                //ls.lookupTransform("/map", framename, ros::Time::now(), tfStamp);
-                br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "zed_left_camera_optical_frame",framename));
-            }
-            else {
-                //don't publish
-            }
-
-            //tfStamp.header.stamp = ros::Time::now();
-            //tfStamp.header.frame_id = "zed_left_camera_depth_link";
-
-            //string frameName = "target_frame " + isObject;
-            //tfStamp.child_frame_id = frameName;
-        //}
-    }*/
 }
 
 int main(int argc, char **argv) {
@@ -339,12 +233,6 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
-    //ros::Rate rate(10);
-    //ros::Subscriber subDepth = n.subscribe("/zed_node/depth/depth_registered", 100, depthCallback);
-    //ros::Subscriber subCloud = n.subscribe("/zed_node/point_cloud/cloud_registered", 100, cloudCallback);
-    //ros::Subscriber subDetectedObjects = n.subscribe("/wheelchair_robot/mobilenet/detected_objects", 20, objectsFound);
-    //ros::Rate rate(20);
-    //while()
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
