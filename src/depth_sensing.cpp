@@ -183,11 +183,12 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
     /*  Get depths from bounding box data  */
     my_pcl = *dpth;
+    tf::StampedTransform tfStamp;
+    tf::Transform transform;
+    tf::TransformBroadcaster br;
     
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        tf::StampedTransform tfStamp;
-        tf::Transform transform;
-        tf::TransformBroadcaster br;
+        
 
         int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
 
@@ -219,18 +220,18 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         float p = 0;
         float y = -3.1415;
 
-        tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
-        transform.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
+        //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
+        transform.setOrigin(tf::Vector3(X, Y, Z));
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed 
-        tfStamp.setRotation(quat);
-        transform.setRotation(quat);
+        //tfStamp.setRotation(quat);
+        transform.setRotation(tf::Quaternion(0, 0, 0, 1));
 
         
         ROS_INFO_STREAM("frame name is " << framename);
         //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", framename));
-        br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
+        //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
     }
 }
 
