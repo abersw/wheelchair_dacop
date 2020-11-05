@@ -181,6 +181,8 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
     my_pcl = *dpth;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        tf::StampedTransform tfStamp;
+
         int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
 
         int arrayPosX = arrayPosition + my_pcl.fields[0].offset; // X has an offset of 0
@@ -194,6 +196,21 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         memcpy(&X, &my_pcl.data[arrayPosX], sizeof(float));
         memcpy(&Y, &my_pcl.data[arrayPosY], sizeof(float));
         memcpy(&Z, &my_pcl.data[arrayPosZ], sizeof(float));
+
+        geometry_msgs::Point objectPoint;
+
+        objectPoint.x = X;
+        objectPoint.y = Y;
+        objectPoint.z = Z;
+
+        cout << "Point is " << objectPoint << "\n";
+
+        float r = -1.5708;
+        float p = 0;
+        float y = -3.1415;
+
+        tfStamp.setOrigin(tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z));
+
     }
     //original depth image code
     //float* depthsPtr;
