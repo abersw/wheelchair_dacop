@@ -223,6 +223,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed 
         tfStamp.setRotation(quat);
+        transform.setRotation(quat);
 
         
         ROS_INFO_STREAM("frame name is " << framename);
