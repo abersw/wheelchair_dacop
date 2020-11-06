@@ -184,26 +184,39 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     /*  Get depths from bounding box data  */
     my_pcl = *dpth;
     tf::StampedTransform tfStamp;
-    
+    int width = dpth->width;
+    int height = dpth->height;
+    cout << width << " x " << height << "\n";
     
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         
-
-        int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
-
-        int arrayPosX = arrayPosition + my_pcl.fields[0].offset; // X has an offset of 0
-        int arrayPosY = arrayPosition + my_pcl.fields[1].offset; // Y has an offset of 4
-        int arrayPosZ = arrayPosition + my_pcl.fields[2].offset; // Z has an offset of 8
-
         float X;
         float Y;
         float Z;
+        //int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
+        // Convert from u (column / width), v (row/height) to position in array
+        // where X,Y,Z data starts
+        for (uint j=0; j < dpth->height * dpth->width; j++){
+            X = dpth->data[j * dpth->point_step + dpth->fields[0].offset];
+            Y = dpth->data[j * dpth->point_step + dpth->fields[1].offset];
+            Z = dpth->data[j * dpth->point_step + dpth->fields[2].offset];
+            // Some other operations
+       }
+        //int arrayPosition = detectedObjects[isObject].centerX*dpth->row_step + detectedObjects[isObject].centerY*dpth->point_step;
+        
+        
+        //int arrayPosX = arrayPosition + dpth->fields[0].offset; // X has an offset of 0
+        //int arrayPosY = arrayPosition + dpth->fields[1].offset; // Y has an offset of 4
+        //int arrayPosZ = arrayPosition + dpth->fields[2].offset; // Z has an offset of 8
 
-        memcpy(&X, &my_pcl.data[arrayPosX], sizeof(float));
-        memcpy(&Y, &my_pcl.data[arrayPosY], sizeof(float));
-        memcpy(&Z, &my_pcl.data[arrayPosZ], sizeof(float));
+        
+        cout << X << " x " << Y << " x " << Z << "\n";
 
+        /*memcpy(&X, &dpth->data[arrayPosX], sizeof(float));
+        memcpy(&Y, &dpth->data[arrayPosY], sizeof(float));
+        memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));*/
 
+/*
         geometry_msgs::PointStamped objectPoint;
         std::string framename = "target_frame_" + std::to_string(isObject);
 
@@ -214,18 +227,18 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         objectPoint.point.z = Z;
 
         cout << "Point is " << objectPoint << "\n";
-
+*/
         float r = -1.5708;
         float p = 0;
         float y = -3.1415;
 
         static tf::TransformBroadcaster br;
         tf::Transform transform;
-        transform.setOrigin( tf::Vector3(X, Y, Z) );
+        transform.setOrigin( tf::Vector3(X+1, Y, Z) );
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
         transform.setRotation(quat);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "target_frame_0"));
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", "target_frame_0"));
 
 /*
         //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
@@ -262,7 +275,8 @@ int main(int argc, char **argv) {
 
     ros::Rate rate(10.0);
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
+    //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
