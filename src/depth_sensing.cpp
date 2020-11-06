@@ -191,6 +191,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
         int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
+        cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
         detectedObjects[isObject].centerX = centerWidth;
         detectedObjects[isObject].centerY = centerHeight;
 
@@ -222,7 +223,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         objectPoint.y = Y;
         objectPoint.z = Z;
 
-        cout << "Point is " << objectPoint << "\n";
+        cout << "Point is \n" << objectPoint << "\n";
 
         float r = -1.5708;
         float p = 0;
