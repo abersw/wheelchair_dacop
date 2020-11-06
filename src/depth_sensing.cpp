@@ -189,32 +189,28 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     cout << width << " x " << height << "\n";
     
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        
+        int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
+        int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
+        detectedObjects[isObject].centerX = centerWidth;
+        detectedObjects[isObject].centerY = centerHeight;
+
         float X;
         float Y;
         float Z;
-        //int arrayPosition = detectedObjects[isObject].centerY*my_pcl.row_step + detectedObjects[isObject].centerX*my_pcl.point_step;
-        // Convert from u (column / width), v (row/height) to position in array
-        // where X,Y,Z data starts
-        for (uint j=0; j < dpth->height * dpth->width; j++){
-            X = dpth->data[j * dpth->point_step + dpth->fields[0].offset];
-            Y = dpth->data[j * dpth->point_step + dpth->fields[1].offset];
-            Z = dpth->data[j * dpth->point_step + dpth->fields[2].offset];
-            // Some other operations
-       }
-        //int arrayPosition = detectedObjects[isObject].centerX*dpth->row_step + detectedObjects[isObject].centerY*dpth->point_step;
-        
-        
-        //int arrayPosX = arrayPosition + dpth->fields[0].offset; // X has an offset of 0
-        //int arrayPosY = arrayPosition + dpth->fields[1].offset; // Y has an offset of 4
-        //int arrayPosZ = arrayPosition + dpth->fields[2].offset; // Z has an offset of 8
 
+        int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step;
+        cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
         
-        cout << X << " x " << Y << " x " << Z << "\n";
+        int arrayPosX = arrayPosition + dpth->fields[0].offset; // X has an offset of 0
+        int arrayPosY = arrayPosition + dpth->fields[1].offset; // Y has an offset of 4
+        int arrayPosZ = arrayPosition + dpth->fields[2].offset; // Z has an offset of 8
 
-        /*memcpy(&X, &dpth->data[arrayPosX], sizeof(float));
+
+        memcpy(&X, &dpth->data[arrayPosX], sizeof(float));
         memcpy(&Y, &dpth->data[arrayPosY], sizeof(float));
-        memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));*/
+        memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));
+
+        cout << X << " x " << Y << " x " << Z << "\n";
 
 /*
         geometry_msgs::PointStamped objectPoint;
@@ -234,7 +230,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
         static tf::TransformBroadcaster br;
         tf::Transform transform;
-        transform.setOrigin( tf::Vector3(X+1, Y, Z) );
+        transform.setOrigin( tf::Vector3(X, Y, Z) );
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
         transform.setRotation(quat);
