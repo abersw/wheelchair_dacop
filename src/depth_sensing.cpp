@@ -212,25 +212,25 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
         cout << X << " x " << Y << " x " << Z << "\n";
 
-/*
-        geometry_msgs::PointStamped objectPoint;
+
+        geometry_msgs::Point objectPoint;
         std::string framename = "target_frame_" + std::to_string(isObject);
 
-        objectPoint.header.frame_id = framename;
-        objectPoint.header.stamp = ros::Time::now();
-        objectPoint.point.x = X;
-        objectPoint.point.y = Y;
-        objectPoint.point.z = Z;
+        //objectPoint.header.frame_id = framename;
+        //objectPoint.header.stamp = ros::Time::now();
+        objectPoint.x = X;
+        objectPoint.y = Y;
+        objectPoint.z = Z;
 
         cout << "Point is " << objectPoint << "\n";
-*/
+
         float r = -1.5708;
         float p = 0;
         float y = -3.1415;
 
         static tf::TransformBroadcaster br;
         tf::Transform transform;
-        transform.setOrigin( tf::Vector3(X, Y, Z) );
+        transform.setOrigin( tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z) );
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
         transform.setRotation(quat);
