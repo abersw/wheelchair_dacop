@@ -184,8 +184,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     /*  Get depths from bounding box data  */
     my_pcl = *dpth;
     tf::StampedTransform tfStamp;
-    tf::Transform transform;
-    tf::TransformBroadcaster br;
+    
     
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         
@@ -220,19 +219,40 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         float p = 0;
         float y = -3.1415;
 
+        static tf::TransformBroadcaster br;
+        tf::Transform transform;
+        transform.setOrigin( tf::Vector3(X, Y, Z) );
+        tf::Quaternion quat;
+        quat.setRPY(r,p,y);  //where r p y are fixed
+        transform.setRotation(quat);
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "target_frame_0"));
+
+/*
         //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
         transform.setOrigin(tf::Vector3(X, Y, Z));
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed 
         //tfStamp.setRotation(quat);
-        transform.setRotation(tf::Quaternion(0, 0, 0, 1));
+        transform.setRotation(quat);
 
         
         ROS_INFO_STREAM("frame name is " << framename);
         //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
         br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
         //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
+        */
+
     }
+    /*tf::Transform transform;
+    tf::TransformBroadcaster br;
+
+    for (int i = 0; i < 5; i++) {
+        transform.setOrigin( tf::Vector3(i, i, 0.0) );
+        transform.setRotation( tf::Quaternion(0, 0, 0, 1) );
+        string framename = "target_frame_" + std::to_string(i);
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", framename));
+      }*/
+    
 }
 
 int main(int argc, char **argv) {
@@ -240,16 +260,16 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
+    ros::Rate rate(10.0);
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
-
     cout << "spin \n";
     ros::spin();
-    //rate.sleep();
+    rate.sleep();
 
     return 0;
 }
