@@ -198,7 +198,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         float Y;
         float Z;
 
-        int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step;
+        int arrayPosition = detectedObjects[isObject].centerX*dpth->row_step + detectedObjects[isObject].centerY*dpth->point_step;
         cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
         
         int arrayPosX = arrayPosition + dpth->fields[0].offset; // X has an offset of 0
