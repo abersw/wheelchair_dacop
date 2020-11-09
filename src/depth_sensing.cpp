@@ -212,6 +212,8 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));
 
         cout << X << " x " << Y << " x " << Z << "\n";
+        float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
+        cout << "vec length is " << vec_length << "\n";
 
 
         geometry_msgs::Point objectPoint;
@@ -236,7 +238,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
         transform.setRotation(quat);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_frame", framename));
 
 /*
         //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
