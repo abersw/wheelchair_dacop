@@ -184,9 +184,19 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     /*  Get depths from bounding box data  */
     my_pcl = *dpth;
     tf::StampedTransform tfStamp;
+    tf::TransformListener listener;
     int width = dpth->width;
     int height = dpth->height;
     cout << width << " x " << height << "\n";
+
+    try{
+      listener.lookupTransform("/map", "/base_footprint",
+                               ros::Time(0), tfStamp);
+    }
+    catch (tf::TransformException &ex) {
+      ROS_ERROR("%s",ex.what());
+      ros::Duration(1.0).sleep();
+    }
     
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
@@ -237,7 +247,8 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         transform.setOrigin( tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z) );
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
-        transform.setRotation(quat);
+        //transform.setRotation(quat);
+        transform.setRotation(tf::Quaternion(0, 0, 0, 1));
         br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_frame", framename));
 
 /*
