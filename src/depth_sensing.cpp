@@ -189,21 +189,21 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     int height = dpth->height;
     cout << width << " x " << height << "\n";
 
-    try{
+    /*try{
       listener.lookupTransform("/map", "/base_footprint",
                                ros::Time(0), tfStamp);
     }
     catch (tf::TransformException &ex) {
       ROS_ERROR("%s",ex.what());
       ros::Duration(1.0).sleep();
-    }
+    }*/
     
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
         int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
         cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
-        detectedObjects[isObject].centerX = centerWidth;
-        detectedObjects[isObject].centerY = centerHeight;
+        detectedObjects[isObject].centerX = detectedObjects[isObject].box_x;
+        detectedObjects[isObject].centerY = detectedObjects[isObject].box_y;
 
         float X;
         float Y;
