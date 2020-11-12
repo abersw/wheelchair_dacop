@@ -247,8 +247,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         transform.setOrigin( tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z) );
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
-        //transform.setRotation(quat);
-        transform.setRotation(tf::Quaternion(0, 0, 0, 1));
+        transform.setRotation(quat);
         br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_frame", framename));
 
 /*
