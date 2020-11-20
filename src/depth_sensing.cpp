@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ros/ros.h" //main ROS library
+#include <ros/package.h> //find ROS packages, needs roslib dependency
 #include "wheelchair_msgs/mobilenet.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int16.h"
@@ -73,6 +74,29 @@ pcl::PointCloud < pcl::PointXYZ > pcl_cloud;
 
 pcl::PointCloud<pcl::PointXYZRGB> cloud_in;
 pcl::PointCloud<pcl::PointXYZRGB> cloud_trans;
+
+//function for printing space sizes
+void printSeparator(int spaceSize) {
+	if (spaceSize == 0) {
+		printf("--------------------------------------------\n");
+	}
+	else {
+		printf("\n");
+		printf("--------------------------------------------\n");
+		printf("\n");
+	}
+}
+
+//does the wheelchair dump package exist in the workspace?
+void doesWheelchairDumpPkgExist() {
+	if (ros::package::getPath("wheelchair_dump") == "") {
+		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
+		cout << "FATAL:  Closing node. \n";
+		printSeparator(1);
+		ros::shutdown();
+		exit(0);
+	}
+}
 
 void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
     imageHeight = dpth->height;
@@ -291,6 +315,9 @@ int main(int argc, char **argv) {
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
+    doesWheelchairDumpPkgExist();
+    std::string wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
+
     cout << "spin \n";
     ros::spin();
     rate.sleep();
