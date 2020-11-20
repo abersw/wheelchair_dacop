@@ -252,7 +252,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
         geometry_msgs::Point objectPoint;
         //std::string framename = "target_frame_" + std::to_string(isObject);
-        std::string framename = detectedObjects[isObject].object_name;
+        std::string framename = detectedObjects[isObject].object_name + std::to_string(isObject);
 
         //objectPoint.header.frame_id = framename;
         //objectPoint.header.stamp = ros::Time::now();
