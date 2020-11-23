@@ -75,6 +75,8 @@ pcl::PointCloud < pcl::PointXYZ > pcl_cloud;
 pcl::PointCloud<pcl::PointXYZRGB> cloud_in;
 pcl::PointCloud<pcl::PointXYZRGB> cloud_trans;
 
+std::string wheelchair_dump_loc;
+
 //function for printing space sizes
 void printSeparator(int spaceSize) {
 	if (spaceSize == 0) {
@@ -98,13 +100,13 @@ void doesWheelchairDumpPkgExist() {
 	}
 }
 
-void getResolutionOnStartup(const sensor_msgs::Image::ConstPtr& dpth) {
+void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     imageHeight = dpth->height;
     imageWidth = dpth->width;
     cout << imageHeight << "x" << imageWidth << "\n";
 }
 
-void broadcastTransform() {
+/*void broadcastTransform() {
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         cout << detectedObjects[isObject].distance << "\n";
         if (!isnan(detectedObjects[isObject].distance)) {
@@ -138,7 +140,7 @@ void broadcastTransform() {
             tfStamp.transform.rotation.w = quat.w();
 
             br.sendTransform(tfStamp);*/
-        }
+        /*}
         else {
             cout << "object returns depth nan - don't broadcast transform \n";
         }
@@ -179,32 +181,13 @@ void broadcastTransform() {
     t.transform.rotation.y = q[1]
     t.transform.rotation.z = q[2]
     t.transform.rotation.w = q[3]*/
+//}
+
+void broadcastTransform() {
+
 }
 
-
-void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    //notes save float pointer of depth to staticesque variable float
-    //cout << "running time sync \n";
-    /*  Get resolution of camera image */
-    if (gotResolution == 0) {
-        //getResolutionOnStartup(dpth);
-        gotResolution = 1;
-    }
-
-    /*  Deserialise the detected object */
-    totalObjectsDetected = obj->totalObjectsInFrame;
-    //cout << totalObjectsDetected << "\n";
-
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        detectedObjects[isObject].object_name = obj->object_name[isObject];
-        detectedObjects[isObject].object_confidence = obj->object_confidence[isObject];
-        detectedObjects[isObject].box_x = obj->box_x[isObject];
-        detectedObjects[isObject].box_y = obj->box_y[isObject];
-        detectedObjects[isObject].box_width = obj->box_width[isObject];
-        detectedObjects[isObject].box_height = obj->box_height[isObject];
-        cout << detectedObjects[isObject].object_name << "\n";
-    }
-
+void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     /*  Get depths from bounding box data  */
     my_pcl = *dpth;
     tf::StampedTransform tfStamp;
@@ -221,7 +204,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
       ROS_ERROR("%s",ex.what());
       ros::Duration(1.0).sleep();
     }*/
-    
+
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
         int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
@@ -290,6 +273,35 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         */
 
     }
+}
+
+
+void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
+    //notes save float pointer of depth to staticesque variable float
+    //cout << "running time sync \n";
+    /*  Get resolution of camera image */
+    if (gotResolution == 0) {
+        getResolutionOnStartup(dpth);
+        gotResolution = 1;
+    }
+
+    /*  Deserialise the detected object */
+    totalObjectsDetected = obj->totalObjectsInFrame;
+    //cout << totalObjectsDetected << "\n";
+
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        detectedObjects[isObject].object_name = obj->object_name[isObject];
+        detectedObjects[isObject].object_confidence = obj->object_confidence[isObject];
+        detectedObjects[isObject].box_x = obj->box_x[isObject];
+        detectedObjects[isObject].box_y = obj->box_y[isObject];
+        detectedObjects[isObject].box_width = obj->box_width[isObject];
+        detectedObjects[isObject].box_height = obj->box_height[isObject];
+        cout << detectedObjects[isObject].object_name << "\n";
+    }
+
+    getPointDepth(dpth, obj);
+    
+
     /*tf::Transform transform;
     tf::TransformBroadcaster br;
 
@@ -316,7 +328,7 @@ int main(int argc, char **argv) {
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
     doesWheelchairDumpPkgExist();
-    std::string wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
+    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
 
     cout << "spin \n";
     ros::spin();
