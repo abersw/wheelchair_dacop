@@ -228,10 +228,13 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         memcpy(&Y, &dpth->data[arrayPosY], sizeof(float));
         memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));
 
-        cout << X << " x " << Y << " x " << Z << "\n";
+        cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
         //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
         //cout << "vec length is " << vec_length << "\n";
 
+        //check to see if no other object of the same name exists in this space - check bounding box
+
+        //if nothing else exists create a new object id - put into database
 
         geometry_msgs::Point objectPoint;
         //std::string framename = "target_frame_" + std::to_string(isObject);
@@ -329,6 +332,11 @@ int main(int argc, char **argv) {
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
     doesWheelchairDumpPkgExist();
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
+
+    //set global variable for file/database
+    //if does not exist - create one
+    //if using a database and table does not exist - create one
+    
 
     cout << "spin \n";
     ros::spin();
