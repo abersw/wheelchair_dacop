@@ -34,7 +34,9 @@
 //#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 //#include <tf/LinearMath/Quaternion.h>
 #include <cmath>
+#include <fstream>
 #include <iostream>
+#include <sqlite3.h>
 
 
 
@@ -42,6 +44,8 @@
 using namespace std;
 //using namespace message_filters;
 //using namespace sensor_msgs;
+
+sqlite3* DB;
 
 bool gotResolution = 0;
 int imageHeight = 0;
@@ -333,11 +337,33 @@ int main(int argc, char **argv) {
     doesWheelchairDumpPkgExist();
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
 
+    int DBdetected = 0;
+    std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
+    const char * DBfileName = DBfileNameTmp.c_str();
+    DBdetected = sqlite3_open(DBfileName, &DB);
+
+    if (DBdetected) {
+        std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+        ofstream MyFile(DBfileName);
+        MyFile.close();
+        cout << "Created new DB file\n";
+
+        //create table inside database
+        sql = "CREATE TABLE OBJECTS("  \
+        "ID INT PRIMARY KEY  NOT NULL," \
+        "NAME  VARCHAR(500)  NOT NULL," \
+        "POINTX  DOUBLE  NOT NULL," \
+        "POINTY  DOUBLE  NOT NULL," \
+        "POINTZ  DOUBLE  NOT NULL);";
+    }
+
     //set global variable for file/database
     //if does not exist - create one
     //if using a database and table does not exist - create one
     
-
+    if (ros::isShuttingDown()) {
+        sqlite3_close(DB);
+    }
     cout << "spin \n";
     ros::spin();
     rate.sleep();
