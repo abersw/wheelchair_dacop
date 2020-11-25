@@ -347,7 +347,7 @@ int main(int argc, char **argv) {
         ofstream MyFile(DBfileName);
         MyFile.close();
         cout << "Created new DB file\n";
-
+        char *sql;
         //create table inside database
         sql = "CREATE TABLE OBJECTS("  \
         "ID INT PRIMARY KEY  NOT NULL," \
