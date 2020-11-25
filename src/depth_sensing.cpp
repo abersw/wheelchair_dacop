@@ -213,8 +213,8 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
         int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
         cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
-        detectedObjects[isObject].centerX = detectedObjects[isObject].box_x+50;
-        detectedObjects[isObject].centerY = detectedObjects[isObject].box_y+50;
+        detectedObjects[isObject].centerX = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2;
+        detectedObjects[isObject].centerY = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2;
 
         float X;
         float Y;
@@ -328,8 +328,8 @@ int main(int argc, char **argv) {
 
     ros::Rate rate(10.0);
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
-    //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
+    //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
     message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
@@ -347,9 +347,9 @@ int main(int argc, char **argv) {
         ofstream MyFile(DBfileName);
         MyFile.close();
         cout << "Created new DB file\n";
-        char *sql;
+        const char *mySqlTable;
         //create table inside database
-        sql = "CREATE TABLE OBJECTS("  \
+        mySqlTable = "CREATE TABLE OBJECTS("  \
         "ID INT PRIMARY KEY  NOT NULL," \
         "NAME  VARCHAR(500)  NOT NULL," \
         "POINTX  DOUBLE  NOT NULL," \
