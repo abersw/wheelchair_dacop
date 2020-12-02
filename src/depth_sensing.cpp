@@ -65,6 +65,10 @@ struct DetectedObjects {
     int centerX;
     int centerY;
     int centerZ;
+
+    float pointX;
+    float pointY;
+    float pointZ;
 };
 
 int totalObjectsDetected;
@@ -231,6 +235,55 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 
 void broadcastTransform() {
 
+    //probably send this to the sql node for checking
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
+        //cout << "vec length is " << vec_length << "\n";
+
+        //check to see if no other object of the same name exists in this space - check bounding box
+
+        //if nothing else exists create a new object id - put into database
+
+        geometry_msgs::Point objectPoint;
+        //std::string framename = "target_frame_" + std::to_string(isObject);
+        std::string framename = detectedObjects[isObject].object_name + std::to_string(isObject);
+
+        //objectPoint.header.frame_id = framename;
+        //objectPoint.header.stamp = ros::Time::now();
+        objectPoint.x = detectedObjects[isObject].pointX;
+        objectPoint.y = detectedObjects[isObject].pointY;
+        objectPoint.z = detectedObjects[isObject].pointZ;
+
+        cout << "Point is \n" << objectPoint << "\n";
+
+        float r = -1.5708;
+        float p = 0;
+        float y = -3.1415;
+
+        static tf::TransformBroadcaster br;
+        tf::Transform transform;
+        transform.setOrigin( tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z) );
+        tf::Quaternion quat;
+        quat.setRPY(r,p,y);  //where r p y are fixed
+        transform.setRotation(quat);
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
+
+/*
+        //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
+        transform.setOrigin(tf::Vector3(X, Y, Z));
+        tf::Quaternion quat;
+        quat.setRPY(r,p,y);  //where r p y are fixed 
+        //tfStamp.setRotation(quat);
+        transform.setRotation(quat);
+
+        
+        ROS_INFO_STREAM("frame name is " << framename);
+        //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
+        //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
+        */
+
+    }
 }
 
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
@@ -275,52 +328,9 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));
 
         cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
-        //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
-        //cout << "vec length is " << vec_length << "\n";
-
-        //check to see if no other object of the same name exists in this space - check bounding box
-
-        //if nothing else exists create a new object id - put into database
-
-        geometry_msgs::Point objectPoint;
-        //std::string framename = "target_frame_" + std::to_string(isObject);
-        std::string framename = detectedObjects[isObject].object_name + std::to_string(isObject);
-
-        //objectPoint.header.frame_id = framename;
-        //objectPoint.header.stamp = ros::Time::now();
-        objectPoint.x = X;
-        objectPoint.y = Y;
-        objectPoint.z = Z;
-
-        cout << "Point is \n" << objectPoint << "\n";
-
-        float r = -1.5708;
-        float p = 0;
-        float y = -3.1415;
-
-        static tf::TransformBroadcaster br;
-        tf::Transform transform;
-        transform.setOrigin( tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z) );
-        tf::Quaternion quat;
-        quat.setRPY(r,p,y);  //where r p y are fixed
-        transform.setRotation(quat);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
-
-/*
-        //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
-        transform.setOrigin(tf::Vector3(X, Y, Z));
-        tf::Quaternion quat;
-        quat.setRPY(r,p,y);  //where r p y are fixed 
-        //tfStamp.setRotation(quat);
-        transform.setRotation(quat);
-
-        
-        ROS_INFO_STREAM("frame name is " << framename);
-        //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
-        //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
-        */
-
+        detectedObjects[isObject].pointX = X;
+        detectedObjects[isObject].pointY = Y;
+        detectedObjects[isObject].pointZ = Z;
     }
 }
 
@@ -349,6 +359,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     }
 
     getPointDepth(dpth, obj);
+    broadcastTransform();
     
 
     /*tf::Transform transform;
