@@ -337,17 +337,19 @@ int main(int argc, char **argv) {
     doesWheelchairDumpPkgExist();
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
 
-    int DBdetected = 0;
+    int DBerror = 0;
     std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
     const char * DBfileName = DBfileNameTmp.c_str();
-    DBdetected = sqlite3_open(DBfileName, &DB);
-
-    if (DBdetected) {
-        std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+    DBerror = sqlite3_open(DBfileName, &DB);
+    if (DBerror) {
+        cout << "Could not find db\n";
+        cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
         ofstream MyFile(DBfileName);
         MyFile.close();
         cout << "Created new DB file\n";
-        const char *mySqlTable;
+        DBerror = sqlite3_open(DBfileName, &DB);
+        //const char *mySqlTable;
+        std::string mySqlTable;
         //create table inside database
         mySqlTable = "CREATE TABLE OBJECTS("  \
         "ID INT PRIMARY KEY  NOT NULL," \
@@ -355,6 +357,17 @@ int main(int argc, char **argv) {
         "POINTX  DOUBLE  NOT NULL," \
         "POINTY  DOUBLE  NOT NULL," \
         "POINTZ  DOUBLE  NOT NULL);";
+
+        char* SQLerror;
+        DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
+
+        if (DBerror != SQLITE_OK) {
+            cerr << "Error Create Table" << std::endl;
+            sqlite3_free(SQLerror);
+        }
+        else {
+            cout << "Table created Successfully" << std::endl;
+        }
     }
 
     //set global variable for file/database
