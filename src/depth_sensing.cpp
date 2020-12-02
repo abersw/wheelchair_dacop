@@ -334,12 +334,13 @@ int main(int argc, char **argv) {
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
-    doesWheelchairDumpPkgExist();
+    
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
 
     int DBerror = 0;
     std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
     const char * DBfileName = DBfileNameTmp.c_str();
+    cout << DBfileName << endl;
     DBerror = sqlite3_open(DBfileName, &DB);
     if (DBerror) {
         cout << "Could not find db\n";
@@ -347,27 +348,32 @@ int main(int argc, char **argv) {
         ofstream MyFile(DBfileName);
         MyFile.close();
         cout << "Created new DB file\n";
-        DBerror = sqlite3_open(DBfileName, &DB);
-        //const char *mySqlTable;
-        std::string mySqlTable;
-        //create table inside database
-        mySqlTable = "CREATE TABLE OBJECTS("  \
-        "ID INT PRIMARY KEY  NOT NULL," \
-        "NAME  VARCHAR(500)  NOT NULL," \
-        "POINTX  DOUBLE  NOT NULL," \
-        "POINTY  DOUBLE  NOT NULL," \
-        "POINTZ  DOUBLE  NOT NULL);";
+    }
+    else {
+        cout << "DB ok" << endl;
+    }
 
-        char* SQLerror;
-        DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
+    DBerror = sqlite3_open(DBfileName, &DB);
+    //cout << "reached db open" << endl;
+    //const char *mySqlTable;
+    std::string mySqlTable;
+    //create table inside database
+    mySqlTable = "CREATE TABLE IF NOT EXISTS OBJECTS("  \
+    "ID INT PRIMARY KEY  NOT NULL," \
+    "NAME  VARCHAR(500)  NOT NULL," \
+    "POINTX  DOUBLE  NOT NULL," \
+    "POINTY  DOUBLE  NOT NULL," \
+    "POINTZ  DOUBLE  NOT NULL);";
 
-        if (DBerror != SQLITE_OK) {
-            cerr << "Error Create Table" << std::endl;
-            sqlite3_free(SQLerror);
-        }
-        else {
-            cout << "Table created Successfully" << std::endl;
-        }
+    char* SQLerror;
+    DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
+
+    if (DBerror != SQLITE_OK) {
+        cerr << "Error Create Table" << std::endl;
+        sqlite3_free(SQLerror);
+    }
+    else {
+        cout << "Table created Successfully" << std::endl;
     }
 
     //set global variable for file/database
