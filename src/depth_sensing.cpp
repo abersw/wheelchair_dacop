@@ -104,6 +104,48 @@ void doesWheelchairDumpPkgExist() {
 	}
 }
 
+void createAndBuildDatabase() {
+
+    int DBerror = 0;
+    std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
+    const char * DBfileName = DBfileNameTmp.c_str();
+    cout << DBfileName << endl;
+    DBerror = sqlite3_open(DBfileName, &DB);
+    if (DBerror) {
+        cout << "Could not find db\n";
+        cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+        ofstream MyFile(DBfileName);
+        MyFile.close();
+        cout << "Created new DB file\n";
+    }
+    else {
+        cout << "DB ok" << endl;
+    }
+
+    DBerror = sqlite3_open(DBfileName, &DB);
+    //cout << "reached db open" << endl;
+    //const char *mySqlTable;
+    std::string mySqlTable;
+    //create table inside database
+    mySqlTable = "CREATE TABLE IF NOT EXISTS OBJECTS("  \
+    "ID INT PRIMARY KEY  NOT NULL," \
+    "NAME  VARCHAR(500)  NOT NULL," \
+    "POINTX  DOUBLE  NOT NULL," \
+    "POINTY  DOUBLE  NOT NULL," \
+    "POINTZ  DOUBLE  NOT NULL);";
+
+    char* SQLerror;
+    DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
+
+    if (DBerror != SQLITE_OK) {
+        cerr << "Error Create Table" << std::endl;
+        sqlite3_free(SQLerror);
+    }
+    else {
+        cout << "Table created Successfully" << std::endl;
+    }
+}
+
 void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     imageHeight = dpth->height;
     imageWidth = dpth->width;
@@ -337,44 +379,8 @@ int main(int argc, char **argv) {
     
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
 
-    int DBerror = 0;
-    std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
-    const char * DBfileName = DBfileNameTmp.c_str();
-    cout << DBfileName << endl;
-    DBerror = sqlite3_open(DBfileName, &DB);
-    if (DBerror) {
-        cout << "Could not find db\n";
-        cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
-        ofstream MyFile(DBfileName);
-        MyFile.close();
-        cout << "Created new DB file\n";
-    }
-    else {
-        cout << "DB ok" << endl;
-    }
+    createAndBuildDatabase();
 
-    DBerror = sqlite3_open(DBfileName, &DB);
-    //cout << "reached db open" << endl;
-    //const char *mySqlTable;
-    std::string mySqlTable;
-    //create table inside database
-    mySqlTable = "CREATE TABLE IF NOT EXISTS OBJECTS("  \
-    "ID INT PRIMARY KEY  NOT NULL," \
-    "NAME  VARCHAR(500)  NOT NULL," \
-    "POINTX  DOUBLE  NOT NULL," \
-    "POINTY  DOUBLE  NOT NULL," \
-    "POINTZ  DOUBLE  NOT NULL);";
-
-    char* SQLerror;
-    DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
-
-    if (DBerror != SQLITE_OK) {
-        cerr << "Error Create Table" << std::endl;
-        sqlite3_free(SQLerror);
-    }
-    else {
-        cout << "Table created Successfully" << std::endl;
-    }
 
     //set global variable for file/database
     //if does not exist - create one
