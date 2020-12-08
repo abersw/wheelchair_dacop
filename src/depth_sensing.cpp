@@ -45,6 +45,19 @@ using namespace std;
 //using namespace message_filters;
 //using namespace sensor_msgs;
 
+struct Objects {
+    int ID;
+    string NAME;
+    float POINTX;
+    float POINTY;
+    float POINTZ;
+
+    float QUATX;
+    float QUATY;
+    float QUATZ;
+    float QUATW;
+};
+
 sqlite3* DB;
 
 bool gotResolution = 0;
@@ -136,7 +149,11 @@ void createAndBuildDatabase() {
     "NAME  VARCHAR(500)  NOT NULL," \
     "POINTX  DOUBLE  NOT NULL," \
     "POINTY  DOUBLE  NOT NULL," \
-    "POINTZ  DOUBLE  NOT NULL);";
+    "POINTZ  DOUBLE  NOT NULL," \
+    "QUATX DOUBLE NOT NULL," \
+    "QUATY DOUBLE NOT NULL," \
+    "QUATZ DOUBLE NOT NULL," \
+    "QUATW DOUBLE NOT NULL);";
 
     char* SQLerror;
     DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
