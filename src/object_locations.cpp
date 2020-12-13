@@ -3,12 +3,11 @@
 #include <string.h>
 #include "ros/ros.h" //main ROS library
 #include <ros/package.h> //find ROS packages, needs roslib dependency
-#include "wheelchair_msgs/mobilenet.h"
+#include "wheelchair_msgs/objectLocations.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
-#include "sensor_msgs/Image.h"
-#include "sensor_msgs/PointCloud2.h"
+#include "std_msgs/Float64.h"
 
 //experimental
 #include "geometry_msgs/PointStamped.h"
@@ -22,11 +21,6 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-#include <pcl/point_types.h>
-#include <pcl_ros/transforms.h>
-#include <pcl/conversions.h>
-#include <pcl/PCLPointCloud2.h>
-#include <pcl_conversions/pcl_conversions.h>
 
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
@@ -46,323 +40,87 @@ using namespace std;
 //using namespace sensor_msgs;
 
 sqlite3* DB;
-
-bool gotResolution = 0;
-int imageHeight = 0;
-int imageWidth = 0;
-int pixelSampleNo = 9;
-
-struct DetectedObjects {
-    string object_name;
-    float object_confidence;
-    float box_x;
-    float box_y;
-    float box_width;
-    float box_height;
-    int totalObjectsInFrame;
-
-    float distance;
-    int centerX;
-    int centerY;
-    int centerZ;
-};
-
-int totalObjectsDetected;
-
-struct DetectedObjects detectedObjects[100];
-tf::StampedTransform transform;
-
-sensor_msgs::PointCloud2 my_pcl;
-sensor_msgs::PointCloud2 depth;
-pcl::PointCloud < pcl::PointXYZ > pcl_cloud;
-
-pcl::PointCloud<pcl::PointXYZRGB> cloud_in;
-pcl::PointCloud<pcl::PointXYZRGB> cloud_trans;
-
 std::string wheelchair_dump_loc;
 
-//function for printing space sizes
-void printSeparator(int spaceSize) {
-	if (spaceSize == 0) {
-		printf("--------------------------------------------\n");
-	}
-	else {
-		printf("\n");
-		printf("--------------------------------------------\n");
-		printf("\n");
-	}
-}
+struct Objects { //struct for dacop file
+    int ID;
+    string NAME;
+    float POINTX;
+    float POINTY;
+    float POINTZ;
 
-//does the wheelchair dump package exist in the workspace?
-void doesWheelchairDumpPkgExist() {
-	if (ros::package::getPath("wheelchair_dump") == "") {
-		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
-		cout << "FATAL:  Closing node. \n";
-		printSeparator(1);
-		ros::shutdown();
-		exit(0);
-	}
-}
+    float QUATX;
+    float QUATY;
+    float QUATZ;
+    float QUATW;
+};
 
-void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
-    imageHeight = dpth->height;
-    imageWidth = dpth->width;
-    cout << imageHeight << "x" << imageWidth << "\n";
-}
+void createAndBuildDatabase() {
 
-/*void broadcastTransform() {
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        cout << detectedObjects[isObject].distance << "\n";
-        if (!isnan(detectedObjects[isObject].distance)) {
-            //tf::TransformListener listener;
-            //get transform listener code in here
-            
-            
-
-
-            //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
-            //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
-
-            //ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
-
-
-            /*tfStamp.header.stamp = ros::Time::now();
-            tfStamp.header.frame_id = "zed_left_camera_depth_link";
-
-            string frameName = "target_frame " + isObject;
-            tfStamp.child_frame_id = frameName;
-
-            tfStamp.transform.translation.x = detectedObjects[isObject].distance;
-            tfStamp.transform.translation.y = detectedObjects[isObject].box_x; //was offset x
-            tfStamp.transform.translation.z = detectedObjects[isObject].box_y; //was offset y
-
-            tf2::Quaternion quat;
-            quat.setRPY(0, 0, 0);
-            tfStamp.transform.rotation.x = quat.x();
-            tfStamp.transform.rotation.y = quat.y();
-            tfStamp.transform.rotation.z = quat.z();
-            tfStamp.transform.rotation.w = quat.w();
-
-            br.sendTransform(tfStamp);*/
-        /*}
-        else {
-            cout << "object returns depth nan - don't broadcast transform \n";
-        }
+    int DBerror = 0;
+    std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
+    const char * DBfileName = DBfileNameTmp.c_str();
+    cout << DBfileName << endl;
+    DBerror = sqlite3_open(DBfileName, &DB);
+    if (DBerror) {
+        cout << "Could not find db\n";
+        cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
+        ofstream MyFile(DBfileName);
+        MyFile.close();
+        cout << "Created new DB file\n";
+    }
+    else {
+        cout << "DB ok" << endl;
     }
 
+    DBerror = sqlite3_open(DBfileName, &DB);
+    //cout << "reached db open" << endl;
+    //const char *mySqlTable;
+    std::string mySqlTable;
+    //create table inside database
+    mySqlTable = "CREATE TABLE IF NOT EXISTS OBJECTS("  \
+    "ID INT PRIMARY KEY  NOT NULL," \
+    "NAME  VARCHAR(500)  NOT NULL," \
+    "POINTX  DOUBLE  NOT NULL," \
+    "POINTY  DOUBLE  NOT NULL," \
+    "POINTZ  DOUBLE  NOT NULL," \
+    "QUATX DOUBLE NOT NULL," \
+    "QUATY DOUBLE NOT NULL," \
+    "QUATZ DOUBLE NOT NULL," \
+    "QUATW DOUBLE NOT NULL);";
 
+    char* SQLerror;
+    DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
 
-    //float x_offset = (detectedObjects[objectId].box_x-(imageWidth/2));
-    //float y_offset = (detectedObjects[objectId].box_y-(imageHeight/2));
-
-    /*ROS_DEBUG("%.6f, %.6f, %.6f translation", extractDepth, detectedObjects[objectId].box_x, detectedObjects[objectId].box_y);
-
-    tfStamp.header.stamp = ros::Time::now();
-    tfStamp.header.frame_id = "zed_left_camera_depth_link";
-
-    string frameName = "target_frame";
-
-    tfStamp.child_frame_id = frameName;
-    cout << extractDepth << "\n";
-    tfStamp.transform.translation.x = extractDepth;
-    tfStamp.transform.translation.y = detectedObjects[objectId].box_x;
-    tfStamp.transform.translation.z = detectedObjects[objectId].box_y;
-
-    //tf_conversions::transformations quart;
-    //quaternion:: quart;
-    tf2::Quaternion quat;
-    quat.setRPY(0, 0, 0);
-    tfStamp.transform.rotation.x = quat.x();
-    tfStamp.transform.rotation.y = quat.y();
-    tfStamp.transform.rotation.z = quat.z();
-    tfStamp.transform.rotation.w = quat.w();
-
-    br.sendTransform(tfStamp);*/
-
-
-    /*q = tf_conversions.transformations.quaternion_from_euler(0, 0, 0)
-    t.transform.rotation.x = q[0]
-    t.transform.rotation.y = q[1]
-    t.transform.rotation.z = q[2]
-    t.transform.rotation.w = q[3]*/
-//}
-
-void broadcastTransform() {
-
-}
-
-void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    /*  Get depths from bounding box data  */
-    my_pcl = *dpth;
-    tf::StampedTransform tfStamp;
-    tf::TransformListener listener;
-    int width = dpth->width;
-    int height = dpth->height;
-    cout << width << " x " << height << "\n";
-
-    /*try{
-      listener.lookupTransform("/map", "/base_footprint",
-                               ros::Time(0), tfStamp);
+    if (DBerror != SQLITE_OK) {
+        cerr << "Error Create Table" << std::endl;
+        sqlite3_free(SQLerror);
     }
-    catch (tf::TransformException &ex) {
-      ROS_ERROR("%s",ex.what());
-      ros::Duration(1.0).sleep();
-    }*/
-
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
-        int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
-        cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
-        detectedObjects[isObject].centerX = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2;
-        detectedObjects[isObject].centerY = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2;
-
-        float X;
-        float Y;
-        float Z;
-
-        int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step;
-        cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
-        
-        int arrayPosX = arrayPosition + dpth->fields[0].offset; // X has an offset of 0
-        int arrayPosY = arrayPosition + dpth->fields[1].offset; // Y has an offset of 4
-        int arrayPosZ = arrayPosition + dpth->fields[2].offset; // Z has an offset of 8
-
-
-        memcpy(&X, &dpth->data[arrayPosX], sizeof(float));
-        memcpy(&Y, &dpth->data[arrayPosY], sizeof(float));
-        memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));
-
-        cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
-        //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
-        //cout << "vec length is " << vec_length << "\n";
-
-        //check to see if no other object of the same name exists in this space - check bounding box
-
-        //if nothing else exists create a new object id - put into database
-
-        geometry_msgs::Point objectPoint;
-        //std::string framename = "target_frame_" + std::to_string(isObject);
-        std::string framename = detectedObjects[isObject].object_name + std::to_string(isObject);
-
-        //objectPoint.header.frame_id = framename;
-        //objectPoint.header.stamp = ros::Time::now();
-        objectPoint.x = X;
-        objectPoint.y = Y;
-        objectPoint.z = Z;
-
-        cout << "Point is \n" << objectPoint << "\n";
-
-        float r = -1.5708;
-        float p = 0;
-        float y = -3.1415;
-
-        static tf::TransformBroadcaster br;
-        tf::Transform transform;
-        transform.setOrigin( tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z) );
-        tf::Quaternion quat;
-        quat.setRPY(r,p,y);  //where r p y are fixed
-        transform.setRotation(quat);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
-
-/*
-        //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
-        transform.setOrigin(tf::Vector3(X, Y, Z));
-        tf::Quaternion quat;
-        quat.setRPY(r,p,y);  //where r p y are fixed 
-        //tfStamp.setRotation(quat);
-        transform.setRotation(quat);
-
-        
-        ROS_INFO_STREAM("frame name is " << framename);
-        //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
-        //br.sendTransform(tf::StampedTransform(tfStamp, ros::Time::now(), "map",framename));
-        */
-
+    else {
+        cout << "Table created Successfully" << std::endl;
     }
 }
 
 
-void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    //notes save float pointer of depth to staticesque variable float
-    //cout << "running time sync \n";
-    /*  Get resolution of camera image */
-    if (gotResolution == 0) {
-        getResolutionOnStartup(dpth);
-        gotResolution = 1;
-    }
 
-    /*  Deserialise the detected object */
-    totalObjectsDetected = obj->totalObjectsInFrame;
-    //cout << totalObjectsDetected << "\n";
-
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        detectedObjects[isObject].object_name = obj->object_name[isObject];
-        detectedObjects[isObject].object_confidence = obj->object_confidence[isObject];
-        detectedObjects[isObject].box_x = obj->box_x[isObject];
-        detectedObjects[isObject].box_y = obj->box_y[isObject];
-        detectedObjects[isObject].box_width = obj->box_width[isObject];
-        detectedObjects[isObject].box_height = obj->box_height[isObject];
-        cout << detectedObjects[isObject].object_name << "\n";
-    }
-
-    getPointDepth(dpth, obj);
-    
-
-    /*tf::Transform transform;
-    tf::TransformBroadcaster br;
-
-    for (int i = 0; i < 5; i++) {
-        transform.setOrigin( tf::Vector3(i, i, 0.0) );
-        transform.setRotation( tf::Quaternion(0, 0, 0, 1) );
-        string framename = "target_frame_" + std::to_string(i);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", framename));
-      }*/
-    
-}
 
 int main(int argc, char **argv) {
-    //stuff to go here
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
     ros::Rate rate(10.0);
-    //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
-    //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
-    message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
-    message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
-    depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
-    doesWheelchairDumpPkgExist();
+
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
 
-    int DBdetected = 0;
-    std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
-    const char * DBfileName = DBfileNameTmp.c_str();
-    DBdetected = sqlite3_open(DBfileName, &DB);
+    createAndBuildDatabase();
 
-    if (DBdetected) {
-        std::cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
-        ofstream MyFile(DBfileName);
-        MyFile.close();
-        cout << "Created new DB file\n";
-        const char *mySqlTable;
-        //create table inside database
-        mySqlTable = "CREATE TABLE OBJECTS("  \
-        "ID INT PRIMARY KEY  NOT NULL," \
-        "NAME  VARCHAR(500)  NOT NULL," \
-        "POINTX  DOUBLE  NOT NULL," \
-        "POINTY  DOUBLE  NOT NULL," \
-        "POINTZ  DOUBLE  NOT NULL);";
-    }
 
     //set global variable for file/database
     //if does not exist - create one
     //if using a database and table does not exist - create one
     
     if (ros::isShuttingDown()) {
-        sqlite3_close(DB);
+        //close things safely
     }
     cout << "spin \n";
     ros::spin();

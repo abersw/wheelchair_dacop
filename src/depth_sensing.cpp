@@ -4,6 +4,7 @@
 #include "ros/ros.h" //main ROS library
 #include <ros/package.h> //find ROS packages, needs roslib dependency
 #include "wheelchair_msgs/mobilenet.h"
+#include "wheelchair_msgs/objectLocations.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
@@ -22,11 +23,11 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-#include <pcl/point_types.h>
-#include <pcl_ros/transforms.h>
-#include <pcl/conversions.h>
-#include <pcl/PCLPointCloud2.h>
-#include <pcl_conversions/pcl_conversions.h>
+//#include <pcl/point_types.h>
+//#include <pcl_ros/transforms.h>
+//#include <pcl/conversions.h>
+//#include <pcl/PCLPointCloud2.h>
+//#include <pcl_conversions/pcl_conversions.h>
 
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
@@ -45,20 +46,20 @@ using namespace std;
 //using namespace message_filters;
 //using namespace sensor_msgs;
 
-struct Objects {
-    int ID;
-    string NAME;
-    float POINTX;
-    float POINTY;
-    float POINTZ;
+struct Objects { //struct for publishing topic
+    int id;
+    string object_name;
+    float point_x;
+    float point_y;
+    float point_z;
 
-    float QUATX;
-    float QUATY;
-    float QUATZ;
-    float QUATW;
+    float quat_x;
+    float quat_y;
+    float quat_z;
+    float quat_w;
 };
 
-sqlite3* DB;
+ros::Publisher object_depth_pub;
 
 bool gotResolution = 0;
 int imageHeight = 0;
@@ -87,16 +88,18 @@ struct DetectedObjects {
 int totalObjectsDetected;
 
 struct DetectedObjects detectedObjects[100];
+struct Objects depthObjects[100];
+
 tf::StampedTransform transform;
 
-sensor_msgs::PointCloud2 my_pcl;
+/*sensor_msgs::PointCloud2 my_pcl;
 sensor_msgs::PointCloud2 depth;
 pcl::PointCloud < pcl::PointXYZ > pcl_cloud;
 
 pcl::PointCloud<pcl::PointXYZRGB> cloud_in;
-pcl::PointCloud<pcl::PointXYZRGB> cloud_trans;
+pcl::PointCloud<pcl::PointXYZRGB> cloud_trans;*/
 
-std::string wheelchair_dump_loc;
+
 
 //function for printing space sizes
 void printSeparator(int spaceSize) {
@@ -121,51 +124,7 @@ void doesWheelchairDumpPkgExist() {
 	}
 }
 
-void createAndBuildDatabase() {
 
-    int DBerror = 0;
-    std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
-    const char * DBfileName = DBfileNameTmp.c_str();
-    cout << DBfileName << endl;
-    DBerror = sqlite3_open(DBfileName, &DB);
-    if (DBerror) {
-        cout << "Could not find db\n";
-        cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
-        ofstream MyFile(DBfileName);
-        MyFile.close();
-        cout << "Created new DB file\n";
-    }
-    else {
-        cout << "DB ok" << endl;
-    }
-
-    DBerror = sqlite3_open(DBfileName, &DB);
-    //cout << "reached db open" << endl;
-    //const char *mySqlTable;
-    std::string mySqlTable;
-    //create table inside database
-    mySqlTable = "CREATE TABLE IF NOT EXISTS OBJECTS("  \
-    "ID INT PRIMARY KEY  NOT NULL," \
-    "NAME  VARCHAR(500)  NOT NULL," \
-    "POINTX  DOUBLE  NOT NULL," \
-    "POINTY  DOUBLE  NOT NULL," \
-    "POINTZ  DOUBLE  NOT NULL," \
-    "QUATX DOUBLE NOT NULL," \
-    "QUATY DOUBLE NOT NULL," \
-    "QUATZ DOUBLE NOT NULL," \
-    "QUATW DOUBLE NOT NULL);";
-
-    char* SQLerror;
-    DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
-
-    if (DBerror != SQLITE_OK) {
-        cerr << "Error Create Table" << std::endl;
-        sqlite3_free(SQLerror);
-    }
-    else {
-        cout << "Table created Successfully" << std::endl;
-    }
-}
 
 void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     imageHeight = dpth->height;
@@ -285,6 +244,20 @@ void broadcastTransform() {
         transform.setRotation(quat);
         br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
 
+        //publish
+        wheelchair_msgs::objectLocations obLoc;
+        obLoc.id[isObject] = isObject;
+        obLoc.object_name[isObject] = detectedObjects[isObject].object_name;
+        obLoc.point_x[isObject] = detectedObjects[isObject].pointX;
+        obLoc.point_y[isObject] = detectedObjects[isObject].pointY;
+        obLoc.point_z[isObject] = detectedObjects[isObject].pointZ;
+
+        obLoc.rotation_r[isObject] = r;
+        obLoc.rotation_p[isObject] = p;
+        obLoc.rotation_y[isObject] = y;
+
+        object_depth_pub.publish(obLoc);
+        cout << "publish obLoc" << endl;
 /*
         //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
         transform.setOrigin(tf::Vector3(X, Y, Z));
@@ -305,7 +278,7 @@ void broadcastTransform() {
 
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     /*  Get depths from bounding box data  */
-    my_pcl = *dpth;
+    //my_pcl = *dpth;
     tf::StampedTransform tfStamp;
     tf::TransformListener listener;
     int width = dpth->width;
@@ -404,10 +377,8 @@ int main(int argc, char **argv) {
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
+    object_depth_pub = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_msgs/object_depth/detected_objects", 1000);
     
-    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
-
-    createAndBuildDatabase();
 
 
     //set global variable for file/database
@@ -415,7 +386,6 @@ int main(int argc, char **argv) {
     //if using a database and table does not exist - create one
     
     if (ros::isShuttingDown()) {
-        sqlite3_close(DB);
     }
     cout << "spin \n";
     ros::spin();
