@@ -53,10 +53,9 @@ struct Objects { //struct for publishing topic
     float point_y;
     float point_z;
 
-    float quat_x;
-    float quat_y;
-    float quat_z;
-    float quat_w;
+    float rotation_r;
+    float rotation_p;
+    float rotation_y;
 };
 
 ros::Publisher object_depth_pub;
