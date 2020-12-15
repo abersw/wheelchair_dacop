@@ -246,15 +246,15 @@ void broadcastTransform() {
 
         //publish
         wheelchair_msgs::objectLocations obLoc;
-        obLoc.id[isObject] = isObject;
-        obLoc.object_name[isObject] = detectedObjects[isObject].object_name;
-        obLoc.point_x[isObject] = detectedObjects[isObject].pointX;
-        obLoc.point_y[isObject] = detectedObjects[isObject].pointY;
-        obLoc.point_z[isObject] = detectedObjects[isObject].pointZ;
+        obLoc.id.push_back(isObject);
+        obLoc.object_name.push_back(detectedObjects[isObject].object_name);
+        obLoc.point_x.push_back(detectedObjects[isObject].pointX);
+        obLoc.point_y.push_back(detectedObjects[isObject].pointY);
+        obLoc.point_z.push_back(detectedObjects[isObject].pointZ);
 
-        obLoc.rotation_r[isObject] = r;
-        obLoc.rotation_p[isObject] = p;
-        obLoc.rotation_y[isObject] = y;
+        obLoc.rotation_r.push_back(r);
+        obLoc.rotation_p.push_back(p);
+        obLoc.rotation_y.push_back(y);
 
         object_depth_pub.publish(obLoc);
         cout << "publish obLoc" << endl;
@@ -377,7 +377,7 @@ int main(int argc, char **argv) {
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
-    object_depth_pub = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_msgs/object_depth/detected_objects", 1000);
+    object_depth_pub = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_depth/detected_objects", 1000);
     
 
 
