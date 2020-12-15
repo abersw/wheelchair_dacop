@@ -210,7 +210,7 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 //}
 
 void broadcastTransform() {
-
+    wheelchair_msgs::objectLocations obLoc; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
@@ -245,7 +245,6 @@ void broadcastTransform() {
         br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
 
         //publish
-        wheelchair_msgs::objectLocations obLoc;
         obLoc.id.push_back(isObject);
         obLoc.object_name.push_back(detectedObjects[isObject].object_name);
         obLoc.point_x.push_back(detectedObjects[isObject].pointX);
@@ -256,7 +255,6 @@ void broadcastTransform() {
         obLoc.rotation_p.push_back(p);
         obLoc.rotation_y.push_back(y);
 
-        object_depth_pub.publish(obLoc);
         cout << "publish obLoc" << endl;
 /*
         //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
@@ -274,6 +272,7 @@ void broadcastTransform() {
         */
 
     }
+    object_depth_pub.publish(obLoc); //publish object depths
 }
 
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
