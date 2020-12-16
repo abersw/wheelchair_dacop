@@ -211,6 +211,7 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 void broadcastTransform() {
     wheelchair_msgs::objectLocations obLoc; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
+    int totalObjects = 0;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
         //cout << "vec length is " << vec_length << "\n";
@@ -255,6 +256,7 @@ void broadcastTransform() {
         obLoc.rotation_y.push_back(y);
 
         cout << "publish obLoc" << endl;
+        totalObjects++;
 /*
         //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
         transform.setOrigin(tf::Vector3(X, Y, Z));
@@ -271,6 +273,7 @@ void broadcastTransform() {
         */
 
     }
+    obLoc.totalObjects = totalObjects;
     object_depth_pub.publish(obLoc); //publish object depths
 }
 

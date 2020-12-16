@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
 
     ros::Rate rate(10.0);
-
+    //ros::Subscriber sub = nh.subscribe("wheelchair_robot/something", 1, myCallback);
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
 
     createAndBuildDatabase();
