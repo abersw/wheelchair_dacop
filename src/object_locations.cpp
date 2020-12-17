@@ -42,18 +42,18 @@ using namespace std;
 sqlite3* DB;
 std::string wheelchair_dump_loc;
 
-struct Objects { //struct for dacop file
-    int ID;
-    string NAME;
-    float POINTX;
-    float POINTY;
-    float POINTZ;
+struct Objects { //struct for publishing topic
+    int id;
+    string object_name;
+    float point_x;
+    float point_y;
+    float point_z;
 
-    float QUATX;
-    float QUATY;
-    float QUATZ;
-    float QUATW;
+    float rotation_r;
+    float rotation_p;
+    float rotation_y;
 };
+int totalObjects;
 
 void createAndBuildDatabase() {
 

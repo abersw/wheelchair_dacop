@@ -57,6 +57,7 @@ struct Objects { //struct for publishing topic
     float rotation_p;
     float rotation_y;
 };
+int totalObjects = 0;
 
 ros::Publisher object_depth_pub;
 
@@ -211,7 +212,7 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 void broadcastTransform() {
     wheelchair_msgs::objectLocations obLoc; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
-    int totalObjects = 0;
+    totalObjects = 0;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
         //cout << "vec length is " << vec_length << "\n";
@@ -274,7 +275,7 @@ void broadcastTransform() {
 
     }
     obLoc.totalObjects = totalObjects;
-    object_depth_pub.publish(obLoc); //publish object depths
+    object_depth_pub.publish(obLoc); //publish object depths after frame
 }
 
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
