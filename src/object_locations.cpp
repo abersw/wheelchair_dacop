@@ -39,6 +39,9 @@ using namespace std;
 //using namespace message_filters;
 //using namespace sensor_msgs;
 
+const int DEBUG_doesWheelchairDumpPkgExist = 0;
+const int DEBUG_createFile = 0;
+
 sqlite3* DB;
 std::string wheelchair_dump_loc;
 
@@ -55,52 +58,68 @@ struct Objects { //struct for publishing topic
 };
 int totalObjects;
 
-void createAndBuildDatabase() {
 
-    int DBerror = 0;
-    std::string DBfileNameTmp = wheelchair_dump_loc + "/dump/dacop/objects.db";
-    const char * DBfileName = DBfileNameTmp.c_str();
-    cout << DBfileName << endl;
-    DBerror = sqlite3_open(DBfileName, &DB);
-    if (DBerror) {
-        cout << "Could not find db\n";
-        cerr << "Error open DB " << sqlite3_errmsg(DB) << std::endl;
-        ofstream MyFile(DBfileName);
-        MyFile.close();
-        cout << "Created new DB file\n";
-    }
-    else {
-        cout << "DB ok" << endl;
-    }
-
-    DBerror = sqlite3_open(DBfileName, &DB);
-    //cout << "reached db open" << endl;
-    //const char *mySqlTable;
-    std::string mySqlTable;
-    //create table inside database
-    mySqlTable = "CREATE TABLE IF NOT EXISTS OBJECTS("  \
-    "ID INT PRIMARY KEY  NOT NULL," \
-    "NAME  VARCHAR(500)  NOT NULL," \
-    "POINTX  DOUBLE  NOT NULL," \
-    "POINTY  DOUBLE  NOT NULL," \
-    "POINTZ  DOUBLE  NOT NULL," \
-    "QUATX DOUBLE NOT NULL," \
-    "QUATY DOUBLE NOT NULL," \
-    "QUATZ DOUBLE NOT NULL," \
-    "QUATW DOUBLE NOT NULL);";
-
-    char* SQLerror;
-    DBerror = sqlite3_exec(DB, mySqlTable.c_str(), NULL, 0, &SQLerror);
-
-    if (DBerror != SQLITE_OK) {
-        cerr << "Error Create Table" << std::endl;
-        sqlite3_free(SQLerror);
-    }
-    else {
-        cout << "Table created Successfully" << std::endl;
-    }
+//function for printing space sizes
+void printSeparator(int spaceSize) {
+	if (spaceSize == 0) {
+		printf("--------------------------------------------\n");
+	}
+	else {
+		printf("\n");
+		printf("--------------------------------------------\n");
+		printf("\n");
+	}
 }
 
+//does the wheelchair dump package exist in the workspace?
+void doesWheelchairDumpPkgExist() {
+	if (ros::package::getPath("wheelchair_dump") == "") {
+		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
+		cout << "FATAL:  Closing training_context node. \n";
+        if (DEBUG_doesWheelchairDumpPkgExist) {
+    		printSeparator(1);
+        }
+		ros::shutdown();
+		exit(0);
+	}
+}
+
+//create a file
+int createFile(std::string fileName) { //if this doesn't get called, no file is created
+    if (DEBUG_createFile) {
+    	printf("DEBUG: createFile()\n");
+    }
+	std::ifstream fileExists(fileName);
+
+	if (fileExists.good() == 1) {
+		//File exists
+        if (DEBUG_createFile) {
+    		printf("Weighting file exists\n");
+        }
+		//cout << fileName;
+		return 1;
+	}
+	else {
+		//File doesn't exist
+        if (DEBUG_createFile) {
+    		printf("Weighting file doesn't exist\n");
+	    	printf("creating new file\n");
+        }
+		ofstream NEW_FILE (fileName);
+		NEW_FILE.close();
+		//cout << fileName;
+		return 0;
+	}
+}
+
+void objectsListToStruct(std::string objects_file_loc) {
+    //add list to stuct - test this first before callback
+}
+
+void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg) {
+    //stuff here on each callback
+    //if object isn't detected in room - reduce object influence (instead of deleting?)
+}
 
 
 
@@ -108,11 +127,16 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
-    ros::Rate rate(10.0);
-    //ros::Subscriber sub = nh.subscribe("wheelchair_robot/something", 1, myCallback);
-    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
+    doesWheelchairDumpPkgExist();
 
-    createAndBuildDatabase();
+    ros::Rate rate(10.0);
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
+    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
+    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
+
+    int objectsListExists = createFile(objects_file_loc); //create room list
+
+    objectsListToStruct(objects_file_loc);
 
 
     //set global variable for file/database
