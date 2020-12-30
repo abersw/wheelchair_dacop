@@ -46,6 +46,8 @@ const int DEBUG_print_objectLocations_msg = 1;
 
 std::string wheelchair_dump_loc;
 
+tf::TransformListener listener;
+
 struct Objects { //struct for publishing topic
     int id;
     string object_name;
@@ -157,6 +159,19 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
         //yes - add context influence
         //no - add item
         //how to detect dissapearence? After period of time - reduce influence?
+
+        //turn msg to pose
+        tf::Transform localTransform;
+        tf::Transform mapTransform;
+        //create local transform from zed camera to object
+        localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) );
+        tf::Quaternion localQuaternion;
+        localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
+        localTransform.setRotation(localQuaternion);
+        /*
+        try {
+            listener.lookupTransform("map", )
+        }*/
     }
 }
 
