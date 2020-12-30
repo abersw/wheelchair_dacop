@@ -56,7 +56,6 @@ struct Objects { //struct for publishing topic
     float rotation_p;
     float rotation_y;
 };
-int totalObjects;
 
 
 //function for printing space sizes
@@ -138,6 +137,13 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
     int16 totalObjects*/
 
     int totalObjects = objects_msg.totalObjects;
+    for (int isObject = 0; isObject < totalObjects; isObject++) {
+        //turn to global map position
+        //does it exist already?
+        //yes - add context influence
+        //no - add item
+        //how to detect dissapearence? After period of time - reduce influence?
+    }
 }
 
 
