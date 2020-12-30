@@ -30,7 +30,6 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <sqlite3.h>
 
 
 
@@ -39,10 +38,11 @@ using namespace std;
 //using namespace message_filters;
 //using namespace sensor_msgs;
 
-const int DEBUG_doesWheelchairDumpPkgExist = 0;
-const int DEBUG_createFile = 0;
 
-sqlite3* DB;
+//DEBUG LINES - set variable to 1 to enable, 0 to disable
+const int DEBUG_doesWheelchairDumpPkgExist = 1;
+const int DEBUG_createFile = 1;
+
 std::string wheelchair_dump_loc;
 
 struct Objects { //struct for publishing topic
@@ -119,6 +119,25 @@ void objectsListToStruct(std::string objects_file_loc) {
 void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
+
+    /*
+    //# Object location data from map
+
+    Header header
+    int16[] id
+    string[] object_name
+
+    float64[] point_x
+    float64[] point_y
+    float64[] point_z
+
+    float64[] rotation_r
+    float64[] rotation_p
+    float64[] rotation_y
+
+    int16 totalObjects*/
+
+    int totalObjects = objects_msg.totalObjects;
 }
 
 
