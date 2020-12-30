@@ -42,6 +42,7 @@ using namespace std;
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
 const int DEBUG_doesWheelchairDumpPkgExist = 1;
 const int DEBUG_createFile = 1;
+const int DEBUG_print_objectLocations_msg = 1;
 
 std::string wheelchair_dump_loc;
 
@@ -138,6 +139,19 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
 
     int totalObjects = objects_msg.totalObjects;
     for (int isObject = 0; isObject < totalObjects; isObject++) {
+        if (DEBUG_print_objectLocations_msg) {
+            printSeparator(0);
+            cout << "ID: " << objects_msg.id[isObject] << endl;
+            cout << "Name: " << objects_msg.object_name[isObject] << endl;
+
+            cout << "Point_x: " << objects_msg.point_x[isObject] << endl;
+            cout << "Point_y: " << objects_msg.point_y[isObject] << endl;
+            cout << "Point_z: " << objects_msg.point_z[isObject] << endl;
+
+            cout << "Rotation_r: " << objects_msg.rotation_r[isObject] << endl;
+            cout << "Rotation_p: " << objects_msg.rotation_p[isObject] << endl;
+            cout << "Rotation_y: " << objects_msg.rotation_y[isObject] << endl;
+        }
         //turn to global map position
         //does it exist already?
         //yes - add context influence
