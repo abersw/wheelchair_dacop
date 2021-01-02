@@ -1,5 +1,0 @@
-<launch>
-<!--add valgrind -v to launch prefix-->
-<node pkg="wheelchair_dacop" name="cloud_transform" type="cloud_transform" output="screen" launch-prefix=""></node>
-<node pkg="wheelchair_dacop" name="depth_sensing" type="depth_sensing" output="screen" launch-prefix=""></node>
-</launch>
