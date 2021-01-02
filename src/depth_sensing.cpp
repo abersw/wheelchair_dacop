@@ -1,3 +1,10 @@
+/*
+ * depth_sensing.cpp
+ * wheelchair_dacop
+ * version: 0.1.0 Majestic Maidenhair
+ * Status: Alpha
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -243,7 +250,7 @@ void broadcastTransform() {
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
         transform.setRotation(quat);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
+        //br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
 
         //publish
         obLoc.id.push_back(isObject);

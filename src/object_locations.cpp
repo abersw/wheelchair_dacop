@@ -1,3 +1,10 @@
+/*
+ * object_locations.cpp
+ * wheelchair_dacop
+ * version: 0.1.0 Majestic Maidenhair
+ * Status: pre-Alpha
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -160,6 +167,9 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
         //no - add item
         //how to detect dissapearence? After period of time - reduce influence?
 
+        //broadcast detected objects
+        static tf::TransformBroadcaster br;
+        std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject);
         //turn msg to pose
         tf::Transform localTransform;
         tf::Transform mapTransform;
@@ -168,6 +178,7 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
         tf::Quaternion localQuaternion;
         localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
         localTransform.setRotation(localQuaternion);
+        br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename));
         /*
         try {
             listener.lookupTransform("map", )
