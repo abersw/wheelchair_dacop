@@ -189,7 +189,7 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
 
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "object_depth");
+    ros::init(argc, argv, "object_locations");
     ros::NodeHandle n;
 
     doesWheelchairDumpPkgExist();
