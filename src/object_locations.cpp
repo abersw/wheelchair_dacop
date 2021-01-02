@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ros/ros.h" //main ROS library
-#include <ros/package.h> //find ROS packages, needs roslib dependency
+#include "ros/package.h" //find ROS packages, needs roslib dependency
 #include "wheelchair_msgs/objectLocations.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int16.h"
@@ -53,7 +53,6 @@ const int DEBUG_print_objectLocations_msg = 1;
 
 std::string wheelchair_dump_loc;
 
-tf::TransformListener listener;
 
 struct Objects { //struct for publishing topic
     int id;
@@ -189,13 +188,17 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
 
 
 int main(int argc, char **argv) {
+    //stuff to go here
     ros::init(argc, argv, "object_locations");
+
     ros::NodeHandle n;
+
+    
 
     doesWheelchairDumpPkgExist();
 
-    ros::Rate rate(10.0);
     ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
+    ros::Rate rate(10.0);
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
 
@@ -209,7 +212,7 @@ int main(int argc, char **argv) {
     //if using a database and table does not exist - create one
     
     if (ros::isShuttingDown()) {
-        //close things safely
+        //do something
     }
     cout << "spin \n";
     ros::spin();
