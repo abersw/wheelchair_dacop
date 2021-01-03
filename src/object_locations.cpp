@@ -50,6 +50,7 @@ using namespace std;
 const int DEBUG_doesWheelchairDumpPkgExist = 1;
 const int DEBUG_createFile = 1;
 const int DEBUG_print_objectLocations_msg = 1;
+const int DEBUG_main = 1;
 
 std::string wheelchair_dump_loc;
 
@@ -124,42 +125,30 @@ void objectsListToStruct(std::string objects_file_loc) {
     //add list to stuct - test this first before callback
 }
 
+void printObjectLocationsMsg(const wheelchair_msgs::objectLocations objects_msg, const int isObject) {
+    printSeparator(0);
+    cout << "ID: " << objects_msg.id[isObject] << endl;
+    cout << "Name: " << objects_msg.object_name[isObject] << endl;
+
+    cout << "Point_x: " << objects_msg.point_x[isObject] << endl;
+    cout << "Point_y: " << objects_msg.point_y[isObject] << endl;
+    cout << "Point_z: " << objects_msg.point_z[isObject] << endl;
+
+    cout << "Rotation_r: " << objects_msg.rotation_r[isObject] << endl;
+    cout << "Rotation_p: " << objects_msg.rotation_p[isObject] << endl;
+    cout << "Rotation_y: " << objects_msg.rotation_y[isObject] << endl;
+}
+
 void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
 
-    /*
-    //# Object location data from map
-
-    Header header
-    int16[] id
-    string[] object_name
-
-    float64[] point_x
-    float64[] point_y
-    float64[] point_z
-
-    float64[] rotation_r
-    float64[] rotation_p
-    float64[] rotation_y
-
-    int16 totalObjects*/
-
     int totalObjects = objects_msg.totalObjects;
     for (int isObject = 0; isObject < totalObjects; isObject++) {
         if (DEBUG_print_objectLocations_msg) {
-            printSeparator(0);
-            cout << "ID: " << objects_msg.id[isObject] << endl;
-            cout << "Name: " << objects_msg.object_name[isObject] << endl;
-
-            cout << "Point_x: " << objects_msg.point_x[isObject] << endl;
-            cout << "Point_y: " << objects_msg.point_y[isObject] << endl;
-            cout << "Point_z: " << objects_msg.point_z[isObject] << endl;
-
-            cout << "Rotation_r: " << objects_msg.rotation_r[isObject] << endl;
-            cout << "Rotation_p: " << objects_msg.rotation_p[isObject] << endl;
-            cout << "Rotation_y: " << objects_msg.rotation_y[isObject] << endl;
+            printObjectLocationsMsg(objects_msg, isObject);
         }
+
         //turn to global map position
         //does it exist already?
         //yes - add context influence
@@ -214,7 +203,9 @@ int main(int argc, char **argv) {
     if (ros::isShuttingDown()) {
         //do something
     }
-    cout << "spin \n";
+    if (DEBUG_main) {
+        cout << "spin \n";
+    }
     ros::spin();
     rate.sleep();
 
