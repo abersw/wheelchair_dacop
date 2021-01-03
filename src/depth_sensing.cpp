@@ -1,8 +1,8 @@
 /*
  * depth_sensing.cpp
  * wheelchair_dacop
- * version: 0.1.0 Majestic Maidenhair
- * Status: Alpha
+ * version: 1.0.0 Majestic Maidenhair
+ * Status: Gamma
 */
 
 #include <stdio.h>
