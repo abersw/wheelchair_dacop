@@ -53,6 +53,13 @@ using namespace std;
 //using namespace message_filters;
 //using namespace sensor_msgs;
 
+const int DEBUG_doesWheelchairDumpPkgExist = 1;
+const int DEBUG_getResolutionOnStartup = 1;
+const int DEBUG_broadcastTransform = 1;
+const int DEBUG_getPointDepth = 1;
+const int DEBUG_objectDepthCallback = 1;
+const int DEBUG_main = 1;
+
 struct Objects { //struct for publishing topic
     int id;
     string object_name;
@@ -124,8 +131,10 @@ void printSeparator(int spaceSize) {
 void doesWheelchairDumpPkgExist() {
 	if (ros::package::getPath("wheelchair_dump") == "") {
 		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
-		cout << "FATAL:  Closing node. \n";
-		printSeparator(1);
+		cout << "FATAL:  Closing training_context node. \n";
+        if (DEBUG_doesWheelchairDumpPkgExist) {
+    		printSeparator(1);
+        }
 		ros::shutdown();
 		exit(0);
 	}
@@ -136,7 +145,9 @@ void doesWheelchairDumpPkgExist() {
 void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     imageHeight = dpth->height;
     imageWidth = dpth->width;
-    cout << imageHeight << "x" << imageWidth << "\n";
+    if (DEBUG_getResolutionOnStartup) {
+        cout << imageHeight << "x" << imageWidth << "\n";
+    }
 }
 
 /*void broadcastTransform() {
@@ -238,7 +249,9 @@ void broadcastTransform() {
         objectPoint.y = detectedObjects[isObject].pointY;
         objectPoint.z = detectedObjects[isObject].pointZ;
 
-        cout << "Point is \n" << objectPoint << "\n";
+        if (DEBUG_broadcastTransform) {
+            cout << "Point is \n" << objectPoint << "\n";
+        }
 
         float r = -1.5708;
         float p = 0;
@@ -250,7 +263,7 @@ void broadcastTransform() {
         tf::Quaternion quat;
         quat.setRPY(r,p,y);  //where r p y are fixed
         transform.setRotation(quat);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
+        //br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
 
         //publish
         obLoc.id.push_back(isObject);
@@ -263,7 +276,9 @@ void broadcastTransform() {
         obLoc.rotation_p.push_back(p);
         obLoc.rotation_y.push_back(y);
 
-        cout << "publish obLoc" << endl;
+        if (DEBUG_broadcastTransform) {
+            cout << "publish obLoc" << endl;
+        }
         totalObjects++;
 /*
         //tfStamp.setOrigin(tf::Vector3(objectPoint.point.x, objectPoint.point.y, objectPoint.point.z));
@@ -292,7 +307,9 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
     tf::TransformListener listener;
     int width = dpth->width;
     int height = dpth->height;
-    cout << width << " x " << height << "\n";
+    if (DEBUG_getPointDepth) {
+        cout << width << " x " << height << "\n";
+    }
 
     /*try{
       listener.lookupTransform("/map", "/base_footprint",
@@ -306,7 +323,9 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
         int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
-        cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
+        if (DEBUG_getPointDepth) {
+            cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
+        }
         detectedObjects[isObject].centerX = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2;
         detectedObjects[isObject].centerY = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2;
 
@@ -315,8 +334,10 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         float Z;
 
         int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step;
-        cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
-        
+        if (DEBUG_getPointDepth) {
+            cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
+        }
+
         int arrayPosX = arrayPosition + dpth->fields[0].offset; // X has an offset of 0
         int arrayPosY = arrayPosition + dpth->fields[1].offset; // Y has an offset of 4
         int arrayPosZ = arrayPosition + dpth->fields[2].offset; // Z has an offset of 8
@@ -326,7 +347,9 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         memcpy(&Y, &dpth->data[arrayPosY], sizeof(float));
         memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));
 
-        cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
+        if (DEBUG_getPointDepth) {
+            cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
+        }
         detectedObjects[isObject].pointX = X;
         detectedObjects[isObject].pointY = Y;
         detectedObjects[isObject].pointZ = Z;
@@ -354,7 +377,9 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
         detectedObjects[isObject].box_y = obj->box_y[isObject];
         detectedObjects[isObject].box_width = obj->box_width[isObject];
         detectedObjects[isObject].box_height = obj->box_height[isObject];
-        cout << detectedObjects[isObject].object_name << "\n";
+        if (DEBUG_objectDepthCallback) {
+            cout << detectedObjects[isObject].object_name << "\n";
+        }
     }
 
     getPointDepth(dpth, obj);
@@ -396,7 +421,9 @@ int main(int argc, char **argv) {
     
     if (ros::isShuttingDown()) {
     }
-    cout << "spin \n";
+    if (DEBUG_main) {
+        cout << "spin \n";
+    }
     ros::spin();
     rate.sleep();
 
