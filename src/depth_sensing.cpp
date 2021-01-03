@@ -53,12 +53,12 @@ using namespace std;
 //using namespace message_filters;
 //using namespace sensor_msgs;
 
-const int DEBUG_doesWheelchairDumpPkgExist = 1;
-const int DEBUG_getResolutionOnStartup = 1;
-const int DEBUG_broadcastTransform = 1;
-const int DEBUG_getPointDepth = 1;
-const int DEBUG_objectDepthCallback = 1;
-const int DEBUG_main = 1;
+const int DEBUG_doesWheelchairDumpPkgExist = 0;
+const int DEBUG_getResolutionOnStartup = 0;
+const int DEBUG_broadcastTransform = 0;
+const int DEBUG_getPointDepth = 0;
+const int DEBUG_objectDepthCallback = 0;
+const int DEBUG_main = 0;
 
 struct Objects { //struct for publishing topic
     int id;
