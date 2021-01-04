@@ -51,7 +51,7 @@ const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
-const int DEBUG_print_objectLocations_msg = 0;
+const int DEBUG_print_objectLocations_msg = 1;
 const int DEBUG_doesObjectAlreadyExist = 1;
 const int DEBUG_main = 1;
 
@@ -220,7 +220,7 @@ void doesObjectAlreadyExist(std::string DETframename) {
     tf::TransformListener listener;
     tf::StampedTransform translation;
     try {
-        listener.lookupTransform("map", "DETframename", ros::Time(0), translation);
+        listener.lookupTransform("/map", "/DETframename", ros::Time(0), translation);
         if (DEBUG_doesObjectAlreadyExist) {
             printSeparator(0);
             cout << translation.getOrigin().x() << ", " << translation.getOrigin().y() << ", " << translation.getOrigin().z() << endl;
@@ -280,7 +280,7 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
         br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename));
         //end the temporary frame publishing
 
-        doesObjectAlreadyExist(DETframename);
+        //doesObjectAlreadyExist(DETframename);
     }
 }
 
