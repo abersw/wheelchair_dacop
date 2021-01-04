@@ -50,12 +50,12 @@ using namespace std;
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
-const int DEBUG_objectsListToStruct = 1;
+const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_print_objectLocations_msg = 0;
+const int DEBUG_doesObjectAlreadyExist = 1;
 const int DEBUG_main = 1;
 
 std::string wheelchair_dump_loc;
-int objectsFileTotalObjects = 0;
 
 
 struct Objects { //struct for publishing topic
@@ -71,6 +71,8 @@ struct Objects { //struct for publishing topic
     float quat_w;
 };
 struct Objects objectsFileStruct[10000];
+int objectsFileTotalLines = 0;
+int totalObjectsFileStruct = 0;
 
 
 //function for printing space sizes
@@ -199,6 +201,38 @@ void objectsListToStruct(std::string objects_file_loc) {
         }
     }
     objectNumber++;
+    totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
+}
+
+void objectsStructToList(std::string objects_file_loc) {
+    //add struct to list file here
+    ofstream FILE_WRITER;
+	FILE_WRITER.open(objects_file_loc);
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+        FILE_WRITER << objectsFileStruct[isObject].id << "," << objectsFileStruct[isObject].object_name << "," <<
+        objectsFileStruct[isObject].point_x << "," << objectsFileStruct[isObject].point_y << "," << objectsFileStruct[isObject].point_z << "," <<
+        objectsFileStruct[isObject].quat_x << "," << objectsFileStruct[isObject].quat_y << "," << objectsFileStruct[isObject].quat_z << "," << objectsFileStruct[isObject].quat_w << "\n";
+    }
+    FILE_WRITER.close();
+}
+
+void doesObjectAlreadyExist(std::string DETframename) {
+    tf::TransformListener listener;
+    tf::StampedTransform translation;
+    try {
+        listener.lookupTransform("map", "DETframename", ros::Time(0), translation);
+        if (DEBUG_doesObjectAlreadyExist) {
+            printSeparator(0);
+            cout << translation.getOrigin().x() << ", " << translation.getOrigin().y() << ", " << translation.getOrigin().z() << endl;
+            cout << translation.getRotation().x() << ", " << translation.getRotation().y() << ", " << translation.getRotation().z() << ", " << translation.getRotation().w() << endl;
+        }
+
+    }
+    catch (tf::TransformException ex){
+        cout << "Couldn't get translation..." << endl;
+        ROS_ERROR("%s",ex.what());
+        ros::Duration(1.0).sleep();
+    }
 }
 
 void printObjectLocationsMsg(const wheelchair_msgs::objectLocations objects_msg, const int isObject) {
@@ -245,10 +279,8 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
         localTransform.setRotation(localQuaternion);
         br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename));
         //end the temporary frame publishing
-        /*
-        try {
-            listener.lookupTransform("map", )
-        }*/
+
+        doesObjectAlreadyExist(DETframename);
     }
 }
 
@@ -270,7 +302,7 @@ int main(int argc, char **argv) {
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
 
     int objectsListExists = createFile(objects_file_loc); //create room list
-    objectsFileTotalObjects = calculateLines(objects_file_loc);
+    objectsFileTotalLines = calculateLines(objects_file_loc);
     objectsListToStruct(objects_file_loc);
 
 
@@ -280,6 +312,7 @@ int main(int argc, char **argv) {
     
     if (ros::isShuttingDown()) {
         //do something
+        objectsStructToList(objects_file_loc);
     }
     if (DEBUG_main) {
         cout << "spin \n";
