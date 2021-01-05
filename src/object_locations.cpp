@@ -73,6 +73,7 @@ struct Objects { //struct for publishing topic
 struct Objects objectsFileStruct[10000];
 int objectsFileTotalLines = 0;
 int totalObjectsFileStruct = 0;
+int objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
 tf::TransformListener *ptrListener;
 
@@ -218,16 +219,55 @@ void objectsStructToList(std::string objects_file_loc) {
     FILE_WRITER.close();
 }
 
-void doesObjectAlreadyExist(std::string DETframename) {
+void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
     tf::StampedTransform translation;
     try {
         ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0));
         ptrListener->lookupTransform("/map", DETframename, ros::Time(), translation);
-        //listener.tf.lookupTransform("/map", DETframename, ros::Time(0), translation);
+
+        float translation_x = translation.getOrigin().x();
+        float translation_y = translation.getOrigin().y();
+        float translation_z = translation.getOrigin().z();
+        float rotation_x = translation.getRotation().x();
+        float rotation_y = translation.getRotation().y();
+        float rotation_z = translation.getRotation().z();
+        float rotation_w = translation.getRotation().w();
+
         if (DEBUG_doesObjectAlreadyExist) {
             printSeparator(0);
-            cout << translation.getOrigin().x() << ", " << translation.getOrigin().y() << ", " << translation.getOrigin().z() << endl;
-            cout << translation.getRotation().x() << ", " << translation.getRotation().y() << ", " << translation.getRotation().z() << ", " << translation.getRotation().w() << endl;
+            cout << msg_object_name << endl;
+            cout << translation_x << ", " << translation_y << ", " << translation_z << endl;
+            cout << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
+        }
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
+            //this value is from a fixed distance threshold - should be the bounding box size...
+            float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
+            float maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
+            float minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
+            float maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
+
+            if (((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if transform is between x bound
+                ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) && //and is between y bound
+                (msg_object_name == objectsFileStruct[isObject].object_name)) { //and is the same object
+                
+                //if there is already an object within the x and y dimension with the same name
+                //do not add object to struct
+                //so do nothing?
+            }
+            else {
+                //add new object to struct
+                totalObjectsFileStruct += 1;
+                //add object to last position in struct
+                objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
+                objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+                objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
+                objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
+                objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
+                objectsFileStruct[totalObjectsFileStruct].quat_x = rotation_x;
+                objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
+                objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
+                objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
+            }
         }
 
     }
@@ -283,7 +323,7 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
         br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename));
         //end the temporary frame publishing
 
-        doesObjectAlreadyExist(DETframename);
+        doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename);
     }
 }
 
