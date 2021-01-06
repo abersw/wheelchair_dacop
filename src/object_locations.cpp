@@ -256,17 +256,18 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
             }
             else {
                 //add new object to struct
-                totalObjectsFileStruct += 1;
+
                 //add object to last position in struct
-                objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
-                objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
-                objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
-                objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
-                objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
-                objectsFileStruct[totalObjectsFileStruct].quat_x = rotation_x;
-                objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
-                objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
-                objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
+                objectsFileStruct[totalObjectsFileStruct + 1].id = totalObjectsFileStruct;
+                objectsFileStruct[totalObjectsFileStruct + 1].object_name = msg_object_name;
+                objectsFileStruct[totalObjectsFileStruct + 1].point_x = translation_x;
+                objectsFileStruct[totalObjectsFileStruct + 1].point_y = translation_y;
+                objectsFileStruct[totalObjectsFileStruct + 1].point_z = translation_z;
+                objectsFileStruct[totalObjectsFileStruct + 1].quat_x = rotation_x;
+                objectsFileStruct[totalObjectsFileStruct + 1].quat_y = rotation_y;
+                objectsFileStruct[totalObjectsFileStruct + 1].quat_z = rotation_z;
+                objectsFileStruct[totalObjectsFileStruct + 1].quat_w = rotation_w;
+                //totalObjectsFileStruct += 1; //this line is causing the segmentation fault... fix me
             }
         }
 
