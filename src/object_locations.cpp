@@ -353,6 +353,10 @@ int main(int argc, char **argv) {
     //set global variable for file/database
     //if does not exist - create one
     //if using a database and table does not exist - create one
+
+    //detecting missing objects
+    //transform is a point, right?
+    //scan through entire cloud to see if an individual point is within 0.5m and has an object label
     
     if (ros::isShuttingDown()) {
         //do something
