@@ -221,6 +221,7 @@ void objectsStructToList(std::string objects_file_loc) {
 
 void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
     tf::StampedTransform translation;
+    int addToTotalObjectsFileStruct = 0;
     try {
         ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0));
         ptrListener->lookupTransform("/map", DETframename, ros::Time(), translation);
@@ -267,10 +268,16 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_y = rotation_y;
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_z = rotation_z;
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_w = rotation_w;
-                //totalObjectsFileStruct += 1; //this line is causing the segmentation fault... fix me
+                addToTotalObjectsFileStruct = 1;
+                //totalObjectsFileStruct++; //this line is causing the segmentation fault... fix me
             }
         }
-
+        if (addToTotalObjectsFileStruct == 1) {
+            totalObjectsFileStruct += 1;
+        }
+        else {
+            //don't do anything
+        }
     }
     catch (tf::TransformException ex){
         cout << "Couldn't get translation..." << endl;
