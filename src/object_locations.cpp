@@ -217,6 +217,7 @@ void objectsStructToList(std::string objects_file_loc) {
         objectsFileStruct[isObject].quat_x << "," << objectsFileStruct[isObject].quat_y << "," << objectsFileStruct[isObject].quat_z << "," << objectsFileStruct[isObject].quat_w << "\n";
     }
     FILE_WRITER.close();
+    cout << "finished saving function" << endl;
 }
 
 void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
@@ -250,16 +251,16 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
             if (((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if transform is between x bound
                 ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) && //and is between y bound
                 (msg_object_name == objectsFileStruct[isObject].object_name)) { //and is the same object
-                
+                cout << "object already in this location" << endl;
                 //if there is already an object within the x and y dimension with the same name
                 //do not add object to struct
                 //so do nothing?
             }
             else {
                 //add new object to struct
-
+                cout << "added new object location" << endl;
                 //add object to last position in struct
-                objectsFileStruct[totalObjectsFileStruct + 1].id = totalObjectsFileStruct;
+                /*objectsFileStruct[totalObjectsFileStruct + 1].id = totalObjectsFileStruct;
                 objectsFileStruct[totalObjectsFileStruct + 1].object_name = msg_object_name;
                 objectsFileStruct[totalObjectsFileStruct + 1].point_x = translation_x;
                 objectsFileStruct[totalObjectsFileStruct + 1].point_y = translation_y;
@@ -267,7 +268,7 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_x = rotation_x;
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_y = rotation_y;
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_z = rotation_z;
-                objectsFileStruct[totalObjectsFileStruct + 1].quat_w = rotation_w;
+                objectsFileStruct[totalObjectsFileStruct + 1].quat_w = rotation_w;*/
                 addToTotalObjectsFileStruct = 1;
                 //totalObjectsFileStruct++; //this line is causing the segmentation fault... fix me
             }
@@ -342,7 +343,9 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_locations");
 
     ros::NodeHandle n;
-
+    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
+    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
+    while (ros::ok()) {
     tf::TransformListener listener;
     ptrListener = &listener;
 
@@ -350,8 +353,7 @@ int main(int argc, char **argv) {
 
     ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
     ros::Rate rate(10.0);
-    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
-    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
+    
 
     int objectsListExists = createFile(objects_file_loc); //create room list
     objectsFileTotalLines = calculateLines(objects_file_loc);
@@ -366,15 +368,15 @@ int main(int argc, char **argv) {
     //transform is a point, right?
     //scan through entire cloud to see if an individual point is within 0.5m and has an object label
     
-    if (ros::isShuttingDown()) {
-        //do something
-        objectsStructToList(objects_file_loc);
-    }
+    
     if (DEBUG_main) {
         cout << "spin \n";
     }
     ros::spin();
     rate.sleep();
-
+    }
+        //do something
+        cout << "closing ROS node" << endl;
+        objectsStructToList(objects_file_loc);
     return 0;
 }

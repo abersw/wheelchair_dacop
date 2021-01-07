@@ -1,0 +1,5 @@
+<launch>
+<!--add valgrind -v to launch prefix-->
+<!--node to convert point cloud to map frame coordinates-->
+<node pkg="wheelchair_dacop" name="cloud_transform" type="cloud_transform" output="screen" launch-prefix=""></node>
+</launch>

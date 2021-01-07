@@ -1,0 +1,5 @@
+<launch>
+<!--add valgrind -v to launch prefix-->
+<!--node to grab object detection data, and grab the 3D coordinates - to whatever frame is stated in the node above-->
+<node pkg="wheelchair_dacop" name="depth_sensing" type="depth_sensing" output="screen" launch-prefix=""></node>
+</launch>
