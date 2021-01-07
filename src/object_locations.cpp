@@ -243,10 +243,10 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
         }
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
             //this value is from a fixed distance threshold - should be the bounding box size...
-            float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
-            float maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
-            float minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
-            float maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
+            float minPointThreshold_x = translation_x - objectTopologyThreshold; //make minimum x bound
+            float maxPointThreshold_x = translation_x + objectTopologyThreshold; //make maximum x bound
+            float minPointThreshold_y = translation_y - objectTopologyThreshold; //make minimum y bound
+            float maxPointThreshold_y = translation_y + objectTopologyThreshold; //make maximum y bound
 
             if (((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if transform is between x bound
                 ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) && //and is between y bound
