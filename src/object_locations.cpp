@@ -146,6 +146,9 @@ int calculateLines(std::string fileName) {
   		//cout << "\n";
 	}
 	FILE_COUNTER.close();
+    if (DEBUG_calculateLines) {
+        cout << returnCounter << endl;
+    }
 	return returnCounter;
 }
 
