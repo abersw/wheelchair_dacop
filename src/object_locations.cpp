@@ -54,6 +54,7 @@ const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_print_objectLocations_msg = 0;
 const int DEBUG_doesObjectAlreadyExist = 1;
 const int DEBUG_main = 1;
+const int DEBUG_finish_file_printout = 1;
 
 std::string wheelchair_dump_loc;
 
@@ -263,7 +264,7 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
                 //add new object to struct
                 cout << "added new object location" << endl;
                 //add object to last position in struct
-                /*objectsFileStruct[totalObjectsFileStruct + 1].id = totalObjectsFileStruct;
+                objectsFileStruct[totalObjectsFileStruct + 1].id = totalObjectsFileStruct;
                 objectsFileStruct[totalObjectsFileStruct + 1].object_name = msg_object_name;
                 objectsFileStruct[totalObjectsFileStruct + 1].point_x = translation_x;
                 objectsFileStruct[totalObjectsFileStruct + 1].point_y = translation_y;
@@ -271,7 +272,7 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_x = rotation_x;
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_y = rotation_y;
                 objectsFileStruct[totalObjectsFileStruct + 1].quat_z = rotation_z;
-                objectsFileStruct[totalObjectsFileStruct + 1].quat_w = rotation_w;*/
+                objectsFileStruct[totalObjectsFileStruct + 1].quat_w = rotation_w;
                 addToTotalObjectsFileStruct = 1;
                 //totalObjectsFileStruct++; //this line is causing the segmentation fault... fix me
             }
@@ -381,5 +382,15 @@ int main(int argc, char **argv) {
         //do something
         cout << "closing ROS node" << endl;
         objectsStructToList(objects_file_loc);
+        if (DEBUG_finish_file_printout) {
+            printSeparator(0);
+            cout << "file output" << endl;
+            for (int objectNumber = 0; objectNumber < totalObjectsFileStruct; objectNumber++) {
+                cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
+                cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
+                cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
+            }
+            printSeparator(0);
+        }
     return 0;
 }
