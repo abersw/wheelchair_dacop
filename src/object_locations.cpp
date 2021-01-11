@@ -159,13 +159,13 @@ void objectsListToStruct(std::string objects_file_loc) {
     //id, object_name, point_x, point_y, point_z, quat_x, quat_y, quat_z, quat_w
     std::string objectsDelimiter = ",";
 	ifstream FILE_READER(objects_file_loc);
+    int objectNumber = 0;
     if (FILE_READER.peek() == std::ifstream::traits_type::eof()) {
         //don't do anything if next character in file is eof
         cout << "file is empty" << endl;
     }
     else {
         std::string line;
-        int objectNumber = 0;
         while (getline(FILE_READER, line)) { //go through line by line
             int lineSection = 0; //var for iterating through serialised line
             int pos = 0; //position of delimiter in line
@@ -213,9 +213,8 @@ void objectsListToStruct(std::string objects_file_loc) {
             }
         }
         objectNumber++;
-        totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
     }
-    
+    totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
 void objectsStructToList(std::string objects_file_loc) {
@@ -232,6 +231,50 @@ void objectsStructToList(std::string objects_file_loc) {
 }
 
 void doesObjectAlreadyExist2(std::string msg_object_name, std::string DETframename) {
+    tf::StampedTransform translation;
+    try {
+        ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0));
+        ptrListener->lookupTransform("/map", DETframename, ros::Time(), translation);
+
+        //get global translation of object
+        float translation_x = translation.getOrigin().x();
+        float translation_y = translation.getOrigin().y();
+        float translation_z = translation.getOrigin().z();
+        float rotation_x = translation.getRotation().x();
+        float rotation_y = translation.getRotation().y();
+        float rotation_z = translation.getRotation().z();
+        float rotation_w = translation.getRotation().w();
+
+        int foundObjectMatch = 0; //var to check if object match has been found
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+            cout << "object no is " << isObject << endl;
+            float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
+            float maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
+            float minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
+            float maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
+
+            foundObjectMatch = 0;
+            if ( ((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if it's in x bound
+                ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) && //if it's in y bound
+                (msg_object_name == objectsFileStruct[isObject].object_name)) { //if it's the same object
+                    cout << "found same object in this location" << endl;
+                    foundObjectMatch = 1;
+                
+            }
+            else {
+                //no match found in list, leave at 0
+            }
+        }
+        if (foundObjectMatch)
+    }
+    catch (tf::TransformException ex){
+        cout << "Couldn't get translation..." << endl;
+        ROS_ERROR("%s",ex.what());
+        ros::Duration(1.0).sleep();
+    }
+}
+
+void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
     tf::StampedTransform translation;
     try{
         ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0));
@@ -252,7 +295,8 @@ void doesObjectAlreadyExist2(std::string msg_object_name, std::string DETframena
         }
         int goToNextStructPos = 0;
         //iterate through struct to find matching translation
-        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+        for (int isObject = 0; isObject <= totalObjectsFileStruct; isObject++) {
+            cout << "object no is " << isObject << endl;
             float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
             float maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
             float minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
@@ -266,96 +310,24 @@ void doesObjectAlreadyExist2(std::string msg_object_name, std::string DETframena
                 
             }
             else {
-                if ((msg_object_name.empty()) || (msg_object_name == "")) {
-                    //don't register NULL object name...
-                    cout << "null object detected" << endl;
-                }
-                else {
-                    cout << "add new object to struct" << endl;
-                    //add object to last position in struct
-                    objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
-                    objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
-                    objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
-                    objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
-                    objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
-                    objectsFileStruct[totalObjectsFileStruct].quat_x = rotation_x;
-                    objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
-                    objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
-                    objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
-                    goToNextStructPos = 1;
-                }
+                cout << "add new object to struct" << endl;
+                //add object to last position in struct
+                objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
+                objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+                objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
+                objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
+                objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
+                objectsFileStruct[totalObjectsFileStruct].quat_x = rotation_x;
+                objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
+                objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
+                objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
+                goToNextStructPos = 1;
             }
         }
         if (goToNextStructPos == 1) {
             totalObjectsFileStruct++;
         }
-    }
-    catch (tf::TransformException ex){
-        cout << "Couldn't get translation..." << endl;
-        ROS_ERROR("%s",ex.what());
-        ros::Duration(1.0).sleep();
-    }
-}
-
-void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
-    tf::StampedTransform translation;
-    int addToTotalObjectsFileStruct = 0;
-    try {
-        ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0));
-        ptrListener->lookupTransform("/map", DETframename, ros::Time(), translation);
-
-        float translation_x = translation.getOrigin().x();
-        float translation_y = translation.getOrigin().y();
-        float translation_z = translation.getOrigin().z();
-        float rotation_x = translation.getRotation().x();
-        float rotation_y = translation.getRotation().y();
-        float rotation_z = translation.getRotation().z();
-        float rotation_w = translation.getRotation().w();
-
-        if (DEBUG_doesObjectAlreadyExist) {
-            printSeparator(0);
-            cout << msg_object_name << endl;
-            cout << translation_x << ", " << translation_y << ", " << translation_z << endl;
-            cout << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
-        }
-        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-            //this value is from a fixed distance threshold - should be the bounding box size...
-            float minPointThreshold_x = translation_x - objectTopologyThreshold; //make minimum x bound
-            float maxPointThreshold_x = translation_x + objectTopologyThreshold; //make maximum x bound
-            float minPointThreshold_y = translation_y - objectTopologyThreshold; //make minimum y bound
-            float maxPointThreshold_y = translation_y + objectTopologyThreshold; //make maximum y bound
-
-            if (((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if transform is between x bound
-                ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) && //and is between y bound
-                (msg_object_name == objectsFileStruct[isObject].object_name)) { //and is the same object
-                cout << "object already in this location" << endl;
-                //if there is already an object within the x and y dimension with the same name
-                //do not add object to struct
-                //so do nothing?
-            }
-            else {
-                //add new object to struct
-                cout << "added new object location" << endl;
-                //add object to last position in struct
-                objectsFileStruct[totalObjectsFileStruct + 1].id = totalObjectsFileStruct;
-                objectsFileStruct[totalObjectsFileStruct + 1].object_name = msg_object_name;
-                objectsFileStruct[totalObjectsFileStruct + 1].point_x = translation_x;
-                objectsFileStruct[totalObjectsFileStruct + 1].point_y = translation_y;
-                objectsFileStruct[totalObjectsFileStruct + 1].point_z = translation_z;
-                objectsFileStruct[totalObjectsFileStruct + 1].quat_x = rotation_x;
-                objectsFileStruct[totalObjectsFileStruct + 1].quat_y = rotation_y;
-                objectsFileStruct[totalObjectsFileStruct + 1].quat_z = rotation_z;
-                objectsFileStruct[totalObjectsFileStruct + 1].quat_w = rotation_w;
-                addToTotalObjectsFileStruct = 1;
-                //totalObjectsFileStruct++; //this line is causing the segmentation fault... fix me
-            }
-        }
-        if (addToTotalObjectsFileStruct == 1) {
-            totalObjectsFileStruct += 1;
-        }
-        else {
-            //don't do anything
-        }
+        cout << "total objects in struct is " << totalObjectsFileStruct << endl;
     }
     catch (tf::TransformException ex){
         cout << "Couldn't get translation..." << endl;
