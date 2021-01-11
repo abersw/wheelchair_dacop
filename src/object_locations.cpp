@@ -265,7 +265,23 @@ void doesObjectAlreadyExist2(std::string msg_object_name, std::string DETframena
                 //no match found in list, leave at 0
             }
         }
-        if (foundObjectMatch)
+        if (foundObjectMatch == 1) {
+            //found object match, don't do anything
+        }
+        else if (foundObjectMatch == 0) {
+            //found new object, add to struct and iterate the totalObjects
+            //add object to last position in struct
+                objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
+                objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+                objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
+                objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
+                objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
+                objectsFileStruct[totalObjectsFileStruct].quat_x = rotation_x;
+                objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
+                objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
+                objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
+                totalObjectsFileStruct++;
+        }
     }
     catch (tf::TransformException ex){
         cout << "Couldn't get translation..." << endl;
