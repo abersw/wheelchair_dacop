@@ -159,56 +159,63 @@ void objectsListToStruct(std::string objects_file_loc) {
     //id, object_name, point_x, point_y, point_z, quat_x, quat_y, quat_z, quat_w
     std::string objectsDelimiter = ",";
 	ifstream FILE_READER(objects_file_loc);
-	std::string line;
-	int objectNumber = 0;
-    while (getline(FILE_READER, line)) { //go through line by line
-        int lineSection = 0; //var for iterating through serialised line
-        int pos = 0; //position of delimiter in line
-        std::string token;
-        while ((pos = line.find(objectsDelimiter)) != std::string::npos) {
-            token = line.substr(0, pos);
-            //std::cout << token << std::endl;
-            line.erase(0, pos + objectsDelimiter.length());
-            //deserialise the line sections below:
-            if (lineSection == 0) {
-                objectsFileStruct[objectNumber].id = std::stoi(token);
-            }
-            else if (lineSection == 1) {
-                objectsFileStruct[objectNumber].object_name = token;
-            }
-            else if (lineSection == 2) {
-                objectsFileStruct[objectNumber].point_x = std::stof(token);
-            }
-            else if (lineSection == 3) {
-                objectsFileStruct[objectNumber].point_y = std::stof(token);
-            }
-            else if (lineSection == 4) {
-                objectsFileStruct[objectNumber].point_z = std::stof(token);
-            }
-            else if (lineSection == 5) {
-                objectsFileStruct[objectNumber].quat_x = std::stof(token);
-            }
-            else if (lineSection == 6) {
-                objectsFileStruct[objectNumber].quat_y = std::stof(token);
-            }
-            else if (lineSection == 7) {
-                objectsFileStruct[objectNumber].quat_z = std::stof(token);
-            }
-
-            lineSection++;
-        }
-        //std::cout << line << std::endl;
-        objectsFileStruct[objectNumber].quat_w = std::stof(line);
-        cout << "sections in line " << lineSection << endl;
-        if (DEBUG_objectsListToStruct) {
-            cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
-            cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
-            cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
-            printSeparator(0);
-        }
+    if (FILE_READER.peek() == std::ifstream::traits_type::eof()) {
+        //don't do anything if next character in file is eof
+        cout << "file is empty" << endl;
     }
-    objectNumber++;
-    totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
+    else {
+        std::string line;
+        int objectNumber = 0;
+        while (getline(FILE_READER, line)) { //go through line by line
+            int lineSection = 0; //var for iterating through serialised line
+            int pos = 0; //position of delimiter in line
+            std::string token;
+            while ((pos = line.find(objectsDelimiter)) != std::string::npos) {
+                token = line.substr(0, pos);
+                //std::cout << token << std::endl;
+                line.erase(0, pos + objectsDelimiter.length());
+                //deserialise the line sections below:
+                if (lineSection == 0) {
+                    objectsFileStruct[objectNumber].id = std::stoi(token);
+                }
+                else if (lineSection == 1) {
+                    objectsFileStruct[objectNumber].object_name = token;
+                }
+                else if (lineSection == 2) {
+                    objectsFileStruct[objectNumber].point_x = std::stof(token);
+                }
+                else if (lineSection == 3) {
+                    objectsFileStruct[objectNumber].point_y = std::stof(token);
+                }
+                else if (lineSection == 4) {
+                    objectsFileStruct[objectNumber].point_z = std::stof(token);
+                }
+                else if (lineSection == 5) {
+                    objectsFileStruct[objectNumber].quat_x = std::stof(token);
+                }
+                else if (lineSection == 6) {
+                    objectsFileStruct[objectNumber].quat_y = std::stof(token);
+                }
+                else if (lineSection == 7) {
+                    objectsFileStruct[objectNumber].quat_z = std::stof(token);
+                }
+
+                lineSection++;
+            }
+            //std::cout << line << std::endl;
+            objectsFileStruct[objectNumber].quat_w = std::stof(line);
+            cout << "sections in line " << lineSection << endl;
+            if (DEBUG_objectsListToStruct) {
+                cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
+                cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
+                cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
+                printSeparator(0);
+            }
+        }
+        objectNumber++;
+        totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
+    }
+    
 }
 
 void objectsStructToList(std::string objects_file_loc) {
