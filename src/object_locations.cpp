@@ -50,7 +50,7 @@ using namespace std;
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
-const int DEBUG_objectsListToStruct = 0;
+const int DEBUG_objectsListToStruct = 1;
 const int DEBUG_print_objectLocations_msg = 0;
 const int DEBUG_doesObjectAlreadyExist = 1;
 const int DEBUG_main = 1;
@@ -245,7 +245,27 @@ void doesObjectAlreadyExist2(std::string msg_object_name, std::string DETframena
         float rotation_z = translation.getRotation().z();
         float rotation_w = translation.getRotation().w();
 
+        if (DEBUG_doesObjectAlreadyExist) {
+            printSeparator(0);
+            cout << msg_object_name << endl;
+            cout << translation_x << ", " << translation_y << ", " << translation_z << endl;
+            cout << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
+        }
+
         int foundObjectMatch = 0; //var to check if object match has been found
+
+        if (totalObjectsFileStruct == 0) {
+            objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
+            objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+            objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
+            objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
+            objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
+            objectsFileStruct[totalObjectsFileStruct].quat_x = rotation_x;
+            objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
+            objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
+            objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
+            totalObjectsFileStruct++;
+        }
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
             cout << "object no is " << isObject << endl;
             float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
@@ -263,6 +283,7 @@ void doesObjectAlreadyExist2(std::string msg_object_name, std::string DETframena
             }
             else {
                 //no match found in list, leave at 0
+                cout << "no match" << endl;
             }
         }
         if (foundObjectMatch == 1) {
