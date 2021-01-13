@@ -11,7 +11,7 @@
 #include "ros/ros.h" //main ROS library
 #include <ros/package.h> //find ROS packages, needs roslib dependency
 #include "wheelchair_msgs/mobilenet.h"
-#include "wheelchair_msgs/objectLocations.h"
+#include "wheelchair_msgs/foundObjects.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int16.h"
 #include "std_msgs/Float32.h"
@@ -228,7 +228,7 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 //}
 
 void broadcastTransform() {
-    wheelchair_msgs::objectLocations obLoc; //wheelchair msg for detected object depth
+    wheelchair_msgs::foundObjects obLoc; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
     totalObjects = 0;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
@@ -411,7 +411,7 @@ int main(int argc, char **argv) {
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
-    object_depth_pub = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_depth/detected_objects", 1000);
+    object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/object_depth/detected_objects", 1000);
     
 
 

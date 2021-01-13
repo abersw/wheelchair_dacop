@@ -10,6 +10,7 @@
 #include <string.h>
 #include "ros/ros.h" //main ROS library
 #include "ros/package.h" //find ROS packages, needs roslib dependency
+#include "wheelchair_msgs/foundObjects.h"
 #include "wheelchair_msgs/objectLocations.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int16.h"
@@ -51,7 +52,7 @@ const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 1;
-const int DEBUG_print_objectLocations_msg = 0;
+const int DEBUG_print_foundObjects_msg = 0;
 const int DEBUG_doesObjectAlreadyExist = 1;
 const int DEBUG_main = 1;
 const int DEBUG_finish_file_printout = 1;
@@ -335,7 +336,7 @@ void publishObjectStruct() {
     }
 }
 
-void printObjectLocationsMsg(const wheelchair_msgs::objectLocations objects_msg, const int isObject) {
+void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const int isObject) {
     printSeparator(0);
     cout << "ID: " << objects_msg.id[isObject] << endl;
     cout << "Name: " << objects_msg.object_name[isObject] << endl;
@@ -349,14 +350,14 @@ void printObjectLocationsMsg(const wheelchair_msgs::objectLocations objects_msg,
     cout << "Rotation_y: " << objects_msg.rotation_y[isObject] << endl;
 }
 
-void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg) {
+void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
 
     int totalObjects = objects_msg.totalObjects;
     for (int isObject = 0; isObject < totalObjects; isObject++) {
-        if (DEBUG_print_objectLocations_msg) {
-            printObjectLocationsMsg(objects_msg, isObject);
+        if (DEBUG_print_foundObjects_msg) {
+            printFoundObjectsMsg(objects_msg, isObject);
         }
 
         //turn to global map position
@@ -393,7 +394,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
-    ros::Publisher pub = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_locations/objects", 1000);
+    ros::Publisher pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/object_locations/objects", 1000);
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
     while (ros::ok()) {
