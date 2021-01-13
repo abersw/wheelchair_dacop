@@ -74,7 +74,7 @@ struct Objects { //struct for publishing topic
 struct Objects objectsFileStruct[10000];
 int objectsFileTotalLines = 0;
 int totalObjectsFileStruct = 0;
-int objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
+double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
 tf::TransformListener *ptrListener;
 
