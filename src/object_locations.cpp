@@ -331,7 +331,7 @@ void publishObjectStruct() {
         br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
         //end the temporary frame publishing
 
-        cout << "Hopefully published real transform" << endl;
+        //cout << "Hopefully published real transform" << endl;
     }
 }
 
@@ -397,45 +397,46 @@ int main(int argc, char **argv) {
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
     while (ros::ok()) {
-    tf::TransformListener listener;
-    ptrListener = &listener;
+        tf::TransformListener listener;
+        ptrListener = &listener;
 
-    doesWheelchairDumpPkgExist();
-    int objectsListExists = createFile(objects_file_loc); //create room list
-    objectsFileTotalLines = calculateLines(objects_file_loc);
-    objectsListToStruct(objects_file_loc);
-    
-    ros::Rate rate(10.0);
-    
+        doesWheelchairDumpPkgExist();
+        int objectsListExists = createFile(objects_file_loc); //create room list
+        objectsFileTotalLines = calculateLines(objects_file_loc);
+        objectsListToStruct(objects_file_loc);
+        
+        ros::Rate rate(10.0);
+        
 
 
-    //set global variable for file/database
-    //if does not exist - create one
-    //if using a database and table does not exist - create one
+        //set global variable for file/database
+        //if does not exist - create one
+        //if using a database and table does not exist - create one
 
-    //detecting missing objects
-    //transform is a point, right?
-    //scan through entire cloud to see if an individual point is within 0.5m and has an object label
-    
-    
-    if (DEBUG_main) {
-        cout << "spin \n";
-    }
-    ros::spin();
-    rate.sleep();
-    }
-        //do something
-        cout << "closing ROS node" << endl;
-        objectsStructToList(objects_file_loc);
-        if (DEBUG_finish_file_printout) {
-            printSeparator(0);
-            cout << "file output" << endl;
-            for (int objectNumber = 0; objectNumber < totalObjectsFileStruct; objectNumber++) {
-                cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
-                cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
-                cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
-            }
-            printSeparator(0);
+        //detecting missing objects
+        //transform is a point, right?
+        //scan through entire cloud to see if an individual point is within 0.5m and has an object label
+        
+        
+        if (DEBUG_main) {
+            cout << "spin \n";
         }
+        ros::spin();
+        rate.sleep();
+    }
+    
+    //start closing procedure
+    cout << "closing ROS node" << endl;
+    objectsStructToList(objects_file_loc);
+    if (DEBUG_finish_file_printout) {
+        printSeparator(0);
+        cout << "file output" << endl;
+        for (int objectNumber = 0; objectNumber < totalObjectsFileStruct; objectNumber++) {
+            cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
+            cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
+            cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
+        }
+        printSeparator(0);
+    }
     return 0;
 }
