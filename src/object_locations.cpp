@@ -312,6 +312,29 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
     }
 }
 
+void publishObjectStruct() {
+    //publish all objects inside struct
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
+
+        int objectID = objectsFileStruct[isObject].id;
+        std::string objectName = objectsFileStruct[isObject].object_name;
+
+        static tf::TransformBroadcaster br;
+        std::string OBframename = std::to_string(objectID) + objectName;
+
+        //turn msg to pose
+        tf::Transform mapTransform;
+        //create map transform from map to object
+        mapTransform.setOrigin( tf::Vector3(objectsFileStruct[isObject].point_x, objectsFileStruct[isObject].point_y, objectsFileStruct[isObject].point_z) );
+        tf::Quaternion mapQuaternion(objectsFileStruct[isObject].quat_x, objectsFileStruct[isObject].quat_y, objectsFileStruct[isObject].quat_z, objectsFileStruct[isObject].quat_w);
+        mapTransform.setRotation(mapQuaternion);
+        br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
+        //end the temporary frame publishing
+
+        cout << "Hopefully published real transform" << endl;
+    }
+}
+
 void printObjectLocationsMsg(const wheelchair_msgs::objectLocations objects_msg, const int isObject) {
     printSeparator(0);
     cout << "ID: " << objects_msg.id[isObject] << endl;
@@ -359,6 +382,7 @@ void objectsDetectedCallback(const wheelchair_msgs::objectLocations objects_msg)
         //doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename);
         doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename);
     }
+    publishObjectStruct();
 }
 
 
@@ -368,6 +392,8 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_locations");
 
     ros::NodeHandle n;
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
+    ros::Publisher pub = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_locations/objects", 1000);
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
     while (ros::ok()) {
@@ -378,11 +404,9 @@ int main(int argc, char **argv) {
     int objectsListExists = createFile(objects_file_loc); //create room list
     objectsFileTotalLines = calculateLines(objects_file_loc);
     objectsListToStruct(objects_file_loc);
-
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
+    
     ros::Rate rate(10.0);
     
-
 
 
     //set global variable for file/database
