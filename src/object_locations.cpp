@@ -337,10 +337,18 @@ void publishObjectStruct() {
 
         //start publishing objects struct as a ROS message
         
-        
-
-        //cout << "Hopefully published real transform" << endl;
+        obLoc.id.push_back(objectsFileStruct[isObject].id);
+        obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
+        obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
+        obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
+        obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
+        obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
+        obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
+        obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
+        obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
     }
+    obLoc.totalObjects = totalObjectsFileStruct;
+    ptr_publish_objectLocations->publish(obLoc);
 }
 
 void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const int isObject) {
