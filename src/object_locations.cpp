@@ -2,7 +2,7 @@
  * object_locations.cpp
  * wheelchair_dacop
  * version: 0.1.0 Majestic Maidenhair
- * Status: pre-Alpha
+ * Status: Beta
 */
 
 #include <stdio.h>
