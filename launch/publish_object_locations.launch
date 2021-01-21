@@ -1,0 +1,5 @@
+<launch>
+<!--add valgrind -v to launch prefix-->
+<!--node to calculate if the object has been detected before-->
+<node pkg="wheelchair_dacop" name="publish_object_locations" type="publish_object_locations" output="screen" launch-prefix=""></node>
+</launch>

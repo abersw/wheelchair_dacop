@@ -140,9 +140,10 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/wheelchair_dacop_node.cpp)
+add_executable(cloud_transform src/cloud_transform.cpp)
 add_executable(depth_sensing src/depth_sensing.cpp)
 add_executable(object_locations src/object_locations.cpp)
-add_executable(cloud_transform src/cloud_transform.cpp)
+add_executable(publish_object_locations src/publish_object_locations.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -158,9 +159,10 @@ add_executable(cloud_transform src/cloud_transform.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(cloud_transform ${catkin_LIBRARIES})
 target_link_libraries(depth_sensing ${catkin_LIBRARIES})
 target_link_libraries(object_locations ${catkin_LIBRARIES})
-target_link_libraries(cloud_transform ${catkin_LIBRARIES})
+target_link_libraries(publish_object_locations ${catkin_LIBRARIES})
 
 #############
 ## Install ##
