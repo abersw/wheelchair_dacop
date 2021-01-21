@@ -79,6 +79,8 @@ double objectTopologyThreshold = 0.5; //this should probably be a bounding box v
 
 tf::TransformListener *ptrListener;
 
+ros::Publisher *ptr_publish_objectLocations;
+
 
 //function for printing space sizes
 void printSeparator(int spaceSize) {
@@ -314,6 +316,7 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
 }
 
 void publishObjectStruct() {
+    wheelchair_msgs::objectLocations obLoc;
     //publish all objects inside struct
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
 
@@ -325,12 +328,16 @@ void publishObjectStruct() {
 
         //turn msg to pose
         tf::Transform mapTransform;
-        //create map transform from map to object
+        //create map transform from map to object frame
         mapTransform.setOrigin( tf::Vector3(objectsFileStruct[isObject].point_x, objectsFileStruct[isObject].point_y, objectsFileStruct[isObject].point_z) );
         tf::Quaternion mapQuaternion(objectsFileStruct[isObject].quat_x, objectsFileStruct[isObject].quat_y, objectsFileStruct[isObject].quat_z, objectsFileStruct[isObject].quat_w);
         mapTransform.setRotation(mapQuaternion);
         br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
-        //end the temporary frame publishing
+        //end the map frame object publishing
+
+        //start publishing objects struct as a ROS message
+        
+        
 
         //cout << "Hopefully published real transform" << endl;
     }
@@ -394,7 +401,9 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
-    ros::Publisher pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/object_locations/objects", 1000);
+    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_locations/objects", 1000);
+    ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
+
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
     while (ros::ok()) {
