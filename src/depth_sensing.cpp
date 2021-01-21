@@ -228,7 +228,7 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 //}
 
 void broadcastTransform() {
-    wheelchair_msgs::foundObjects obLoc; //wheelchair msg for detected object depth
+    wheelchair_msgs::foundObjects fdObj; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
     totalObjects = 0;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
@@ -266,18 +266,18 @@ void broadcastTransform() {
         //br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
 
         //publish
-        obLoc.id.push_back(isObject);
-        obLoc.object_name.push_back(detectedObjects[isObject].object_name);
-        obLoc.point_x.push_back(detectedObjects[isObject].pointX);
-        obLoc.point_y.push_back(detectedObjects[isObject].pointY);
-        obLoc.point_z.push_back(detectedObjects[isObject].pointZ);
+        fdObj.id.push_back(isObject);
+        fdObj.object_name.push_back(detectedObjects[isObject].object_name);
+        fdObj.point_x.push_back(detectedObjects[isObject].pointX);
+        fdObj.point_y.push_back(detectedObjects[isObject].pointY);
+        fdObj.point_z.push_back(detectedObjects[isObject].pointZ);
 
-        obLoc.rotation_r.push_back(r);
-        obLoc.rotation_p.push_back(p);
-        obLoc.rotation_y.push_back(y);
+        fdObj.rotation_r.push_back(r);
+        fdObj.rotation_p.push_back(p);
+        fdObj.rotation_y.push_back(y);
 
         if (DEBUG_broadcastTransform) {
-            cout << "publish obLoc" << endl;
+            cout << "publish fdObj" << endl;
         }
         totalObjects++;
 /*
@@ -296,8 +296,8 @@ void broadcastTransform() {
         */
 
     }
-    obLoc.totalObjects = totalObjects;
-    object_depth_pub.publish(obLoc); //publish object depths after frame
+    fdObj.totalObjects = totalObjects;
+    object_depth_pub.publish(fdObj); //publish object depths after frame
 }
 
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
