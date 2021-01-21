@@ -30,28 +30,17 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-//#include <pcl/point_types.h>
-//#include <pcl_ros/transforms.h>
-//#include <pcl/conversions.h>
-//#include <pcl/PCLPointCloud2.h>
-//#include <pcl_conversions/pcl_conversions.h>
 
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_datatypes.h"
-//#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-//#include <tf/LinearMath/Quaternion.h>
-#include <cmath>
+
 #include <fstream>
 #include <iostream>
-#include <sqlite3.h>
-
 
 
 #include <sstream>
 using namespace std;
-//using namespace message_filters;
-//using namespace sensor_msgs;
 
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_getResolutionOnStartup = 0;

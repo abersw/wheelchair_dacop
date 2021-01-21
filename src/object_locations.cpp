@@ -12,10 +12,6 @@
 #include "ros/package.h" //find ROS packages, needs roslib dependency
 #include "wheelchair_msgs/foundObjects.h"
 #include "wheelchair_msgs/objectLocations.h"
-//#include "std_msgs/String.h"
-//#include "std_msgs/Int16.h"
-//#include "std_msgs/Float32.h"
-//#include "std_msgs/Float64.h"
 
 //experimental
 #include "geometry_msgs/PointStamped.h"
@@ -24,18 +20,8 @@
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/TransformStamped.h"
 
-/*#include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>*/
-
-
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
-//#include "tf/transform_datatypes.h"
-//#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-//#include <tf/LinearMath/Quaternion.h>
-//#include <cmath>
 #include <fstream>
 #include <iostream>
 
@@ -43,9 +29,6 @@
 
 #include <sstream>
 using namespace std;
-//using namespace message_filters;
-//using namespace sensor_msgs;
-
 
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
