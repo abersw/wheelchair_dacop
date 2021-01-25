@@ -302,7 +302,7 @@ void publishObjectStruct() {
     wheelchair_msgs::objectLocations obLoc;
     //publish all objects inside struct
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-
+        /*
         int objectID = objectsFileStruct[isObject].id;
         std::string objectName = objectsFileStruct[isObject].object_name;
 
@@ -317,7 +317,7 @@ void publishObjectStruct() {
         mapTransform.setRotation(mapQuaternion);
         br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
         //end the map frame object publishing
-
+        */
         //start publishing objects struct as a ROS message
         
         obLoc.id.push_back(objectsFileStruct[isObject].id);
