@@ -172,6 +172,7 @@ void publishObjectsStruct() {
         mapTransform.setRotation(mapQuaternion);
         br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
         //end the map frame object publishing
+        cout << "publishing map frame" << endl;
     }
 }
 
@@ -195,7 +196,7 @@ int main(int argc, char **argv) {
         if (DEBUG_main) {
             cout << "spin \n";
         }
-        ros::spin();
+        ros::spinOnce();
         rate.sleep();
     }
     return 0;
