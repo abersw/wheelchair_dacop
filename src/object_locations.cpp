@@ -302,24 +302,6 @@ void publishObjectStruct() {
     wheelchair_msgs::objectLocations obLoc;
     //publish all objects inside struct
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-        /*
-        int objectID = objectsFileStruct[isObject].id;
-        std::string objectName = objectsFileStruct[isObject].object_name;
-
-        static tf::TransformBroadcaster br;
-        std::string OBframename = std::to_string(objectID) + objectName;
-
-        //turn msg to pose
-        tf::Transform mapTransform;
-        //create map transform from map to object frame
-        mapTransform.setOrigin( tf::Vector3(objectsFileStruct[isObject].point_x, objectsFileStruct[isObject].point_y, objectsFileStruct[isObject].point_z) );
-        tf::Quaternion mapQuaternion(objectsFileStruct[isObject].quat_x, objectsFileStruct[isObject].quat_y, objectsFileStruct[isObject].quat_z, objectsFileStruct[isObject].quat_w);
-        mapTransform.setRotation(mapQuaternion);
-        br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
-        //end the map frame object publishing
-        */
-        //start publishing objects struct as a ROS message
-        
         obLoc.id.push_back(objectsFileStruct[isObject].id);
         obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
         obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
