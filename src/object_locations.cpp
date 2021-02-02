@@ -203,19 +203,6 @@ void objectsListToStruct(std::string objects_file_loc) {
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
-void objectsStructToList(std::string objects_file_loc) {
-    //add struct to list file here
-    ofstream FILE_WRITER;
-	FILE_WRITER.open(objects_file_loc);
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-        FILE_WRITER << objectsFileStruct[isObject].id << "," << objectsFileStruct[isObject].object_name << "," <<
-        objectsFileStruct[isObject].point_x << "," << objectsFileStruct[isObject].point_y << "," << objectsFileStruct[isObject].point_z << "," <<
-        objectsFileStruct[isObject].quat_x << "," << objectsFileStruct[isObject].quat_y << "," << objectsFileStruct[isObject].quat_z << "," << objectsFileStruct[isObject].quat_w << "\n";
-    }
-    FILE_WRITER.close();
-    cout << "finished saving function" << endl;
-}
-
 void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
     tf::StampedTransform translation;
     try {
@@ -410,7 +397,6 @@ int main(int argc, char **argv) {
     
     //start closing procedure
     cout << "closing ROS node" << endl;
-    objectsStructToList(objects_file_loc);
     if (DEBUG_finish_file_printout) {
         printSeparator(0);
         cout << "file output" << endl;

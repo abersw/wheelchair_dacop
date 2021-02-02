@@ -176,6 +176,19 @@ void publishObjectsStruct() {
     }
 }
 
+void objectsStructToList(std::string objects_file_loc) {
+    //add struct to list file here
+    ofstream FILE_WRITER;
+	FILE_WRITER.open(objects_file_loc);
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+        FILE_WRITER << objectsFileStruct[isObject].id << "," << objectsFileStruct[isObject].object_name << "," <<
+        objectsFileStruct[isObject].point_x << "," << objectsFileStruct[isObject].point_y << "," << objectsFileStruct[isObject].point_z << "," <<
+        objectsFileStruct[isObject].quat_x << "," << objectsFileStruct[isObject].quat_y << "," << objectsFileStruct[isObject].quat_z << "," << objectsFileStruct[isObject].quat_w << "\n";
+    }
+    FILE_WRITER.close();
+    cout << "finished saving function" << endl;
+}
+
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "publish_object_locations");
@@ -199,5 +212,7 @@ int main(int argc, char **argv) {
         ros::spinOnce();
         rate.sleep();
     }
+    cout << "saving struct to list" << endl;
+    objectsStructToList(objects_file_loc);
     return 0;
 }
