@@ -49,25 +49,11 @@ const int DEBUG_getPointDepth = 0;
 const int DEBUG_objectDepthCallback = 0;
 const int DEBUG_main = 0;
 
-struct Objects { //struct for publishing topic
-    int id;
-    string object_name;
-    float point_x;
-    float point_y;
-    float point_z;
-
-    float rotation_r;
-    float rotation_p;
-    float rotation_y;
-};
-int totalObjects = 0;
-
 ros::Publisher object_depth_pub;
 
-bool gotResolution = 0;
-int imageHeight = 0;
-int imageWidth = 0;
-int pixelSampleNo = 9;
+bool gotResolution = 0; //var flag for successfully getting camera resolution
+int imageHeight = 0; //var to store height of rectified image pointcloud
+int imageWidth = 0; //var to store width of rectified image pointcloud
 
 struct DetectedObjects {
     string object_name;
@@ -91,7 +77,6 @@ struct DetectedObjects {
 int totalObjectsDetected;
 
 struct DetectedObjects detectedObjects[100];
-struct Objects depthObjects[100];
 
 tf::StampedTransform transform;
 
@@ -135,7 +120,7 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 void broadcastTransform() {
     wheelchair_msgs::foundObjects fdObj; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
-    totalObjects = 0;
+    int totalObjects = 0;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
         //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
         //cout << "vec length is " << vec_length << "\n";

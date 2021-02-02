@@ -33,7 +33,7 @@ using namespace std;
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
-const int DEBUG_objectLocationsCallback = 1;
+const int DEBUG_objectLocationsCallback = 0;
 const int DEBUG_main = 0;
 
 struct Objects { //struct for publishing topic
