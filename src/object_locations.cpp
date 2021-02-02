@@ -34,11 +34,11 @@ using namespace std;
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
-const int DEBUG_objectsListToStruct = 1;
+const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_print_foundObjects_msg = 0;
-const int DEBUG_doesObjectAlreadyExist = 1;
-const int DEBUG_main = 1;
-const int DEBUG_finish_file_printout = 1;
+const int DEBUG_doesObjectAlreadyExist = 0;
+const int DEBUG_main = 0;
+const int DEBUG_finish_file_printout = 0;
 
 std::string wheelchair_dump_loc;
 
