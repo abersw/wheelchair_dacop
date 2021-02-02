@@ -237,7 +237,9 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
         }
         int foundObjectMatch = 0;
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-            cout << "object no is " << isObject << endl;
+            if (DEBUG_doesObjectAlreadyExist) {
+                cout << "object no is " << isObject << endl;
+            }
             double minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
             double maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
             double minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
@@ -251,13 +253,17 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
             if ( ((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if it's in x bound
                 ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) &&
                 msg_object_name == objectsFileStruct[isObject].object_name) { //if it's the same object
-                    cout << "found same object in this location" << endl;
+                    if (DEBUG_doesObjectAlreadyExist) {
+                        cout << "found same object in this location" << endl;
+                    }
                     foundObjectMatch = 1;
                 
             }
             else {
                 //no match found in list, leave at 0
-                cout << "no match" << endl;
+                if (DEBUG_doesObjectAlreadyExist) {
+                    cout << "no match" << endl;
+                }
             }
         }
         if (foundObjectMatch == 1) {
