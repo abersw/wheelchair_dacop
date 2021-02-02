@@ -55,30 +55,26 @@ bool gotResolution = 0; //var flag for successfully getting camera resolution
 int imageHeight = 0; //var to store height of rectified image pointcloud
 int imageWidth = 0; //var to store width of rectified image pointcloud
 
-struct DetectedObjects {
-    string object_name;
-    float object_confidence;
-    float box_x;
+struct DetectedObjects { //struct for containing ros msg from mobilenet node
+    string object_name; //mobilenet object name
+    float object_confidence; //mobilenet classification confidence
+    float box_x; //bounding box sizes
     float box_y;
     float box_width;
     float box_height;
-    int totalObjectsInFrame;
+    int totalObjectsInFrame; //total objects inside mobilenet frame
 
-    float distance;
-    int centerX;
-    int centerY;
-    int centerZ;
+    int centerX; //center of bounding box X position
+    int centerY; //center of bounding box Y position
 
-    float pointX;
-    float pointY;
-    float pointZ;
+    float pointX; //X position of detected object
+    float pointY; //Y position of detected object
+    float pointZ; //Z position of detected object
 };
 
-int totalObjectsDetected;
+int totalObjectsDetected; //total objects in struct
 
-struct DetectedObjects detectedObjects[100];
-
-tf::StampedTransform transform;
+struct DetectedObjects detectedObjects[1000]; //struct array for detected objects
 
 
 //function for printing space sizes
