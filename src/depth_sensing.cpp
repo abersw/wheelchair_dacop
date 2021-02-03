@@ -12,9 +12,6 @@
 #include <ros/package.h> //find ROS packages, needs roslib dependency
 #include "wheelchair_msgs/mobilenet.h"
 #include "wheelchair_msgs/foundObjects.h"
-#include "std_msgs/String.h"
-#include "std_msgs/Int16.h"
-#include "std_msgs/Float32.h"
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/PointCloud2.h"
 
