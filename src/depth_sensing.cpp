@@ -55,6 +55,10 @@ bool gotResolution = 0; //var flag for successfully getting camera resolution
 int imageHeight = 0; //var to store height of rectified image pointcloud
 int imageWidth = 0; //var to store width of rectified image pointcloud
 
+float r = -1.5708; //rotation of object
+float p = 0; //pitch of object
+float y = -3.1415; //yaw of object
+
 struct DetectedObjects { //struct for containing ros msg from mobilenet node
     string object_name; //mobilenet object name
     float object_confidence; //mobilenet classification confidence
@@ -103,12 +107,12 @@ void doesWheelchairDumpPkgExist() {
 }
 
 
-
+//get resolution of rectified pointcloud image
 void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
-    imageHeight = dpth->height;
-    imageWidth = dpth->width;
+    imageHeight = dpth->height; //get height of pointcloud image
+    imageWidth = dpth->width; //get width of pointcloud image
     if (DEBUG_getResolutionOnStartup) {
-        cout << imageHeight << "x" << imageWidth << "\n";
+        cout << imageHeight << "x" << imageWidth << "\n"; //print out height and width if debug flag is true
     }
 }
 
@@ -118,46 +122,14 @@ void broadcastTransform() {
     //probably send this to the sql node for checking
     int totalObjects = 0;
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        //float vec_length = sqrt(pow(X,2) + pow(Y,2) + pow(Z,2)); //calculate physical distance from object
-        //cout << "vec length is " << vec_length << "\n";
-
-        //check to see if no other object of the same name exists in this space - check bounding box
-
-        //if nothing else exists create a new object id - put into database
-
-        geometry_msgs::Point objectPoint;
-        //std::string framename = "target_frame_" + std::to_string(isObject);
-        std::string framename = detectedObjects[isObject].object_name + std::to_string(isObject);
-
-        //objectPoint.header.frame_id = framename;
-        //objectPoint.header.stamp = ros::Time::now();
-        objectPoint.x = detectedObjects[isObject].pointX;
-        objectPoint.y = detectedObjects[isObject].pointY;
-        objectPoint.z = detectedObjects[isObject].pointZ;
-
-        if (DEBUG_broadcastTransform) {
-            cout << "Point is \n" << objectPoint << "\n";
-        }
-
-        float r = -1.5708;
-        float p = 0;
-        float y = -3.1415;
-
-        static tf::TransformBroadcaster br;
-        tf::Transform transform;
-        transform.setOrigin( tf::Vector3(objectPoint.x, objectPoint.y, objectPoint.z) );
-        tf::Quaternion quat;
-        quat.setRPY(r,p,y);  //where r p y are fixed
-        transform.setRotation(quat);
-        //br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "zed_left_camera_depth_link", framename));
-
-        //publish
+        //publish local transform to ros msg for object locations node
         fdObj.id.push_back(isObject);
         fdObj.object_name.push_back(detectedObjects[isObject].object_name);
-        fdObj.point_x.push_back(detectedObjects[isObject].pointX);
-        fdObj.point_y.push_back(detectedObjects[isObject].pointY);
-        fdObj.point_z.push_back(detectedObjects[isObject].pointZ);
+        fdObj.point_x.push_back(detectedObjects[isObject].pointX); //assign local transform point x to ros msg
+        fdObj.point_y.push_back(detectedObjects[isObject].pointY); //assign local transform point y to ros msg
+        fdObj.point_z.push_back(detectedObjects[isObject].pointZ); //assign local transform point z to ros msg
 
+        //assign roll pitch and yaw to ros msg
         fdObj.rotation_r.push_back(r);
         fdObj.rotation_p.push_back(p);
         fdObj.rotation_y.push_back(y);
@@ -165,9 +137,9 @@ void broadcastTransform() {
         if (DEBUG_broadcastTransform) {
             cout << "publish fdObj" << endl;
         }
-        totalObjects++;
+        totalObjects++; //iterate totalobjects
     }
-    fdObj.totalObjects = totalObjects;
+    fdObj.totalObjects = totalObjects; //add total objects to ros msg
     object_depth_pub.publish(fdObj); //publish object depths after frame
 }
 
