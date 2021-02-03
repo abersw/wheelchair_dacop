@@ -156,7 +156,7 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         float Y;
         float Z;
 
-        int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step;
+        int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step; //get position of point in rectified image array, corresponding with pointcloud
         if (DEBUG_getPointDepth) {
             cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
         }
@@ -166,16 +166,16 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         int arrayPosZ = arrayPosition + dpth->fields[2].offset; // Z has an offset of 8
 
 
-        memcpy(&X, &dpth->data[arrayPosX], sizeof(float));
-        memcpy(&Y, &dpth->data[arrayPosY], sizeof(float));
-        memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float));
+        memcpy(&X, &dpth->data[arrayPosX], sizeof(float)); //add value from depth point to X
+        memcpy(&Y, &dpth->data[arrayPosY], sizeof(float)); //add value from depth point to Y
+        memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float)); //add value from depth point to Z
 
         if (DEBUG_getPointDepth) {
             cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
         }
-        detectedObjects[isObject].pointX = X;
-        detectedObjects[isObject].pointY = Y;
-        detectedObjects[isObject].pointZ = Z;
+        detectedObjects[isObject].pointX = X; //add pointcloud point position X to struct
+        detectedObjects[isObject].pointY = Y; //add pointcloud point position Y to struct
+        detectedObjects[isObject].pointZ = Z; //add pointcloud point position Z to struct
     }
 }
 
@@ -184,28 +184,28 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     //cout << "running time sync \n";
     /*  Get resolution of camera image */
     if (gotResolution == 0) {
-        getResolutionOnStartup(dpth);
+        getResolutionOnStartup(dpth); //get pointcloud image size
         gotResolution = 1;
     }
 
     /*  Deserialise the detected object */
-    totalObjectsDetected = obj->totalObjectsInFrame;
+    totalObjectsDetected = obj->totalObjectsInFrame; //set totalobjects number from ros msg to global variable
     //cout << totalObjectsDetected << "\n";
 
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        detectedObjects[isObject].object_name = obj->object_name[isObject];
-        detectedObjects[isObject].object_confidence = obj->object_confidence[isObject];
-        detectedObjects[isObject].box_x = obj->box_x[isObject];
-        detectedObjects[isObject].box_y = obj->box_y[isObject];
-        detectedObjects[isObject].box_width = obj->box_width[isObject];
-        detectedObjects[isObject].box_height = obj->box_height[isObject];
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) { //iterate through entire ros msg
+        detectedObjects[isObject].object_name = obj->object_name[isObject]; //add object name to struct
+        detectedObjects[isObject].object_confidence = obj->object_confidence[isObject]; //add object confidence to struct
+        detectedObjects[isObject].box_x = obj->box_x[isObject]; //add bounding box x to struct
+        detectedObjects[isObject].box_y = obj->box_y[isObject]; //add bounding box y to struct
+        detectedObjects[isObject].box_width = obj->box_width[isObject]; //add bounding box width to struct
+        detectedObjects[isObject].box_height = obj->box_height[isObject]; //add bounding box height to struct
         if (DEBUG_objectDepthCallback) {
-            cout << detectedObjects[isObject].object_name << "\n";
+            cout << detectedObjects[isObject].object_name << "\n"; //print of object name if DEBUG is true
         }
     }
 
-    getPointDepth(dpth, obj);
-    broadcastTransform();    
+    getPointDepth(dpth, obj); //pass depth cloud and mobilenet ros msg to get pointcloud information
+    broadcastTransform(); //publish calculated object points
 }
 
 int main(int argc, char **argv) {
@@ -216,12 +216,12 @@ int main(int argc, char **argv) {
     ros::Rate rate(10.0);
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10);
-    message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10);
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy;
-    message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub);
-    depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2));
-    object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/object_depth/detected_objects", 1000);
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "wheelchair_robot/point_cloud", 10); //get transformed pointcloud
+    message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 10); //get mobilenet objects detected
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy; //approximately sync the topic rate
+    message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub); //set sync policy
+    depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2)); //set callback for synced topics
+    object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/object_depth/detected_objects", 1000); //publish topic for object locations
 
     if (ros::isShuttingDown()) {
         //do something
