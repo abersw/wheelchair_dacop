@@ -23,7 +23,6 @@
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/TransformStamped.h"
 
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
@@ -31,7 +30,6 @@
 #include <message_filters/sync_policies/approximate_time.h>
 
 
-#include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_datatypes.h"
 
@@ -135,7 +133,7 @@ void broadcastTransform() {
         fdObj.rotation_y.push_back(y);
 
         if (DEBUG_broadcastTransform) {
-            cout << "publish fdObj" << endl;
+            cout << "publish fdObj" << endl; //print debug line if DEBUG is true
         }
         totalObjects++; //iterate totalobjects
     }
@@ -145,22 +143,14 @@ void broadcastTransform() {
 
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     /*  Get depths from bounding box data  */
-    tf::StampedTransform tfStamp;
-    tf::TransformListener listener;
-    int width = dpth->width;
-    int height = dpth->height;
-    if (DEBUG_getPointDepth) {
-        cout << width << " x " << height << "\n";
-    }
-
     for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        int centerWidth = detectedObjects[isObject].box_x + detectedObjects[isObject].box_width / 2;
-        int centerHeight = detectedObjects[isObject].box_y + detectedObjects[isObject].box_height / 2;
+        int centerWidth = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2; //calculate the centre of the bounding box Y axis (width)
+        int centerHeight = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2; //calculate the centre of the bounding box X axis (height)
         if (DEBUG_getPointDepth) {
-            cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
+            cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n"; //print out height and width centre if DEBUG is true
         }
-        detectedObjects[isObject].centerX = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2;
-        detectedObjects[isObject].centerY = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2;
+        detectedObjects[isObject].centerX = centerWidth; //assign centerWidth to struct center X
+        detectedObjects[isObject].centerY = centerHeight; //assign centerHeight to struct center Y
 
         float X;
         float Y;
