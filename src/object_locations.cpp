@@ -2,7 +2,7 @@
  * object_locations.cpp
  * wheelchair_dacop
  * version: 0.1.0 Majestic Maidenhair
- * Status: Beta
+ * Status: pre-Alpha
 */
 
 #include <stdio.h>
@@ -44,25 +44,24 @@ std::string wheelchair_dump_loc;
 
 
 struct Objects { //struct for publishing topic
-    int id;
-    string object_name;
-    double point_x;
-    double point_y;
-    double point_z;
+    int id; //get object id from ros msg
+    string object_name; //get object name/class
+    double point_x; //get transform point x
+    double point_y; //get transform point y
+    double point_z; //get transform point z
 
-    double quat_x;
-    double quat_y;
-    double quat_z;
-    double quat_w;
+    double quat_x; //get transform rotation quaternion x
+    double quat_y; //get transform rotation quaternion y
+    double quat_z; //get transform rotation quaternion z
+    double quat_w; //get transform rotation quaternion w
 };
-struct Objects objectsFileStruct[10000];
-int objectsFileTotalLines = 0;
-int totalObjectsFileStruct = 0;
+struct Objects objectsFileStruct[10000]; //array for storing object data
+int totalObjectsFileStruct = 0; //total objects inside struct
 double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
-tf::TransformListener *ptrListener;
+tf::TransformListener *ptrListener; //global pointer for transform listener
 
-ros::Publisher *ptr_publish_objectLocations;
+ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
 
 
 //function for printing space sizes
@@ -143,9 +142,9 @@ void objectsListToStruct(std::string objects_file_loc) {
     //add list to stuct - test this first before callback
     //contains transforms between map and object
     //id, object_name, point_x, point_y, point_z, quat_x, quat_y, quat_z, quat_w
-    std::string objectsDelimiter = ",";
-	ifstream FILE_READER(objects_file_loc);
-    int objectNumber = 0;
+    std::string objectsDelimiter = ","; //delimiter character is comma
+	ifstream FILE_READER(objects_file_loc); //open file
+    int objectNumber = 0; //iterate on each object
     if (FILE_READER.peek() == std::ifstream::traits_type::eof()) {
         //don't do anything if next character in file is eof
         cout << "file is empty" << endl;
@@ -165,65 +164,66 @@ void objectsListToStruct(std::string objects_file_loc) {
                     objectsFileStruct[objectNumber].id = objectNumber; //set id of object back to 0
                 }
                 else if (lineSection == 1) {
-                    objectsFileStruct[objectNumber].object_name = token;
+                    objectsFileStruct[objectNumber].object_name = token; //set object name
                 }
                 else if (lineSection == 2) {
-                    objectsFileStruct[objectNumber].point_x = std::stof(token);
+                    objectsFileStruct[objectNumber].point_x = std::stof(token); //set transform point x
                 }
                 else if (lineSection == 3) {
-                    objectsFileStruct[objectNumber].point_y = std::stof(token);
+                    objectsFileStruct[objectNumber].point_y = std::stof(token); //set transform point y
                 }
                 else if (lineSection == 4) {
-                    objectsFileStruct[objectNumber].point_z = std::stof(token);
+                    objectsFileStruct[objectNumber].point_z = std::stof(token); //set transform point z
                 }
                 else if (lineSection == 5) {
-                    objectsFileStruct[objectNumber].quat_x = std::stof(token);
+                    objectsFileStruct[objectNumber].quat_x = std::stof(token); //set rotation to quaternion x
                 }
                 else if (lineSection == 6) {
-                    objectsFileStruct[objectNumber].quat_y = std::stof(token);
+                    objectsFileStruct[objectNumber].quat_y = std::stof(token);//set rotation to quaternion y
                 }
                 else if (lineSection == 7) {
-                    objectsFileStruct[objectNumber].quat_z = std::stof(token);
+                    objectsFileStruct[objectNumber].quat_z = std::stof(token); //set rotation to quaternion z
                 }
 
                 lineSection++;
             }
             //std::cout << line << std::endl;
-            objectsFileStruct[objectNumber].quat_w = std::stof(line);
-            cout << "sections in line " << lineSection << endl;
-            if (DEBUG_objectsListToStruct) {
+            objectsFileStruct[objectNumber].quat_w = std::stof(line); //set rotation to quaternion w
+            if (DEBUG_objectsListToStruct) { //print off debug lines
+                cout << "sections in line " << lineSection << endl;
                 cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
                 cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
                 cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
                 printSeparator(0);
             }
         }
-        objectNumber++;
+        objectNumber++; //iterate to next object in list
     }
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
 void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
-    tf::StampedTransform translation;
+    tf::StampedTransform translation; //initiate translation for transform object
     try {
-        ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0));
-        ptrListener->lookupTransform("/map", DETframename, ros::Time(), translation);
+        ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        ptrListener->lookupTransform("/map", DETframename, ros::Time(), translation); //lookup translation of object from map frame
 
         //get global translation of object
-        float translation_x = translation.getOrigin().x();
-        float translation_y = translation.getOrigin().y();
-        float translation_z = translation.getOrigin().z();
-        float rotation_x = translation.getRotation().x();
-        float rotation_y = translation.getRotation().y();
-        float rotation_z = translation.getRotation().z();
-        float rotation_w = translation.getRotation().w();
+        float translation_x = translation.getOrigin().x(); //set translation x to local variable
+        float translation_y = translation.getOrigin().y(); //set translation y to local variable
+        float translation_z = translation.getOrigin().z(); //set translation z to local variable
+        float rotation_x = translation.getRotation().x(); //set rotation x to local variable
+        float rotation_y = translation.getRotation().y(); //set rotation y to local variable
+        float rotation_z = translation.getRotation().z(); //set rotation z to local variable
+        float rotation_w = translation.getRotation().w(); //set rotation w to local variable
 
         if (DEBUG_doesObjectAlreadyExist) {
             printSeparator(0);
-            cout << msg_object_name << endl;
+            cout << msg_object_name << endl; //print out object name
             cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
         }
         if (totalObjectsFileStruct == 0) {
+            //add local variables from above to struct array to store object data referencing map frame
             objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
             objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
             objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
@@ -235,41 +235,42 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
             objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
             totalObjectsFileStruct++;
         }
-        int foundObjectMatch = 0;
+        int foundObjectMatch = 0; //set found corresponding object to 0 - not found object
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
             if (DEBUG_doesObjectAlreadyExist) {
-                cout << "object no is " << isObject << endl;
+                cout << "object no is " << isObject << endl; //print out object number
             }
+            //set calculations to create a distance threshold - if object is in this box, it's probably the same object
             double minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
             double maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
             double minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
             double maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
-            if (DEBUG_doesObjectAlreadyExist) {
+            if (DEBUG_doesObjectAlreadyExist) { //print out current object and global box calculations
                 cout << "objectsFileStruct " << objectsFileStruct[isObject].point_x << ", minPointThreshold_x " << minPointThreshold_x << 
                 " maxPointThreshold_x, " << maxPointThreshold_x << endl;
                 cout << "objectsFileStruct " << objectsFileStruct[isObject].point_y << ", minPointThreshold_y " << minPointThreshold_y << 
                 " maxPointThreshold_y, " << maxPointThreshold_y << endl;
             }
-            if ( ((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if it's in x bound
-                ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) &&
-                msg_object_name == objectsFileStruct[isObject].object_name) { //if it's the same object
+            if ( ((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if there's an object in x bound
+                ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) && //if there's an object in y bound
+                msg_object_name == objectsFileStruct[isObject].object_name) { //if it has classified the same object (name)
                     if (DEBUG_doesObjectAlreadyExist) {
-                        cout << "found same object in this location" << endl;
+                        cout << "found same object in this location" << endl; //print out found object
                     }
-                    foundObjectMatch = 1;
+                    foundObjectMatch = 1; //set found object match to 1 - true
                 
             }
             else {
                 //no match found in list, leave at 0
                 if (DEBUG_doesObjectAlreadyExist) {
-                    cout << "no match" << endl;
+                    cout << "no match" << endl; //print out no match found
                 }
             }
         }
         if (foundObjectMatch == 1) {
             //found object match, don't do anything
         }
-        else if (foundObjectMatch == 0) {
+        else if (foundObjectMatch == 0) { //if object is not in the list
             //found new object, add to struct and iterate the totalObjects
             //add object to last position in struct
                 objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
@@ -285,8 +286,8 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
         }
     }
     catch (tf::TransformException ex){
-        cout << "Couldn't get translation..." << endl;
-        ROS_ERROR("%s",ex.what());
+        cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
+        ROS_ERROR("%s",ex.what()); //print error
         ros::Duration(1.0).sleep();
     }
 }
@@ -305,10 +306,11 @@ void publishObjectStruct() {
         obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
         obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
     }
-    obLoc.totalObjects = totalObjectsFileStruct;
-    ptr_publish_objectLocations->publish(obLoc);
+    obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
+    ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
 }
 
+//print out entire objects ros msg from depth_sensing node
 void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const int isObject) {
     printSeparator(0);
     cout << "ID: " << objects_msg.id[isObject] << endl;
@@ -333,30 +335,22 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
             printFoundObjectsMsg(objects_msg, isObject);
         }
 
-        //turn to global map position
-        //does it exist already?
-        //yes - add context influence
-        //no - add item
-        //how to detect dissapearence? After period of time - reduce influence?
-
-        //start the temporary frame publishing
-        //broadcast detected objects
-        static tf::TransformBroadcaster br;
-        std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject);
-        //turn msg to pose
+        //broadcast detected objects in frame
+        static tf::TransformBroadcaster br; //initialise broadcaster class
+        std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject); //add frame DET object name
         tf::Transform localTransform;
         //create local transform from zed camera to object
-        localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) );
-        tf::Quaternion localQuaternion;
+        localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) ); //create transform vector
+        tf::Quaternion localQuaternion; //initialise quaternion class
         localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
-        localTransform.setRotation(localQuaternion);
-        br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename));
+        localTransform.setRotation(localQuaternion); //set quaternion from struct data
+        br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename)); //broadcast transform frame from zed camera link
         //end the temporary frame publishing
 
         //doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename);
-        doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename);
+        doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename); //does this object already exist, if not, publish it
     }
-    publishObjectStruct();
+    publishObjectStruct(); //publish ROS msg for publish object locations node
 }
 
 
@@ -378,21 +372,9 @@ int main(int argc, char **argv) {
 
         doesWheelchairDumpPkgExist();
         int objectsListExists = createFile(objects_file_loc); //create room list
-        objectsFileTotalLines = calculateLines(objects_file_loc);
         objectsListToStruct(objects_file_loc);
         
         ros::Rate rate(10.0);
-        
-
-
-        //set global variable for file/database
-        //if does not exist - create one
-        //if using a database and table does not exist - create one
-
-        //detecting missing objects
-        //transform is a point, right?
-        //scan through entire cloud to see if an individual point is within 0.5m and has an object label
-        
         
         if (DEBUG_main) {
             cout << "spin \n";
