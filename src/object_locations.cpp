@@ -46,6 +46,7 @@ std::string wheelchair_dump_loc;
 struct Objects { //struct for publishing topic
     int id; //get object id from ros msg
     string object_name; //get object name/class
+    double object_confidence; //get object confidence
     double point_x; //get transform point x
     double point_y; //get transform point y
     double point_z; //get transform point z
@@ -167,21 +168,24 @@ void objectsListToStruct(std::string objects_file_loc) {
                     objectsFileStruct[objectNumber].object_name = token; //set object name
                 }
                 else if (lineSection == 2) {
-                    objectsFileStruct[objectNumber].point_x = std::stof(token); //set transform point x
+                    objectsFileStruct[objectNumber].object_confidence = std::stof(token); //set object confidence
                 }
                 else if (lineSection == 3) {
-                    objectsFileStruct[objectNumber].point_y = std::stof(token); //set transform point y
+                    objectsFileStruct[objectNumber].point_x = std::stof(token); //set transform point x
                 }
                 else if (lineSection == 4) {
-                    objectsFileStruct[objectNumber].point_z = std::stof(token); //set transform point z
+                    objectsFileStruct[objectNumber].point_y = std::stof(token); //set transform point y
                 }
                 else if (lineSection == 5) {
-                    objectsFileStruct[objectNumber].quat_x = std::stof(token); //set rotation to quaternion x
+                    objectsFileStruct[objectNumber].point_z = std::stof(token); //set transform point z
                 }
                 else if (lineSection == 6) {
-                    objectsFileStruct[objectNumber].quat_y = std::stof(token);//set rotation to quaternion y
+                    objectsFileStruct[objectNumber].quat_x = std::stof(token); //set rotation to quaternion x
                 }
                 else if (lineSection == 7) {
+                    objectsFileStruct[objectNumber].quat_y = std::stof(token);//set rotation to quaternion y
+                }
+                else if (lineSection == 8) {
                     objectsFileStruct[objectNumber].quat_z = std::stof(token); //set rotation to quaternion z
                 }
 
@@ -191,7 +195,7 @@ void objectsListToStruct(std::string objects_file_loc) {
             objectsFileStruct[objectNumber].quat_w = std::stof(line); //set rotation to quaternion w
             if (DEBUG_objectsListToStruct) { //print off debug lines
                 cout << "sections in line " << lineSection << endl;
-                cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
+                cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << ", " << objectsFileStruct[objectNumber].object_confidence << endl;
                 cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
                 cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
                 printSeparator(0);
@@ -298,6 +302,7 @@ void publishObjectStruct() {
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
         obLoc.id.push_back(objectsFileStruct[isObject].id);
         obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
+        obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
         obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
         obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
         obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);

@@ -2,7 +2,7 @@
  * publish_object_locations.cpp
  * wheelchair_dacop
  * version: 0.0.0 Majestic Maidenhair
- * Status: pre-Alpha
+ * Status: Gamma
 */
 
 #include <stdio.h>
@@ -39,6 +39,7 @@ const int DEBUG_main = 0;
 struct Objects { //struct for publishing topic
     int id;
     string object_name;
+    double object_confidence;
     double point_x;
     double point_y;
     double point_z;
@@ -133,6 +134,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
         objectsFileStruct[isObject].id = obLoc.id[isObject];
         objectsFileStruct[isObject].object_name = obLoc.object_name[isObject];
+        objectsFileStruct[isObject].object_confidence = obLoc.object_confidence[isObject];
         objectsFileStruct[isObject].point_x = obLoc.point_x[isObject];
         objectsFileStruct[isObject].point_y = obLoc.point_y[isObject];
         objectsFileStruct[isObject].point_z = obLoc.point_z[isObject];
@@ -144,7 +146,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         if (DEBUG_objectLocationsCallback) {
             //add debug lines here
             cout << "object struct" << endl;
-            cout << objectsFileStruct[isObject].id << ", " << objectsFileStruct[isObject].object_name << endl;
+            cout << objectsFileStruct[isObject].id << ", " << objectsFileStruct[isObject].object_name << ", " << objectsFileStruct[isObject].object_confidence << endl;
             cout << objectsFileStruct[isObject].point_x << ", " << objectsFileStruct[isObject].point_y << ", " << objectsFileStruct[isObject].point_z << endl;
             cout << objectsFileStruct[isObject].quat_x << ", " << objectsFileStruct[isObject].quat_y << ", " << objectsFileStruct[isObject].quat_z << ", " << objectsFileStruct[isObject].quat_w << endl;
             printSeparator(0);
@@ -181,7 +183,7 @@ void objectsStructToList(std::string objects_file_loc) {
     ofstream FILE_WRITER;
 	FILE_WRITER.open(objects_file_loc);
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-        FILE_WRITER << objectsFileStruct[isObject].id << "," << objectsFileStruct[isObject].object_name << "," <<
+        FILE_WRITER << objectsFileStruct[isObject].id << "," << objectsFileStruct[isObject].object_name << "," << objectsFileStruct[isObject].object_confidence << "," <<
         objectsFileStruct[isObject].point_x << "," << objectsFileStruct[isObject].point_y << "," << objectsFileStruct[isObject].point_z << "," <<
         objectsFileStruct[isObject].quat_x << "," << objectsFileStruct[isObject].quat_y << "," << objectsFileStruct[isObject].quat_z << "," << objectsFileStruct[isObject].quat_w << "\n";
     }
@@ -195,6 +197,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/object_locations/objects", 10, objectLocationsCallback);
+    //other subscribers can be added to modify the central objects struct to list
     ros::Rate rate(10.0);
 
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");

@@ -120,6 +120,7 @@ void broadcastTransform() {
         //publish local transform to ros msg for object locations node
         fdObj.id.push_back(isObject);
         fdObj.object_name.push_back(detectedObjects[isObject].object_name);
+        fdObj.object_confidence.push_back(detectedObjects[isObject].object_confidence);
         fdObj.point_x.push_back(detectedObjects[isObject].pointX); //assign local transform point x to ros msg
         fdObj.point_y.push_back(detectedObjects[isObject].pointY); //assign local transform point y to ros msg
         fdObj.point_z.push_back(detectedObjects[isObject].pointZ); //assign local transform point z to ros msg
