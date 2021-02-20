@@ -47,6 +47,7 @@ struct Objects { //struct for publishing topic
     int id; //get object id from ros msg
     string object_name; //get object name/class
     double object_confidence; //get object confidence
+    string room_name; //get room name
     double point_x; //get transform point x
     double point_y; //get transform point y
     double point_z; //get transform point z
