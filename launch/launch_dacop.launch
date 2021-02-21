@@ -6,4 +6,6 @@
 <node pkg="wheelchair_dacop" name="depth_sensing" type="depth_sensing" output="screen" launch-prefix=""></node>
 <!--node to calculate if the object has been detected before-->
 <node pkg="wheelchair_dacop" name="object_locations" type="object_locations" output="screen" launch-prefix=""></node>
+<!--node to centralise and save to dump dacop file-->
+<node pkg="wheelchair_dacop" name="publish_object_locations" type="publish_object_locations" output="screen" launch-prefix=""></node>
 </launch>
