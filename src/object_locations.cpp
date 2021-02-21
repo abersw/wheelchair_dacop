@@ -280,6 +280,7 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
             //add object to last position in struct
                 objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
                 objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+                //add confidence here - double check how the object is transferred here
                 objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
                 objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
                 objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
@@ -321,6 +322,7 @@ void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const
     printSeparator(0);
     cout << "ID: " << objects_msg.id[isObject] << endl;
     cout << "Name: " << objects_msg.object_name[isObject] << endl;
+    cout << "Confidence: " << objects_msg.object_confidence[isObject] << endl;
 
     cout << "Point_x: " << objects_msg.point_x[isObject] << endl;
     cout << "Point_y: " << objects_msg.point_y[isObject] << endl;
