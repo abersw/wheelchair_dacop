@@ -33,6 +33,7 @@ using namespace std;
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
+const int DEBUG_publishObjectsStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
 const int DEBUG_main = 0;
 
@@ -174,7 +175,9 @@ void publishObjectsStruct() {
         mapTransform.setRotation(mapQuaternion);
         br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
         //end the map frame object publishing
-        cout << "publishing map frame" << endl;
+        if (DEBUG_publishObjectsStruct) {
+            cout << "publishing map frame" << endl;
+        }
     }
 }
 
