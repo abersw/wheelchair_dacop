@@ -49,7 +49,9 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh;
     tf::TransformListener listener;
     listener_ptr=&listener;
-    ros::Subscriber sub = nh.subscribe("zed_node/point_cloud/cloud_registered", 1, objectDepthCallback);
+    std::string PARAM_pointcloud_src;
+    nh.getParam("/wheelchair_param/pointcloud_src", PARAM_pointcloud_src);
+    ros::Subscriber sub = nh.subscribe(PARAM_pointcloud_src, 1, objectDepthCallback);
     pub=nh.advertise<sensor_msgs::PointCloud2>("wheelchair_robot/point_cloud",1000);
 
     ros::spin();
