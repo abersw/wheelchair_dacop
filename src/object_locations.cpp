@@ -232,7 +232,7 @@ void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int
         }
         if (totalObjectsFileStruct == 0) {
             //add local variables from above to struct array to store object data referencing map frame
-            objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
+            objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct; //set first object id to 0
             objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
             objectsFileStruct[totalObjectsFileStruct].object_confidence = msg_object_confidence;
             objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
@@ -242,7 +242,7 @@ void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int
             objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
             objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
             objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
-            totalObjectsFileStruct++;
+            totalObjectsFileStruct++; //set object id to 1 - and start looping through objects struct
         }
         int foundObjectMatch = 0; //set found corresponding object to 0 - not found object
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
@@ -259,15 +259,14 @@ void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int
                 " maxPointThreshold_x, " << maxPointThreshold_x << endl;
                 cout << "objectsFileStruct " << objectsFileStruct[isObject].point_y << ", minPointThreshold_y " << minPointThreshold_y << 
                 " maxPointThreshold_y, " << maxPointThreshold_y << endl;
-            }
+            } //finish debug statement
             if ( ((translation_x >= minPointThreshold_x) && (translation_x <= maxPointThreshold_x)) && //if there's an object in x bound
                 ((translation_y >= minPointThreshold_y) && (translation_y <= maxPointThreshold_y)) && //if there's an object in y bound
                 msg_object_name == objectsFileStruct[isObject].object_name) { //if it has classified the same object (name)
-                    if (DEBUG_doesObjectAlreadyExist) {
-                        cout << "found same object in this location" << endl; //print out found object
-                    }
-                    foundObjectMatch = 1; //set found object match to 1 - true
-                
+                if (DEBUG_doesObjectAlreadyExist) {
+                    cout << "found same object in this location" << endl; //print out found object
+                }
+                foundObjectMatch = 1; //set found object match to 1 - true
             }
             else {
                 //no match found in list, leave at 0
@@ -284,7 +283,6 @@ void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int
             //add object to last position in struct
                 objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
                 objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
-                //add confidence here - double check how the object is transferred here
                 objectsFileStruct[totalObjectsFileStruct].object_confidence = msg_object_confidence;
                 objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
                 objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
@@ -293,7 +291,7 @@ void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int
                 objectsFileStruct[totalObjectsFileStruct].quat_y = rotation_y;
                 objectsFileStruct[totalObjectsFileStruct].quat_z = rotation_z;
                 objectsFileStruct[totalObjectsFileStruct].quat_w = rotation_w;
-                totalObjectsFileStruct++;
+                totalObjectsFileStruct++; //add 1 to total objects in storage struct - ready for next time
         }
     }
     catch (tf::TransformException ex){
@@ -301,6 +299,21 @@ void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int
         ROS_ERROR("%s",ex.what()); //print error
         ros::Duration(1.0).sleep();
     }
+}
+
+std::string publishDetectionTransform(const wheelchair_msgs::foundObjects objects_msg, int isObject) {
+    //broadcast detected objects in frame
+    static tf::TransformBroadcaster br; //initialise broadcaster class
+    std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject); //add frame DET object name
+    tf::Transform localTransform;
+    //create local transform from zed camera to object
+    localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) ); //create transform vector
+    tf::Quaternion localQuaternion; //initialise quaternion class
+    localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
+    localTransform.setRotation(localQuaternion); //set quaternion from struct data
+    br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename)); //broadcast transform frame from zed camera link
+    //end the temporary frame publishing
+    return DETframename;
 }
 
 void publishObjectStructMsg() {
@@ -341,28 +354,13 @@ void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const
 void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
-
     int totalObjects = objects_msg.totalObjects; //get quantity of objects in ROS msg
     for (int isObject = 0; isObject < totalObjects; isObject++) { //iterate through entire ROS msg
         if (DEBUG_print_foundObjects_msg) {
             printFoundObjectsMsg(objects_msg, isObject);
         }
-        //moving local transforms into a function would probably be tidier
-
-        //broadcast detected objects in frame
-        static tf::TransformBroadcaster br; //initialise broadcaster class
-        std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject); //add frame DET object name
-        tf::Transform localTransform;
-        //create local transform from zed camera to object
-        localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) ); //create transform vector
-        tf::Quaternion localQuaternion; //initialise quaternion class
-        localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
-        localTransform.setRotation(localQuaternion); //set quaternion from struct data
-        br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename)); //broadcast transform frame from zed camera link
-        //end the temporary frame publishing
-
-        //doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename);
-        doesObjectAlreadyExist(objects_msg, isObject, DETframename); //does this object already exist, if not, publish it
+        std::string DETframename = publishDetectionTransform(objects_msg, isObject); //publish DET transform for detected object
+        doesObjectAlreadyExist(objects_msg, isObject, DETframename); //does this object already exist, if not, add to struct for publishing, below:
     }
     publishObjectStructMsg(); //publish ROS msg for publish object locations node
 }
@@ -374,19 +372,19 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_locations");
 
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback);
-    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_locations/objects", 1000);
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback); //callback function when objects are detected from depth_sensing
+    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_locations/objects", 1000); //publish to central publishing locations node
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
 
-    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
-    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop";
+    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump"); //get path for dump directory
+    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
     while (ros::ok()) {
         tf::TransformListener listener;
-        ptrListener = &listener;
+        ptrListener = &listener; //set to global pointer - to access from another function
 
-        doesWheelchairDumpPkgExist();
-        int objectsListExists = createFile(objects_file_loc); //create room list
-        objectsListToStruct(objects_file_loc);
+        doesWheelchairDumpPkgExist(); //check to see if dump package exists
+        int objectsListExists = createFile(objects_file_loc); //create file if it doesn't exist
+        objectsListToStruct(objects_file_loc); //add list to struct
         
         ros::Rate rate(10.0);
         
@@ -403,7 +401,7 @@ int main(int argc, char **argv) {
         printSeparator(0);
         cout << "file output" << endl;
         for (int objectNumber = 0; objectNumber < totalObjectsFileStruct; objectNumber++) {
-            cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << endl;
+            cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << "," << objectsFileStruct[objectNumber].object_confidence << endl;
             cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
             cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
         }
