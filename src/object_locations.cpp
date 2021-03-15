@@ -207,7 +207,10 @@ void objectsListToStruct(std::string objects_file_loc) {
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
-void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframename) {
+void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int objectID, std::string DETframename) {
+    std::string msg_object_name;
+    msg_object_name = objects_msg.object_name[objectID];
+    double msg_object_confidence = objects_msg.object_confidence[objectID];
     tf::StampedTransform translation; //initiate translation for transform object
     try {
         ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
@@ -224,13 +227,14 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
 
         if (DEBUG_doesObjectAlreadyExist) {
             printSeparator(0);
-            cout << msg_object_name << endl; //print out object name
+            cout << msg_object_name << ", " << msg_object_confidence << endl; //print out object name
             cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
         }
         if (totalObjectsFileStruct == 0) {
             //add local variables from above to struct array to store object data referencing map frame
             objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
             objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+            objectsFileStruct[totalObjectsFileStruct].object_confidence = msg_object_confidence;
             objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
             objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
             objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
@@ -281,6 +285,7 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
                 objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
                 objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
                 //add confidence here - double check how the object is transferred here
+                objectsFileStruct[totalObjectsFileStruct].object_confidence = msg_object_confidence;
                 objectsFileStruct[totalObjectsFileStruct].point_x = translation_x;
                 objectsFileStruct[totalObjectsFileStruct].point_y = translation_y;
                 objectsFileStruct[totalObjectsFileStruct].point_z = translation_z;
@@ -298,7 +303,7 @@ void doesObjectAlreadyExist(std::string msg_object_name, std::string DETframenam
     }
 }
 
-void publishObjectStruct() {
+void publishObjectStructMsg() {
     wheelchair_msgs::objectLocations obLoc;
     //publish all objects inside struct
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
@@ -337,11 +342,12 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
 
-    int totalObjects = objects_msg.totalObjects;
-    for (int isObject = 0; isObject < totalObjects; isObject++) {
+    int totalObjects = objects_msg.totalObjects; //get quantity of objects in ROS msg
+    for (int isObject = 0; isObject < totalObjects; isObject++) { //iterate through entire ROS msg
         if (DEBUG_print_foundObjects_msg) {
             printFoundObjectsMsg(objects_msg, isObject);
         }
+        //moving local transforms into a function would probably be tidier
 
         //broadcast detected objects in frame
         static tf::TransformBroadcaster br; //initialise broadcaster class
@@ -356,9 +362,9 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
         //end the temporary frame publishing
 
         //doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename);
-        doesObjectAlreadyExist(objects_msg.object_name[isObject], DETframename); //does this object already exist, if not, publish it
+        doesObjectAlreadyExist(objects_msg, isObject, DETframename); //does this object already exist, if not, publish it
     }
-    publishObjectStruct(); //publish ROS msg for publish object locations node
+    publishObjectStructMsg(); //publish ROS msg for publish object locations node
 }
 
 
