@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     tf::TransformListener listener;
     listener_ptr=&listener;
     std::string PARAM_pointcloud_src;
-    nh.getParam("/wheelchair_param/pointcloud_src", PARAM_pointcloud_src);
+    nh.getParam("/wheelchair_robot/param/pointcloud", PARAM_pointcloud_src);
     ros::Subscriber sub = nh.subscribe(PARAM_pointcloud_src, 1, objectDepthCallback);
     pub=nh.advertise<sensor_msgs::PointCloud2>("wheelchair_robot/point_cloud",1000);
 
