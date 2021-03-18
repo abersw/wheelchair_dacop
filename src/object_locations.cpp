@@ -1,8 +1,8 @@
 /*
  * object_locations.cpp
  * wheelchair_dacop
- * version: 0.1.0 Majestic Maidenhair
- * Status: pre-Alpha
+ * version: 0.2.0 Majestic Maidenhair
+ * Status: Alpha
 */
 
 #include <stdio.h>

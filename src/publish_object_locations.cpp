@@ -1,8 +1,8 @@
 /*
  * publish_object_locations.cpp
  * wheelchair_dacop
- * version: 0.0.0 Majestic Maidenhair
- * Status: Gamma
+ * version: 0.2.0 Majestic Maidenhair
+ * Status: Alpha
 */
 
 #include <stdio.h>
