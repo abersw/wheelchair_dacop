@@ -140,73 +140,6 @@ int calculateLines(std::string fileName) {
 	return returnCounter;
 }
 
-void objectsListToStruct(std::string objects_file_loc) {
-    //add list to stuct - test this first before callback
-    //contains transforms between map and object
-    //id, object_name, point_x, point_y, point_z, quat_x, quat_y, quat_z, quat_w
-    std::string objectsDelimiter = ","; //delimiter character is comma
-	ifstream FILE_READER(objects_file_loc); //open file
-    int objectNumber = 0; //iterate on each object
-    if (FILE_READER.peek() == std::ifstream::traits_type::eof()) {
-        //don't do anything if next character in file is eof
-        cout << "file is empty" << endl;
-    }
-    else {
-        std::string line;
-        while (getline(FILE_READER, line)) { //go through line by line
-            int lineSection = 0; //var for iterating through serialised line
-            int pos = 0; //position of delimiter in line
-            std::string token;
-            while ((pos = line.find(objectsDelimiter)) != std::string::npos) {
-                token = line.substr(0, pos);
-                //std::cout << token << std::endl;
-                line.erase(0, pos + objectsDelimiter.length());
-                //deserialise the line sections below:
-                if (lineSection == 0) {
-                    objectsFileStruct[objectNumber].id = objectNumber; //set id of object back to 0
-                }
-                else if (lineSection == 1) {
-                    objectsFileStruct[objectNumber].object_name = token; //set object name
-                }
-                else if (lineSection == 2) {
-                    objectsFileStruct[objectNumber].object_confidence = std::stof(token); //set object confidence
-                }
-                else if (lineSection == 3) {
-                    objectsFileStruct[objectNumber].point_x = std::stof(token); //set transform point x
-                }
-                else if (lineSection == 4) {
-                    objectsFileStruct[objectNumber].point_y = std::stof(token); //set transform point y
-                }
-                else if (lineSection == 5) {
-                    objectsFileStruct[objectNumber].point_z = std::stof(token); //set transform point z
-                }
-                else if (lineSection == 6) {
-                    objectsFileStruct[objectNumber].quat_x = std::stof(token); //set rotation to quaternion x
-                }
-                else if (lineSection == 7) {
-                    objectsFileStruct[objectNumber].quat_y = std::stof(token);//set rotation to quaternion y
-                }
-                else if (lineSection == 8) {
-                    objectsFileStruct[objectNumber].quat_z = std::stof(token); //set rotation to quaternion z
-                }
-
-                lineSection++;
-            }
-            //std::cout << line << std::endl;
-            objectsFileStruct[objectNumber].quat_w = std::stof(line); //set rotation to quaternion w
-            if (DEBUG_objectsListToStruct) { //print off debug lines
-                cout << "sections in line " << lineSection << endl;
-                cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << ", " << objectsFileStruct[objectNumber].object_confidence << endl;
-                cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
-                cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
-                printSeparator(0);
-            }
-            objectNumber++; //iterate to next object in list
-        }
-    }
-    totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
-}
-
 void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int objectID, std::string DETframename) {
     std::string msg_object_name;
     msg_object_name = objects_msg.object_name[objectID];
@@ -376,16 +309,10 @@ int main(int argc, char **argv) {
     ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/object_locations/detected_objects", 1000); //publish to central publishing locations node
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
 
-    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump"); //get path for dump directory
-    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
     while (ros::ok()) {
         tf::TransformListener listener;
         ptrListener = &listener; //set to global pointer - to access from another function
 
-        doesWheelchairDumpPkgExist(); //check to see if dump package exists
-        int objectsListExists = createFile(objects_file_loc); //create file if it doesn't exist
-        objectsListToStruct(objects_file_loc); //add list to struct
-        
         ros::Rate rate(10.0);
         
         if (DEBUG_main) {
