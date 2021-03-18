@@ -60,7 +60,6 @@ struct Objects { //struct for publishing topic
 };
 struct Objects objectsLocationStruct[1000]; //array for storing object data
 int totalObjectsLocationStruct = 0; //total objects inside struct
-double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
 tf::TransformListener *ptrListener; //global pointer for transform listener
 

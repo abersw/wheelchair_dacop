@@ -55,6 +55,7 @@ struct Objects { //struct for publishing topic
 };
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
+double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
 std::string wheelchair_dump_loc;
 
@@ -200,7 +201,88 @@ void objectsListToStruct(std::string objects_file_loc) {
 }
 
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
-    
+    int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
+
+    for (int isMsgObject = 0; isMsgObject < totalObjectsInMsg; isMsgObject++) { 
+        //check to see if detected objects in ROS msg are already present in object struct
+        std::string msg_object_name = obLoc.object_name[isMsgObject]; //set object name
+        double msg_object_confidence = obLoc.object_confidence[isMsgObject]; //set object confidence
+        float msg_translation_x = obLoc.point_x[isMsgObject]; //set translation x to local variable
+        float msg_translation_y = obLoc.point_y[isMsgObject]; //set translation y to local variable
+        float msg_translation_z = obLoc.point_z[isMsgObject]; //set translation z to local variable
+        float msg_rotation_x = obLoc.quat_x[isMsgObject]; //set rotation x to local variable
+        float msg_rotation_y = obLoc.quat_y[isMsgObject]; //set rotation y to local variable
+        float msg_rotation_z = obLoc.quat_z[isMsgObject]; //set rotation z to local variable
+        float msg_rotation_w = obLoc.quat_w[isMsgObject]; //set rotation w to local variable
+        if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
+            //add local variables from above to struct array to store object data referencing map frame
+            objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct; //set first object id to 0
+            objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+            objectsFileStruct[totalObjectsFileStruct].object_confidence = msg_object_confidence;
+
+            objectsFileStruct[totalObjectsFileStruct].point_x = msg_translation_x;
+            objectsFileStruct[totalObjectsFileStruct].point_y = msg_translation_y;
+            objectsFileStruct[totalObjectsFileStruct].point_z = msg_translation_z;
+
+            objectsFileStruct[totalObjectsFileStruct].quat_x = msg_rotation_x;
+            objectsFileStruct[totalObjectsFileStruct].quat_y = msg_rotation_y;
+            objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
+            objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_z;
+            totalObjectsFileStruct++; //set object id to 1 - and start looping through objects struct
+        }
+
+        int foundObjectMatch = 0; //set found corresponding object to 0 - not found object
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //run through entire struct
+            if (DEBUG_doesObjectAlreadyExist) {
+                cout << "object no is " << isObject << endl; //print out object number
+            }
+            //set calculations to create a distance threshold - if object is in this box, it's probably the same object
+            double minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
+            double maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
+            double minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
+            double maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
+            if (DEBUG_doesObjectAlreadyExist) { //print out current object and global box calculations
+                cout << "objectsFileStruct " << objectsFileStruct[isObject].point_x << ", minPointThreshold_x " << minPointThreshold_x << 
+                " maxPointThreshold_x, " << maxPointThreshold_x << endl;
+                cout << "objectsFileStruct " << objectsFileStruct[isObject].point_y << ", minPointThreshold_y " << minPointThreshold_y << 
+                " maxPointThreshold_y, " << maxPointThreshold_y << endl;
+            } //finish debug statement
+            if ( ((msg_translation_x >= minPointThreshold_x) && (msg_translation_x <= maxPointThreshold_x)) && //if there's an object in x bound
+                ((msg_translation_y >= minPointThreshold_y) && (msg_translation_y <= maxPointThreshold_y)) && //if there's an object in y bound
+                msg_object_name == objectsFileStruct[isObject].object_name) { //if it has classified the same object (name)
+                if (DEBUG_doesObjectAlreadyExist) {
+                    cout << "found same object in this location" << endl; //print out found object
+                }
+                foundObjectMatch = 1; //set found object match to 1 - true
+            }
+            else {
+                //no match found in list, leave at 0
+                if (DEBUG_doesObjectAlreadyExist) {
+                    cout << "no match" << endl; //print out no match found
+                }
+            }
+        }
+        if (foundObjectMatch == 1) { //check to see if the loop above found a match
+            //found object match, don't do anything
+        }
+        else if (foundObjectMatch == 0) { //if object is not in the struct
+            //found new object, add to struct and iterate the totalObjects
+            //add object to last position in struct
+                objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
+                objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
+                objectsFileStruct[totalObjectsFileStruct].object_confidence = msg_object_confidence;
+
+                objectsFileStruct[totalObjectsFileStruct].point_x = msg_translation_x;
+                objectsFileStruct[totalObjectsFileStruct].point_y = msg_translation_y;
+                objectsFileStruct[totalObjectsFileStruct].point_z = msg_translation_z;
+
+                objectsFileStruct[totalObjectsFileStruct].quat_x = msg_rotation_x;
+                objectsFileStruct[totalObjectsFileStruct].quat_y = msg_rotation_y;
+                objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
+                objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_w;
+                totalObjectsFileStruct++; //add 1 to total objects in storage struct - ready for next time
+        }
+    }
 }
 
 /*void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
