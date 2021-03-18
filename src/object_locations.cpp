@@ -255,7 +255,7 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
         translateObjectToMapFrame(objects_msg, isObject, DETframename);
     }
     publishObjectStructMsg(); //publish ROS msg for publish object locations node
-    totalObjectsLocationStruct = 0;
+    totalObjectsLocationStruct = 0; //set object locations struct back to 0 once translations have been published
 }
 
 

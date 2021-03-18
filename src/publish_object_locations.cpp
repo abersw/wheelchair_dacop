@@ -34,25 +34,27 @@ const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
-const int DEBUG_publishObjectsStruct = 0;
+const int DEBUG_doesObjectAlreadyExist = 0;
+const int DEBUG_broadcastTransformStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
 const int DEBUG_main = 0;
 
 struct Objects { //struct for publishing topic
-    int id;
-    string object_name;
-    double object_confidence;
-    double point_x;
-    double point_y;
-    double point_z;
+    int id; //get object id from ros msg
+    string object_name; //get object name/class
+    double object_confidence; //get object confidence
 
-    double quat_x;
-    double quat_y;
-    double quat_z;
-    double quat_w;
+    double point_x; //get transform point x
+    double point_y; //get transform point y
+    double point_z; //get transform point z
+
+    double quat_x; //get transform rotation quaternion x
+    double quat_y; //get transform rotation quaternion y
+    double quat_z; //get transform rotation quaternion z
+    double quat_w; //get transform rotation quaternion w
 };
-struct Objects objectsFileStruct[10000];
-int totalObjectsFileStruct = 0;
+struct Objects objectsFileStruct[100000]; //array for storing object data
+int totalObjectsFileStruct = 0; //total objects inside struct
 
 std::string wheelchair_dump_loc;
 
