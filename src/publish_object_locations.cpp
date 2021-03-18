@@ -229,7 +229,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     }
 }*/
 
-void publishObjectsStruct() {
+void broadcastTransformStruct() {
     //add code here to publish struct continuously
     wheelchair_msgs::objectLocations obLoc;
     //publish all objects inside struct
@@ -249,7 +249,7 @@ void publishObjectsStruct() {
         mapTransform.setRotation(mapQuaternion);
         br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
         //end the map frame object publishing
-        if (DEBUG_publishObjectsStruct) {
+        if (DEBUG_broadcastTransformStruct) {
             cout << "publishing map frame" << endl;
         }
     }
@@ -286,7 +286,7 @@ int main(int argc, char **argv) {
 
     while(ros::ok()) {
 
-        publishObjectsStruct();
+        broadcastTransformStruct();
         if (DEBUG_main) {
             cout << "spin \n";
         }
