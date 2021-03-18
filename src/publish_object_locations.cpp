@@ -57,6 +57,8 @@ struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
 double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
+ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
+
 std::string wheelchair_dump_loc;
 
 //function for printing space sizes
@@ -285,32 +287,6 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     }
 }
 
-/*void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
-    totalObjectsFileStruct = obLoc.totalObjects;
-
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-        objectsFileStruct[isObject].id = obLoc.id[isObject];
-        objectsFileStruct[isObject].object_name = obLoc.object_name[isObject];
-        objectsFileStruct[isObject].object_confidence = obLoc.object_confidence[isObject];
-        objectsFileStruct[isObject].point_x = obLoc.point_x[isObject];
-        objectsFileStruct[isObject].point_y = obLoc.point_y[isObject];
-        objectsFileStruct[isObject].point_z = obLoc.point_z[isObject];
-        objectsFileStruct[isObject].quat_x = obLoc.quat_x[isObject];
-        objectsFileStruct[isObject].quat_y = obLoc.quat_y[isObject];
-        objectsFileStruct[isObject].quat_z = obLoc.quat_z[isObject];
-        objectsFileStruct[isObject].quat_w = obLoc.quat_w[isObject];
-
-        if (DEBUG_objectLocationsCallback) {
-            //add debug lines here
-            cout << "object struct" << endl;
-            cout << objectsFileStruct[isObject].id << ", " << objectsFileStruct[isObject].object_name << ", " << objectsFileStruct[isObject].object_confidence << endl;
-            cout << objectsFileStruct[isObject].point_x << ", " << objectsFileStruct[isObject].point_y << ", " << objectsFileStruct[isObject].point_z << endl;
-            cout << objectsFileStruct[isObject].quat_x << ", " << objectsFileStruct[isObject].quat_y << ", " << objectsFileStruct[isObject].quat_z << ", " << objectsFileStruct[isObject].quat_w << endl;
-            printSeparator(0);
-        }
-    }
-}*/
-
 void broadcastTransformStruct() {
     //add code here to publish struct continuously
     wheelchair_msgs::objectLocations obLoc;
@@ -337,6 +313,27 @@ void broadcastTransformStruct() {
     }
 }
 
+void publishObjectStructMsg() {
+    wheelchair_msgs::objectLocations obLoc;
+    //publish all objects inside struct
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
+        obLoc.id.push_back(objectsFileStruct[isObject].id);
+        obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
+        obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
+
+        obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
+        obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
+        obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
+
+        obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
+        obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
+        obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
+        obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
+    }
+    obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
+    ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
+}
+
 void objectsStructToList(std::string objects_file_loc) {
     //add struct to list file here
     ofstream FILE_WRITER;
@@ -356,6 +353,8 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 10, objectLocationsCallback);
+    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 1000); //publish to central publishing locations node
+    ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
     //other subscribers can be added to modify the central objects struct to list
     ros::Rate rate(10.0);
 
@@ -369,6 +368,7 @@ int main(int argc, char **argv) {
     while(ros::ok()) {
 
         broadcastTransformStruct();
+        publishObjectStructMsg();
         if (DEBUG_main) {
             cout << "spin \n";
         }
