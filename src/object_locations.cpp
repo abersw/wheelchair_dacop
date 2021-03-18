@@ -201,8 +201,8 @@ void objectsListToStruct(std::string objects_file_loc) {
                 cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
                 printSeparator(0);
             }
+            objectNumber++; //iterate to next object in list
         }
-        objectNumber++; //iterate to next object in list
     }
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
