@@ -39,7 +39,7 @@ using namespace std;
 
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_getResolutionOnStartup = 0;
-const int DEBUG_broadcastTransform = 0;
+const int DEBUG_broadcastLocalTransform = 0;
 const int DEBUG_getPointDepth = 0;
 const int DEBUG_objectDepthCallback = 0;
 const int DEBUG_main = 0;
@@ -112,7 +112,7 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
 }
 
 
-void broadcastTransform() {
+void broadcastLocalTransform() {
     wheelchair_msgs::foundObjects fdObj; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
     int totalObjects = 0;
@@ -130,7 +130,7 @@ void broadcastTransform() {
         fdObj.rotation_p.push_back(p);
         fdObj.rotation_y.push_back(y);
 
-        if (DEBUG_broadcastTransform) {
+        if (DEBUG_broadcastLocalTransform) {
             cout << "publish fdObj" << endl; //print debug line if DEBUG is true
         }
         totalObjects++; //iterate totalobjects
@@ -203,7 +203,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     }
 
     getPointDepth(dpth, obj); //pass depth cloud and mobilenet ros msg to get pointcloud information
-    broadcastTransform(); //publish calculated object points
+    broadcastLocalTransform(); //publish calculated object points
 }
 
 int main(int argc, char **argv) {
