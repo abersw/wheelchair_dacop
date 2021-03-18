@@ -199,7 +199,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "publish_object_locations");
 
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/objects", 10, objectLocationsCallback);
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 10, objectLocationsCallback);
     //other subscribers can be added to modify the central objects struct to list
     ros::Rate rate(10.0);
 
