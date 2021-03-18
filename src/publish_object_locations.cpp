@@ -198,6 +198,10 @@ void objectsListToStruct(std::string objects_file_loc) {
 }
 
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
+    
+}
+
+/*void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     totalObjectsFileStruct = obLoc.totalObjects;
 
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
@@ -221,7 +225,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             printSeparator(0);
         }
     }
-}
+}*/
 
 void publishObjectsStruct() {
     //add code here to publish struct continuously

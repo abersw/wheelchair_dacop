@@ -140,6 +140,16 @@ int calculateLines(std::string fileName) {
 	return returnCounter;
 }
 
+/*
+ * translateObjectToMapFrame()
+ * objects_msg is the entire ROS array msg
+ * objectID is the array number for the ROS array msg
+ * DETframename is the local detection transform for translating to map frame
+*/
+void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, int objectID, std::string DETframename) {
+    
+}
+
 void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int objectID, std::string DETframename) {
     std::string msg_object_name;
     msg_object_name = objects_msg.object_name[objectID];
@@ -234,7 +244,7 @@ void doesObjectAlreadyExist(const wheelchair_msgs::foundObjects objects_msg, int
     }
 }
 
-std::string publishDetectionTransform(const wheelchair_msgs::foundObjects objects_msg, int isObject) {
+std::string publishLocalDetectionTransform(const wheelchair_msgs::foundObjects objects_msg, int isObject) {
     //broadcast detected objects in frame
     static tf::TransformBroadcaster br; //initialise broadcaster class
     std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject); //add frame DET object name
@@ -292,8 +302,9 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
         if (DEBUG_print_foundObjects_msg) {
             printFoundObjectsMsg(objects_msg, isObject);
         }
-        std::string DETframename = publishDetectionTransform(objects_msg, isObject); //publish DET transform for detected object
-        doesObjectAlreadyExist(objects_msg, isObject, DETframename); //does this object already exist, if not, add to struct for publishing, below:
+        std::string DETframename = publishLocalDetectionTransform(objects_msg, isObject); //publish DET transform for detected object
+        translateObjectToMapFrame(objects_msg, isObject, DETframename);
+        //doesObjectAlreadyExist(objects_msg, isObject, DETframename); //does this object already exist, if not, add to struct for publishing, below:
     }
     publishObjectStructMsg(); //publish ROS msg for publish object locations node
 }
