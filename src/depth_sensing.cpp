@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy; //approximately sync the topic rate
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(10), depth_sub, objects_sub); //set sync policy
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2)); //set callback for synced topics
-    object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/object_depth/detected_objects", 1000); //publish topic for object locations
+    object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/dacop/depth_sensing/detected_objects", 1000); //publish topic for object locations
 
     if (ros::isShuttingDown()) {
         //do something

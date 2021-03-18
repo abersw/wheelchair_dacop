@@ -372,8 +372,8 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_locations");
 
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/object_depth/detected_objects", 10, objectsDetectedCallback); //callback function when objects are detected from depth_sensing
-    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/object_locations/objects", 1000); //publish to central publishing locations node
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/depth_sensing/detected_objects", 10, objectsDetectedCallback); //callback function when objects are detected from depth_sensing
+    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/object_locations/objects", 1000); //publish to central publishing locations node
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
 
     wheelchair_dump_loc = ros::package::getPath("wheelchair_dump"); //get path for dump directory
