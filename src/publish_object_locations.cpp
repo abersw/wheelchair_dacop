@@ -34,6 +34,7 @@ const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
+const int DEBUG_publishExistingObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
 const int DEBUG_broadcastTransformStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
@@ -203,9 +204,12 @@ void objectsListToStruct(std::string objects_file_loc) {
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
-void publishExistingObjects(struct Objects existingObjects[1000], int totalExistingObjects) { //publish detected objects with new (static) UIDs
+void publishExistingObjects(const struct Objects existingObjects[1000], int totalExistingObjects) { //publish detected objects with new (static) UIDs
     wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
     for (int isExistingObject = 0; isExistingObject < totalExistingObjects; isExistingObject++) { //run through loop of detected objects
+        if (DEBUG_publishExistingObjects) {
+            cout << existingObjects[isExistingObject].id << ", " << existingObjects[isExistingObject].object_name << endl;
+        }
         exisObLoc.id.push_back(existingObjects[isExistingObject].id);
         exisObLoc.object_name.push_back(existingObjects[isExistingObject].object_name);
         exisObLoc.object_confidence.push_back(existingObjects[isExistingObject].object_confidence);
@@ -294,9 +298,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         if (foundObjectMatch == 1) { //check to see if the loop above found a match
             //found object match, don't do anything
             //add details to existing objects struct - for getting the UID of new and existing objects
-                existingObjects[isExistingObject].id = objectsFileStruct[totalObjectsFileStruct].id;
-                existingObjects[isExistingObject].object_name = objectsFileStruct[totalObjectsFileStruct].object_name;
-                existingObjects[isExistingObject].object_confidence = objectsFileStruct[totalObjectsFileStruct].object_confidence;
+                existingObjects[isExistingObject].id = objectsFileStruct[objectInPosition].id;
+                existingObjects[isExistingObject].object_name = objectsFileStruct[objectInPosition].object_name;
+                existingObjects[isExistingObject].object_confidence = objectsFileStruct[objectInPosition].object_confidence;
 
                 existingObjects[isExistingObject].point_x = objectsFileStruct[objectInPosition].point_x;
                 existingObjects[isExistingObject].point_y = objectsFileStruct[objectInPosition].point_y;
