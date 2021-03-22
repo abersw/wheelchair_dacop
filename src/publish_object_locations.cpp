@@ -58,6 +58,7 @@ int totalObjectsFileStruct = 0; //total objects inside struct
 double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
+ros::Publisher *ptr_publish_objectUID; //global pointer for publishing topic
 
 std::string wheelchair_dump_loc;
 
@@ -202,8 +203,32 @@ void objectsListToStruct(std::string objects_file_loc) {
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
+void publishExistingObjects(struct Objects existingObjects[1000], int totalExistingObjects) { //publish detected objects with new (static) UIDs
+    wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
+    for (int isExistingObject = 0; isExistingObject < totalExistingObjects; isExistingObject++) { //run through loop of detected objects
+        exisObLoc.id.push_back(existingObjects[isExistingObject].id);
+        exisObLoc.object_name.push_back(existingObjects[isExistingObject].object_name);
+        exisObLoc.object_confidence.push_back(existingObjects[isExistingObject].object_confidence);
+
+        exisObLoc.point_x.push_back(existingObjects[isExistingObject].point_x);
+        exisObLoc.point_y.push_back(existingObjects[isExistingObject].point_y);
+        exisObLoc.point_z.push_back(existingObjects[isExistingObject].point_z);
+
+        exisObLoc.quat_x.push_back(existingObjects[isExistingObject].quat_x);
+        exisObLoc.quat_y.push_back(existingObjects[isExistingObject].quat_y);
+        exisObLoc.quat_z.push_back(existingObjects[isExistingObject].quat_z);
+        exisObLoc.quat_w.push_back(existingObjects[isExistingObject].quat_w);
+    }
+    exisObLoc.totalObjects = totalExistingObjects; //set total objects detected
+    ptr_publish_objectUID->publish(exisObLoc); //publish objects detected with new UIDs
+}
+
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
+
+    struct Objects existingObjects[1000]; //store UID of new and existing objects for publishing
+    int isExistingObject = 0;
+    int totalExistingObjects = totalObjectsInMsg; //number of objects in struct
 
     for (int isMsgObject = 0; isMsgObject < totalObjectsInMsg; isMsgObject++) { 
         //check to see if detected objects in ROS msg are already present in object struct
@@ -234,6 +259,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         }
 
         int foundObjectMatch = 0; //set found corresponding object to 0 - not found object
+        int objectInPosition = 0; //variable to set when object in struct is a match with object in ROS msg
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //run through entire struct
             if (DEBUG_doesObjectAlreadyExist) {
                 cout << "object no is " << isObject << endl; //print out object number
@@ -256,6 +282,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                     cout << "found same object in this location" << endl; //print out found object
                 }
                 foundObjectMatch = 1; //set found object match to 1 - true
+                objectInPosition = isObject;
             }
             else {
                 //no match found in list, leave at 0
@@ -266,6 +293,20 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         }
         if (foundObjectMatch == 1) { //check to see if the loop above found a match
             //found object match, don't do anything
+            //add details to existing objects struct - for getting the UID of new and existing objects
+                existingObjects[isExistingObject].id = objectsFileStruct[totalObjectsFileStruct].id;
+                existingObjects[isExistingObject].object_name = objectsFileStruct[totalObjectsFileStruct].object_name;
+                existingObjects[isExistingObject].object_confidence = objectsFileStruct[totalObjectsFileStruct].object_confidence;
+
+                existingObjects[isExistingObject].point_x = objectsFileStruct[objectInPosition].point_x;
+                existingObjects[isExistingObject].point_y = objectsFileStruct[objectInPosition].point_y;
+                existingObjects[isExistingObject].point_z = objectsFileStruct[objectInPosition].point_z;
+
+                existingObjects[isExistingObject].quat_x = objectsFileStruct[objectInPosition].quat_x;
+                existingObjects[isExistingObject].quat_y = objectsFileStruct[objectInPosition].quat_y;
+                existingObjects[isExistingObject].quat_z = objectsFileStruct[objectInPosition].quat_z;
+                existingObjects[isExistingObject].quat_w = objectsFileStruct[objectInPosition].quat_w;
+                isExistingObject++;
         }
         else if (foundObjectMatch == 0) { //if object is not in the struct
             //found new object, add to struct and iterate the totalObjects
@@ -283,8 +324,24 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
                 objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_w;
                 totalObjectsFileStruct++; //add 1 to total objects in storage struct - ready for next time
+
+                //add details to existing objects struct - for getting the UID of new and existing objects
+                existingObjects[isExistingObject].id = objectsFileStruct[totalObjectsFileStruct].id;
+                existingObjects[isExistingObject].object_name = objectsFileStruct[totalObjectsFileStruct].object_name;
+                existingObjects[isExistingObject].object_confidence = objectsFileStruct[totalObjectsFileStruct].object_confidence;
+
+                existingObjects[isExistingObject].point_x = objectsFileStruct[totalObjectsFileStruct].point_x;
+                existingObjects[isExistingObject].point_y = objectsFileStruct[totalObjectsFileStruct].point_y;
+                existingObjects[isExistingObject].point_z = objectsFileStruct[totalObjectsFileStruct].point_z;
+
+                existingObjects[isExistingObject].quat_x = objectsFileStruct[totalObjectsFileStruct].quat_x;
+                existingObjects[isExistingObject].quat_y = objectsFileStruct[totalObjectsFileStruct].quat_y;
+                existingObjects[isExistingObject].quat_z = objectsFileStruct[totalObjectsFileStruct].quat_z;
+                existingObjects[isExistingObject].quat_w = objectsFileStruct[totalObjectsFileStruct].quat_w;
+                isExistingObject++;
         }
     }
+    publishExistingObjects(existingObjects, totalExistingObjects);
 }
 
 void broadcastTransformStruct() {
@@ -354,7 +411,9 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 10, objectLocationsCallback);
     ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 1000); //publish to central publishing locations node
+    ros::Publisher local_publish_objectUID = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000); //publish to central publishing locations node
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
+    ptr_publish_objectUID = &local_publish_objectUID; //point this local pub variable to global status, so the publish function can access it.
     //other subscribers can be added to modify the central objects struct to list
     ros::Rate rate(10.0);
 
