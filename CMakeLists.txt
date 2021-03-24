@@ -144,6 +144,7 @@ add_executable(cloud_transform src/cloud_transform.cpp)
 add_executable(depth_sensing src/depth_sensing.cpp)
 add_executable(object_locations src/object_locations.cpp)
 add_executable(publish_object_locations src/publish_object_locations.cpp)
+add_executable(assign_room_to_object src/assign_room_to_object.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -163,6 +164,7 @@ target_link_libraries(cloud_transform ${catkin_LIBRARIES})
 target_link_libraries(depth_sensing ${catkin_LIBRARIES})
 target_link_libraries(object_locations ${catkin_LIBRARIES})
 target_link_libraries(publish_object_locations ${catkin_LIBRARIES})
+target_link_libraries(assign_room_to_object ${catkin_LIBRARIES})
 
 #############
 ## Install ##
