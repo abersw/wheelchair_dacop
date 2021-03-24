@@ -14,22 +14,38 @@
 #include "ros/ros.h" //main ROS library
 #include "ros/package.h" //find ROS packages, needs roslib dependency
 #include "wheelchair_msgs/objectLocations.h"
+#include "wheelchair_msgs/roomToObjects.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
 using namespace std;
 
 const int DEBUG_createFile = 1;
-const int DEBUG_main = 1;
+const int DEBUG_roomListToStruct = 1;
+const int DEBUG_setRoom = 1;
+const int DEBUG_main = 0;
+
+struct Rooms {
+    int room_id;
+    string room_name;
+};
+int totalRoomsFileStruct = 0;
+struct Rooms roomsFileStruct[1000];
+
 
 struct Objects {
     int object_id;
     string object_name;
+
     int room_id;
     string room_name;
 };
+int totalObjectsFileStruct = 0;
+struct Objects objectsFileStruct[100000]; //array for storing all object and room data
 
 std::string userRoomName;
+int currentRoomID;
+std::string CurrentRoomName;
 
 //list of file locations
 std::string wheelchair_dump_loc;
@@ -104,7 +120,68 @@ int createFile(std::string fileName) { //if this doesn't get called, no file is 
  * @param parameter fileName is the path of the room.list file
  */
 void roomListToStruct(std::string fileName) {
-    //add stuff here
+    if (DEBUG_roomListToStruct) {
+        cout << "DEBUG_roomListToStruct" << endl;
+    }
+    //id, room name
+    std::string objectsDelimiter = ","; //delimiter character is comma
+	ifstream FILE_READER(fileName); //open file
+    int roomNumber = 0; //iterate on each object
+    if (FILE_READER.peek() == std::ifstream::traits_type::eof()) {
+        //don't do anything if next character in file is eof
+        cout << "file is empty" << endl;
+    }
+    else {
+        std::string line;
+        while (getline(FILE_READER, line)) { //go through line by line
+            int lineSection = 0; //var for iterating through serialised line
+            int pos = 0; //position of delimiter in line
+            std::string token;
+            while ((pos = line.find(objectsDelimiter)) != std::string::npos) {
+                token = line.substr(0, pos);
+                //std::cout << token << std::endl;
+                line.erase(0, pos + objectsDelimiter.length());
+                //deserialise the line sections below:
+                if (lineSection == 0) {
+                    roomsFileStruct[roomNumber].room_id = roomNumber; //set id of room back to 0
+                }
+                lineSection++;
+            }
+            roomsFileStruct[roomNumber].room_name = line; //set end of line to room name
+            if (DEBUG_roomListToStruct) {
+                cout << roomsFileStruct[roomNumber].room_id << "," << roomsFileStruct[roomNumber].room_name << endl;
+            }
+            roomNumber++;
+        }
+    }
+    totalRoomsFileStruct = roomNumber;
+}
+
+void setRoom() {
+    int foundMatchingRoom = 0;
+    int tempRoomID;
+    std::string tempRoomName;
+    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
+        //cout << "room name in loop is " << roomsFileStruct[isRoom].room_name << endl;
+        if (roomsFileStruct[isRoom].room_name == userRoomName) {
+            foundMatchingRoom = 1;
+            tempRoomID = roomsFileStruct[isRoom].room_id;
+            tempRoomName = roomsFileStruct[isRoom].room_name;
+        }
+    }
+    //check to see if for loop returned a positive match
+    if (foundMatchingRoom == 1) {
+        currentRoomID = tempRoomID;
+        CurrentRoomName = tempRoomName;
+    }
+    else {
+        currentRoomID = 1000;
+        CurrentRoomName = "null";
+    }
+    if (DEBUG_setRoom) {
+        cout << "current room id is " << currentRoomID << endl;
+        cout << "current room name is " << CurrentRoomName << endl;
+    }
 }
 
 /**
@@ -115,6 +192,12 @@ void roomListToStruct(std::string fileName) {
  */
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
+    for (int isObject = 0; isObject < totalObjectsInMsg; isObject++) {
+
+        if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
+            //add object to struct
+        }
+    }
 }
 
 /**
@@ -150,10 +233,14 @@ int main (int argc, char **argv) {
     rooms_dacop_loc = wheelchair_dump_loc + dump_dacop_loc + rooms_dacop_name; //concatenate vars to create location of rooms dacop file
     createFile(rooms_dacop_loc);
 
+    roomListToStruct(rooms_list_loc);
+
     
     ros::Rate rate(10.0);
     while(ros::ok()) {
         n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
+        cout << "room param is " << userRoomName << endl;
+        setRoom();
         if (DEBUG_main) {
             cout << "spin \n";
         }
