@@ -25,7 +25,7 @@ using namespace std;
 
 const int DEBUG_createFile = 1;
 const int DEBUG_roomListToStruct = 1;
-const int DEBUG_setRoom = 1;
+const int DEBUG_roomNameCallback = 1;
 const int DEBUG_main = 0;
 
 struct Rooms {
@@ -48,7 +48,7 @@ struct Objects objectsFileStruct[100000]; //array for storing all object and roo
 
 std::string userRoomName;
 int currentRoomID;
-std::string CurrentRoomName;
+std::string currentRoomName;
 
 //list of file locations
 std::string wheelchair_dump_loc;
@@ -160,33 +160,6 @@ void roomListToStruct(std::string fileName) {
     totalRoomsFileStruct = roomNumber;
 }
 
-void setRoom() {
-    int foundMatchingRoom = 0;
-    int tempRoomID;
-    std::string tempRoomName;
-    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
-        //cout << "room name in loop is " << roomsFileStruct[isRoom].room_name << endl;
-        if (roomsFileStruct[isRoom].room_name == userRoomName) {
-            foundMatchingRoom = 1;
-            tempRoomID = roomsFileStruct[isRoom].room_id;
-            tempRoomName = roomsFileStruct[isRoom].room_name;
-        }
-    }
-    //check to see if for loop returned a positive match
-    if (foundMatchingRoom == 1) {
-        currentRoomID = tempRoomID;
-        CurrentRoomName = tempRoomName;
-    }
-    else {
-        currentRoomID = 1000;
-        CurrentRoomName = "null";
-    }
-    if (DEBUG_setRoom) {
-        cout << "current room id is " << currentRoomID << endl;
-        cout << "current room name is " << CurrentRoomName << endl;
-    }
-}
-
 /**
  * Main callback function triggered by received ROS topic 
  *
@@ -204,11 +177,18 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
 }
 
 void roomNameCallback(const std_msgs::String roomNameMsg) {
+    if (DEBUG_roomNameCallback) {
+        cout << "DEBUG_roomNameCallback" << endl;
+    }
+    std::string roomName_msg = roomNameMsg.data;
     int roomDetected = 0;
+
     int tempRoomID;
     std::string tempRoomName;
-    std::string roomName_msg = roomNameMsg.data;
 
+    if (DEBUG_roomNameCallback) {
+        cout << "user input from topic is " << roomName_msg << endl; //this is working - something is going wrong further down in this function...
+    }
     for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) { //run through entire rooms struct
         if (roomsFileStruct[isRoom].room_name == roomName_msg) { //if room name in struct is equal to room name from topic
             roomDetected = 1; //Room is already in rooms struct
@@ -220,7 +200,19 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
         }
     }
     if (roomDetected) {
-
+        currentRoomID = tempRoomID;
+        currentRoomName = tempRoomName;
+    }
+    else {
+        //add room not detected to struct
+        roomsFileStruct[totalRoomsFileStruct].room_id = totalRoomsFileStruct;
+        roomsFileStruct[totalRoomsFileStruct].room_name = roomName_msg;
+        currentRoomID = roomsFileStruct[totalRoomsFileStruct].room_id;
+        currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name;
+    }
+    if (DEBUG_roomNameCallback) {
+        cout << "current room id is " << currentRoomID << endl;
+        cout << "current room name is " << currentRoomName << endl;
     }
 }
 
@@ -263,14 +255,13 @@ int main (int argc, char **argv) {
     
     ros::Rate rate(10.0);
     while(ros::ok()) {
-        n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
-        cout << "room param is " << userRoomName << endl;
+        //n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
+        //cout << "room param is " << userRoomName << endl;
         
-        setRoom();
         if (DEBUG_main) {
             cout << "spin \n";
         }
-        ros::spinOnce();
+        ros::spin();
         rate.sleep();
     }
     saveAllFiles();
