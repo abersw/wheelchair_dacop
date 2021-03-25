@@ -6,6 +6,8 @@
  * 
  * This needs an input from the user - this is the kitchen
  * Detected objects will then be allocated a room
+ * 
+ * Change room name parameter to topic - then it won't need to continuously check if room exists
 */
 
 #include <stdio.h>
@@ -13,6 +15,7 @@
 #include <string.h>
 #include "ros/ros.h" //main ROS library
 #include "ros/package.h" //find ROS packages, needs roslib dependency
+#include "std_msgs/String.h" //for room name topic
 #include "wheelchair_msgs/objectLocations.h"
 #include "wheelchair_msgs/roomToObjects.h"
 #include <fstream>
@@ -157,6 +160,10 @@ void roomListToStruct(std::string fileName) {
     totalRoomsFileStruct = roomNumber;
 }
 
+void doesRoomAlreadyExist(const std::string roomNameTopic) {
+
+}
+
 void setRoom() {
     int foundMatchingRoom = 0;
     int tempRoomID;
@@ -200,6 +207,17 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     }
 }
 
+void roomNameCallback(const std_msgs::String roomNameMsg) {
+    int roomDetected = 0;
+    std::string roomName = roomNameMsg.data;
+    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
+        if (roomsFileStruct[isRoom].room_name == roomName) {
+
+        }
+    }
+
+}
+
 /**
  * Last function to save all struct data into files, ready for using on next startup 
  */
@@ -219,11 +237,6 @@ int main (int argc, char **argv) {
     //notes:
     //take UID from publish_objects_location and pass it through here
     //when msg comes through with UID of object - append a room name to the object
-    ros::init(argc, argv, "assign_room_to_object");
-    ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
-    //publish associated object rooms from publish object locations
-    //publish all of objects and rooms struct
     std::string wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
     doesWheelchairDumpPkgExist(); //check to see if dump package is present
 
@@ -234,12 +247,19 @@ int main (int argc, char **argv) {
     createFile(rooms_dacop_loc);
 
     roomListToStruct(rooms_list_loc);
+    ros::init(argc, argv, "assign_room_to_object");
+    ros::NodeHandle n;
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
+    ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 10, roomNameCallback);
+    //publish associated object rooms from publish object locations
+    //publish all of objects and rooms struct
 
     
     ros::Rate rate(10.0);
     while(ros::ok()) {
         n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
         cout << "room param is " << userRoomName << endl;
+        doesRoomAlreadyExist(userRoomName);
         setRoom();
         if (DEBUG_main) {
             cout << "spin \n";
