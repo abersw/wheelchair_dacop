@@ -26,7 +26,7 @@ using namespace std;
 const int DEBUG_createFile = 1;
 const int DEBUG_roomListToStruct = 1;
 const int DEBUG_roomNameCallback = 1;
-const int DEBUG_main = 0;
+const int DEBUG_main = 1;
 
 struct Rooms {
     int room_id;
@@ -228,6 +228,8 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
  */
 void saveAllFiles() {
     cout << "saving all files" << endl;
+    //start with rooms.list
+    //end with rooms.dacop
 }
 
 /**
