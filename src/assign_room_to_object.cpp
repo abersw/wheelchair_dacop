@@ -164,7 +164,7 @@ void roomListToStruct(std::string fileName) {
  * Main callback function triggered by received ROS topic 
  *
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
- *        message belongs to wheelchair_msgs objectLocations.msg ca
+ *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
@@ -176,15 +176,22 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     }
 }
 
+/**
+ * Main callback function triggered by received room name topic 
+ *
+ * @param parameter 'roomNameMsg' is a string of the room name from the wheelchair interface
+ *        message belongs to std_msgs::String
+ */
 void roomNameCallback(const std_msgs::String roomNameMsg) {
     if (DEBUG_roomNameCallback) {
+        printSeparator(0);
         cout << "DEBUG_roomNameCallback" << endl;
     }
     std::string roomName_msg = roomNameMsg.data;
-    int roomDetected = 0;
+    int roomDetected = 0; //variable flag to see if room name is already present in struct
 
-    int tempRoomID;
-    std::string tempRoomName;
+    int tempRoomID; //temporary room id in function scope
+    std::string tempRoomName; //temporary room name in function scope
 
     if (DEBUG_roomNameCallback) {
         cout << "user input from topic is " << roomName_msg << endl; //this is working - something is going wrong further down in this function...
@@ -192,23 +199,23 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
     for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) { //run through entire rooms struct
         if (roomsFileStruct[isRoom].room_name == roomName_msg) { //if room name in struct is equal to room name from topic
             roomDetected = 1; //Room is already in rooms struct
-            tempRoomID = roomsFileStruct[isRoom].room_id;
-            tempRoomName = roomsFileStruct[isRoom].room_name;
+            tempRoomID = roomsFileStruct[isRoom].room_id; //set struct room id to temp variable
+            tempRoomName = roomsFileStruct[isRoom].room_name; //set struct room name to temp variable
         }
         else {
-            //don't set anything, the room detected var will remain at 0
+            //don't set anything, the room detected variable flag will remain at 0
         }
     }
     if (roomDetected) {
-        currentRoomID = tempRoomID;
-        currentRoomName = tempRoomName;
+        currentRoomID = tempRoomID; //set temporary room id to current room id
+        currentRoomName = tempRoomName; //set temporary room name to current room name
     }
     else {
         //add room not detected to struct
-        roomsFileStruct[totalRoomsFileStruct].room_id = totalRoomsFileStruct;
-        roomsFileStruct[totalRoomsFileStruct].room_name = roomName_msg;
-        currentRoomID = roomsFileStruct[totalRoomsFileStruct].room_id;
-        currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name;
+        roomsFileStruct[totalRoomsFileStruct].room_id = totalRoomsFileStruct; //add last room id to struct
+        roomsFileStruct[totalRoomsFileStruct].room_name = roomName_msg; //add new room name to struct
+        currentRoomID = roomsFileStruct[totalRoomsFileStruct].room_id; //set room id to current room
+        currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
     }
     if (DEBUG_roomNameCallback) {
         cout << "current room id is " << currentRoomID << endl;
