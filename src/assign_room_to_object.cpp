@@ -160,10 +160,6 @@ void roomListToStruct(std::string fileName) {
     totalRoomsFileStruct = roomNumber;
 }
 
-void doesRoomAlreadyExist(const std::string roomNameTopic) {
-
-}
-
 void setRoom() {
     int foundMatchingRoom = 0;
     int tempRoomID;
@@ -209,13 +205,23 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
 
 void roomNameCallback(const std_msgs::String roomNameMsg) {
     int roomDetected = 0;
-    std::string roomName = roomNameMsg.data;
-    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
-        if (roomsFileStruct[isRoom].room_name == roomName) {
+    int tempRoomID;
+    std::string tempRoomName;
+    std::string roomName_msg = roomNameMsg.data;
 
+    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) { //run through entire rooms struct
+        if (roomsFileStruct[isRoom].room_name == roomName_msg) { //if room name in struct is equal to room name from topic
+            roomDetected = 1; //Room is already in rooms struct
+            tempRoomID = roomsFileStruct[isRoom].room_id;
+            tempRoomName = roomsFileStruct[isRoom].room_name;
+        }
+        else {
+            //don't set anything, the room detected var will remain at 0
         }
     }
+    if (roomDetected) {
 
+    }
 }
 
 /**
@@ -259,7 +265,7 @@ int main (int argc, char **argv) {
     while(ros::ok()) {
         n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
         cout << "room param is " << userRoomName << endl;
-        doesRoomAlreadyExist(userRoomName);
+        
         setRoom();
         if (DEBUG_main) {
             cout << "spin \n";
