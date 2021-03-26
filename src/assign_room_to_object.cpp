@@ -25,6 +25,7 @@ using namespace std;
 
 const int DEBUG_createFile = 1;
 const int DEBUG_roomListToStruct = 1;
+const int DEBUG_roomsDacopToStruct = 1;
 const int DEBUG_roomNameCallback = 1;
 const int DEBUG_saveRoomsList = 1;
 const int DEBUG_saveRoomsDacop = 1;
@@ -134,7 +135,7 @@ void roomListToStruct(std::string fileName) {
     int roomNumber = 0; //iterate on each object
     if (FILE_READER.peek() == std::ifstream::traits_type::eof()) {
         //don't do anything if next character in file is eof
-        cout << "file is empty" << endl;
+        cout << fileName << " file is empty" << endl;
     }
     else {
         std::string line;
@@ -147,19 +148,73 @@ void roomListToStruct(std::string fileName) {
                 //std::cout << token << std::endl;
                 line.erase(0, pos + objectsDelimiter.length());
                 //deserialise the line sections below:
-                if (lineSection == 0) {
-                    roomsFileStruct[roomNumber].room_id = roomNumber; //set id of room back to 0
+                if (lineSection == 0) { //if first delimiter
+                    roomsFileStruct[roomNumber].room_id = std::stoi(token); //convert room id string to int
                 }
-                lineSection++;
+                lineSection++; //move to next delimiter
             }
             roomsFileStruct[roomNumber].room_name = line; //set end of line to room name
             if (DEBUG_roomListToStruct) {
-                cout << roomsFileStruct[roomNumber].room_id << "," << roomsFileStruct[roomNumber].room_name << endl;
+                cout << 
+                roomsFileStruct[roomNumber].room_id << "," << 
+                roomsFileStruct[roomNumber].room_name << endl;
             }
-            roomNumber++;
+            roomNumber++; //go to next room line
         }
     }
-    totalRoomsFileStruct = roomNumber;
+    totalRoomsFileStruct = roomNumber; //set total number of rooms in struct to the lines(rooms) counted
+}
+
+/**
+ * Take room dacop file and add it to struct array for processing later 
+ *
+ * @param parameter fileName is the path of the room.dacop file
+ */
+void roomsDacopToStruct(std::string fileName) {
+    if (DEBUG_roomsDacopToStruct) {
+        cout << "DEBUG_roomsDacopToStruct" << endl;
+    }
+    //object_id, object_name, room_id, room_name
+    std::string objectsDelimiter = ","; //delimiter character is a comma
+    ifstream FILE_READER(fileName); //open file
+    int objectNumber = 0; //iterate on each object
+    if (FILE_READER.peek() == std::ifstream::traits_type::eof()) {
+        //don't do anything if next character in file is eof
+        cout << fileName << " file is empty" << endl;
+    }
+    else {
+        std::string line;
+        while (getline(FILE_READER, line)) { //go through line by line
+            int lineSection = 0; //var for iterating through serialised line
+            int pos = 0; //position of delimiter
+            std::string token;
+            while ((pos = line.find(objectsDelimiter)) != std::string::npos) {
+                token = line.substr(0, pos);
+                line.erase(0, pos + objectsDelimiter.length());
+                //deserialise the line section below:
+                if (lineSection == 0) { //if first delimiter
+                    objectsFileStruct[objectNumber].object_id = std::stoi(token); //convert object id string to int
+                }
+                else if (lineSection == 1) { //if second delimiter
+                    objectsFileStruct[objectNumber].object_name = token; //get object name
+                }
+                else if (lineSection == 2) { //if third delimiter
+                    objectsFileStruct[objectNumber].room_id = std::stoi(token); //convert room id string to int
+                }
+                lineSection++; //go to next delimiter
+            }
+            objectsFileStruct[objectNumber].room_name = line; //get end of line - room name
+            if (DEBUG_roomsDacopToStruct) {
+                cout << 
+                objectsFileStruct[objectNumber].object_id << "," <<
+                objectsFileStruct[objectNumber].object_name << "," <<
+                objectsFileStruct[objectNumber].room_id << "," <<
+                objectsFileStruct[objectNumber].room_name << endl;
+            }
+            objectNumber++; //go to next object line
+        }
+    }
+    totalObjectsFileStruct = objectNumber; //set total number of objects in struct to the lines(obstacles) counted
 }
 
 /**
@@ -343,6 +398,7 @@ int main (int argc, char **argv) {
     createFile(rooms_dacop_loc);
 
     roomListToStruct(rooms_list_loc);
+    roomsDacopToStruct(rooms_dacop_loc);
     ros::init(argc, argv, "assign_room_to_object");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
