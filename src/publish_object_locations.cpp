@@ -160,7 +160,7 @@ void objectsListToStruct(std::string objects_file_loc) {
                 line.erase(0, pos + objectsDelimiter.length());
                 //deserialise the line sections below:
                 if (lineSection == 0) {
-                    objectsFileStruct[objectNumber].id = objectNumber; //set id of object back to 0
+                    objectsFileStruct[objectNumber].id = std::stoi(token); //set id of object from existing id
                 }
                 else if (lineSection == 1) {
                     objectsFileStruct[objectNumber].object_name = token; //set object name
