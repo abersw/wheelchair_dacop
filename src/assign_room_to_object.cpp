@@ -216,6 +216,7 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
         roomsFileStruct[totalRoomsFileStruct].room_name = roomName_msg; //add new room name to struct
         currentRoomID = roomsFileStruct[totalRoomsFileStruct].room_id; //set room id to current room
         currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
+        totalRoomsFileStruct++;
     }
     if (DEBUG_roomNameCallback) {
         cout << "current room id is " << currentRoomID << endl;
