@@ -227,9 +227,16 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
 /**
  * Last function to save all struct data into files, ready for using on next startup 
  */
-void saveAllFiles() {
+void saveRoomsList() {
     cout << "saving all files" << endl;
     //start with rooms.list
+    ofstream FILE_WRITER;
+	FILE_WRITER.open(rooms_list_loc);
+    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
+        FILE_WRITER << roomsFileStruct[isRoom].room_id << "," << roomsFileStruct[isRoom].room_name << "\n";
+    }
+    FILE_WRITER.close();
+    cout << "finished saving rooms list" << endl;
     //end with rooms.dacop
 }
 
@@ -274,6 +281,6 @@ int main (int argc, char **argv) {
         ros::spin();
         rate.sleep();
     }
-    saveAllFiles();
+    saveRoomsList();
     return 0;
 }
