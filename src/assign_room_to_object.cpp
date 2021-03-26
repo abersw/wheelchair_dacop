@@ -167,17 +167,25 @@ void roomListToStruct(std::string fileName) {
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
+    //add object to struct
+    //get ID of object and name
+    //check to see if it already exists in this object struct
+    //if it does update it
+    //if it doesn't add it and assign it a room
+    //eventually all objects should be present and have been assigned a room
+    //publish the entire struct afterwards, to allow the navigation node to probe for object/room locations.
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
-    for (int isObject = 0; isObject < totalObjectsInMsg; isObject++) {
-
+    for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
         if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
-            //add object to struct
-            //get ID of object and name
-            //check to see if it already exists in this object struct
-            //if it does update it
-            //if it doesn't add it and assign it a room
-            //eventually all objects should be present and have been assigned a room
-            //publish the entire struct afterwards, to allow the navigation node to probe for object/room locations.
+            objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg];
+            objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg];
+
+            objectsFileStruct[totalRoomsFileStruct].room_id = currentRoomID;
+            objectsFileStruct[totalRoomsFileStruct].room_name = currentRoomName;
+            totalObjectsFileStruct++;
+        }
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+            //run through struct for match
         }
     }
 }
