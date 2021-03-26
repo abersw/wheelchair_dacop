@@ -172,6 +172,12 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
 
         if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
             //add object to struct
+            //get ID of object and name
+            //check to see if it already exists in this object struct
+            //if it does update it
+            //if it doesn't add it and assign it a room
+            //eventually all objects should be present and have been assigned a room
+            //publish the entire struct afterwards, to allow the navigation node to probe for object/room locations.
         }
     }
 }
