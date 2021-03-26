@@ -26,6 +26,7 @@ using namespace std;
 const int DEBUG_createFile = 1;
 const int DEBUG_roomListToStruct = 1;
 const int DEBUG_roomNameCallback = 1;
+const int DEBUG_saveRoomsList = 1;
 const int DEBUG_main = 1;
 
 struct Rooms {
@@ -242,15 +243,22 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
  * Last function to save all struct data into files, ready for using on next startup 
  */
 void saveRoomsList() {
-    cout << "saving all files" << endl;
+    if (DEBUG_saveRoomsList) {
+        cout << "saving all files" << endl;
+    }
     //start with rooms.list
     ofstream FILE_WRITER;
 	FILE_WRITER.open(rooms_list_loc);
     for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
         FILE_WRITER << roomsFileStruct[isRoom].room_id << "," << roomsFileStruct[isRoom].room_name << "\n";
+        if (DEBUG_saveRoomsList) {
+            cout << roomsFileStruct[isRoom].room_id << "," << roomsFileStruct[isRoom].room_name << "\n";
+        }
     }
     FILE_WRITER.close();
-    cout << "finished saving rooms list" << endl;
+    if (DEBUG_saveRoomsList) {
+        cout << "finished saving rooms list" << endl;
+    }
     //end with rooms.dacop
 }
 
