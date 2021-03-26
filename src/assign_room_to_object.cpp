@@ -177,6 +177,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     //publish the entire struct afterwards, to allow the navigation node to probe for object/room locations.
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
     int foundObjectMatch = 0;
+    int matchPos = 0;
 
     for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
         if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
@@ -189,19 +190,28 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         }
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
             //run through struct for match
-            if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) && 
-            (objectsFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) {
-                foundObjectMatch = 1;
+            if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
+            (objectsFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) { //check to see if object IDs match
+                foundObjectMatch = 1; //set found match var to true
+                matchPos = isObject; //save array pos of match to variable
             }
             else {
                 //don't do anything, if new obstacle is received, then foundObjectMatch remains 0
             }
         }
         if (foundObjectMatch) {
+            //don't need to update object ID and name...
             //update the object to current room
+            objectsFileStruct[matchPos].room_id = currentRoomID;
+            objectsFileStruct[matchPos].room_name = currentRoomName;
         }
         else {
             //add object to struct and assign it a room
+            objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg];
+            objectsFileStruct[totalObjectsFileStruct].object_name = obLoc.object_name[isObjectMsg];
+            objectsFileStruct[totalObjectsFileStruct].room_id = currentRoomID;
+            objectsFileStruct[totalObjectsFileStruct].room_name = currentRoomName;
+            totalObjectsFileStruct++;
         }
     }
 }
