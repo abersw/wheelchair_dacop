@@ -27,6 +27,7 @@ const int DEBUG_createFile = 1;
 const int DEBUG_roomListToStruct = 1;
 const int DEBUG_roomNameCallback = 1;
 const int DEBUG_saveRoomsList = 1;
+const int DEBUG_saveRoomsDacop = 1;
 const int DEBUG_main = 1;
 
 struct Rooms {
@@ -181,12 +182,12 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
 
     for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
         if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
-            objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg];
-            objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg];
+            objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
+            objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
 
-            objectsFileStruct[totalRoomsFileStruct].room_id = currentRoomID;
-            objectsFileStruct[totalRoomsFileStruct].room_name = currentRoomName;
-            totalObjectsFileStruct++;
+            objectsFileStruct[totalRoomsFileStruct].room_id = currentRoomID; //add current room id to object struct
+            objectsFileStruct[totalRoomsFileStruct].room_name = currentRoomName; //add current room name to object struct
+            totalObjectsFileStruct++; //increase size of object struct array
         }
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
             //run through struct for match
@@ -207,11 +208,11 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         }
         else {
             //add object to struct and assign it a room
-            objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg];
-            objectsFileStruct[totalObjectsFileStruct].object_name = obLoc.object_name[isObjectMsg];
-            objectsFileStruct[totalObjectsFileStruct].room_id = currentRoomID;
-            objectsFileStruct[totalObjectsFileStruct].room_name = currentRoomName;
-            totalObjectsFileStruct++;
+            objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
+            objectsFileStruct[totalObjectsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
+            objectsFileStruct[totalObjectsFileStruct].room_id = currentRoomID; //add current room id to object struct
+            objectsFileStruct[totalObjectsFileStruct].room_name = currentRoomName; //add current room name to object struct
+            totalObjectsFileStruct++; //increase size of object struct array
         }
     }
 }
@@ -265,7 +266,7 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
 }
 
 /**
- * Last function to save all struct data into files, ready for using on next startup 
+ * Last function to save all rooms list struct data into files, ready for using on next startup 
  */
 void saveRoomsList() {
     if (DEBUG_saveRoomsList) {
@@ -275,16 +276,49 @@ void saveRoomsList() {
     ofstream FILE_WRITER;
 	FILE_WRITER.open(rooms_list_loc);
     for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
-        FILE_WRITER << roomsFileStruct[isRoom].room_id << "," << roomsFileStruct[isRoom].room_name << "\n";
+        FILE_WRITER << 
+        roomsFileStruct[isRoom].room_id << "," << 
+        roomsFileStruct[isRoom].room_name << "\n";
         if (DEBUG_saveRoomsList) {
-            cout << roomsFileStruct[isRoom].room_id << "," << roomsFileStruct[isRoom].room_name << "\n";
+            cout << 
+            roomsFileStruct[isRoom].room_id << "," << 
+            roomsFileStruct[isRoom].room_name << "\n";
         }
     }
     FILE_WRITER.close();
     if (DEBUG_saveRoomsList) {
-        cout << "finished saving rooms list" << endl;
+        cout << "finished saving rooms.list" << endl;
     }
     //end with rooms.dacop
+}
+
+/**
+ * Last function to save all object and room struct data into file rooms.dacop, ready for using on next startup 
+ */
+void saveRoomsDacop() {
+    if (DEBUG_saveRoomsDacop) {
+        cout << "saving rooms.dacop" << endl;
+    }
+    ofstream FILE_WRITER;
+	FILE_WRITER.open(rooms_dacop_loc);
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+        FILE_WRITER << 
+        objectsFileStruct[isObject].object_id << "," <<
+        objectsFileStruct[isObject].object_name << "," <<
+        objectsFileStruct[isObject].room_id << "," <<
+        objectsFileStruct[isObject].room_name << "\n";
+        if (DEBUG_saveRoomsDacop) {
+            cout << 
+            objectsFileStruct[isObject].object_id << "," <<
+            objectsFileStruct[isObject].object_name << "," <<
+            objectsFileStruct[isObject].room_id << "," <<
+            objectsFileStruct[isObject].room_name << "\n";
+        }
+    }
+    FILE_WRITER.close();
+    if (DEBUG_saveRoomsDacop) {
+        cout << "finished saving rooms.dacop" << endl;
+    }
 }
 
 /**
@@ -329,5 +363,6 @@ int main (int argc, char **argv) {
         rate.sleep();
     }
     saveRoomsList();
+    saveRoomsDacop();
     return 0;
 }
