@@ -27,6 +27,7 @@ const int DEBUG_createFile = 1;
 const int DEBUG_roomListToStruct = 1;
 const int DEBUG_roomsDacopToStruct = 1;
 const int DEBUG_roomNameCallback = 1;
+const int DEBUG_publishRoomsDacop = 1;
 const int DEBUG_saveRoomsList = 1;
 const int DEBUG_saveRoomsDacop = 1;
 const int DEBUG_main = 1;
@@ -52,6 +53,8 @@ struct Objects objectsFileStruct[100000]; //array for storing all object and roo
 std::string userRoomName;
 int currentRoomID;
 std::string currentRoomName;
+
+ros::Publisher *ptr_publish_roomsDacop; //global pointer for publishing topic
 
 //list of file locations
 std::string wheelchair_dump_loc;
@@ -321,6 +324,21 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
 }
 
 /**
+ * Function will publish all objects and associated rooms as a ROS msg array 
+ */
+void publishRoomsDacop() {
+    wheelchair_msgs::roomToObjects room2Obj; //create ROS msg
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+        room2Obj.object_id.push_back(objectsFileStruct[isObject].object_id);
+        room2Obj.object_name.push_back(objectsFileStruct[isObject].object_name);
+        room2Obj.room_id.push_back(objectsFileStruct[isObject].room_id);
+        room2Obj.room_name.push_back(objectsFileStruct[isObject].room_name);
+    }
+    room2Obj.totalObjects = totalObjectsFileStruct; //set total objects found in struct
+    ptr_publish_roomsDacop->publish(room2Obj); //publish struct as ros msg array
+}
+
+/**
  * Last function to save all rooms list struct data into files, ready for using on next startup 
  */
 void saveRoomsList() {
@@ -403,6 +421,8 @@ int main (int argc, char **argv) {
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
     ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 10, roomNameCallback);
+    ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000); //publish objects and associated rooms
+    ptr_publish_roomsDacop = &local_publish_roomsDacop; //point this local pub variable to global status, so the publish function can access it.
     //publish associated object rooms from publish object locations
     //publish all of objects and rooms struct
 
@@ -411,6 +431,7 @@ int main (int argc, char **argv) {
     while(ros::ok()) {
         //n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
         //cout << "room param is " << userRoomName << endl;
+        publishRoomsDacop();
         
         if (DEBUG_main) {
             cout << "spin \n";
