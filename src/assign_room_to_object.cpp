@@ -421,7 +421,7 @@ int main (int argc, char **argv) {
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
     ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 10, roomNameCallback);
-    ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000); //publish objects and associated rooms
+    ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::roomToObjects>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000); //publish objects and associated rooms
     ptr_publish_roomsDacop = &local_publish_roomsDacop; //point this local pub variable to global status, so the publish function can access it.
     //publish associated object rooms from publish object locations
     //publish all of objects and rooms struct
