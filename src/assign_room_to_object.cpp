@@ -23,11 +23,12 @@
 #include <sstream>
 using namespace std;
 
-const int DEBUG_createFile = 1;
-const int DEBUG_roomListToStruct = 1;
-const int DEBUG_roomsDacopToStruct = 1;
-const int DEBUG_roomNameCallback = 1;
-const int DEBUG_publishRoomsDacop = 1;
+const int DEBUG_createFile = 0;
+const int DEBUG_roomListToStruct = 0;
+const int DEBUG_roomsDacopToStruct = 0;
+const int DEBUG_objectLocationsCallback = 1;
+const int DEBUG_roomNameCallback = 0;
+const int DEBUG_publishRoomsDacop = 0;
 const int DEBUG_saveRoomsList = 1;
 const int DEBUG_saveRoomsDacop = 1;
 const int DEBUG_main = 1;
@@ -239,6 +240,11 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int matchPos = 0;
 
     for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
+        if (DEBUG_objectLocationsCallback) {
+            cout << "Current obj msg is " << 
+            obLoc.id[isObjectMsg] << ", " <<
+            obLoc.object_name[isObjectMsg] << endl;
+        }
         /*if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
             objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
             objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
@@ -251,6 +257,11 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             //run through struct for match
             if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
             (objectsFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) { //check to see if object IDs match
+                if (DEBUG_objectLocationsCallback) {
+                    cout << "match found: " <<
+                    objectsFileStruct[isObject].object_name << ", " <<
+                    obLoc.object_name[isObjectMsg] << endl;
+                }
                 foundObjectMatch = 1; //set found match var to true
                 matchPos = isObject; //save array pos of match to variable
             }
@@ -261,11 +272,17 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         if (foundObjectMatch) {
             //don't need to update object ID and name...
             //update the object to current room
+            if (DEBUG_objectLocationsCallback) {
+                cout << "updated existing object" << endl;
+            }
             objectsFileStruct[matchPos].room_id = currentRoomID;
             objectsFileStruct[matchPos].room_name = currentRoomName;
         }
         else {
             //add object to struct and assign it a room
+            if (DEBUG_objectLocationsCallback) {
+                cout << "adding new object to struct" << endl;
+            }
             objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
             objectsFileStruct[totalObjectsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
             objectsFileStruct[totalObjectsFileStruct].room_id = currentRoomID; //add current room id to object struct
