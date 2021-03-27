@@ -239,14 +239,14 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int matchPos = 0;
 
     for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
-        if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
+        /*if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
             objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
             objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
 
             objectsFileStruct[totalRoomsFileStruct].room_id = currentRoomID; //add current room id to object struct
             objectsFileStruct[totalRoomsFileStruct].room_name = currentRoomName; //add current room name to object struct
             totalObjectsFileStruct++; //increase size of object struct array
-        }
+        }*/
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
             //run through struct for match
             if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
