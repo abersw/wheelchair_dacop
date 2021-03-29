@@ -36,6 +36,7 @@ const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishExistingObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
+const int DEBUG_printObjectLocation = 0;
 const int DEBUG_broadcastTransformStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
 const int DEBUG_main = 0;
@@ -212,6 +213,23 @@ void objectsListToStruct(std::string objects_file_loc) {
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
+void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int objectNo) {
+    cout << "id: " << obLoc.id[objectNo] << endl <<
+    "object name: " << obLoc.object_name[objectNo] << endl <<
+    "object confidence: " << obLoc.object_confidence[objectNo] << endl <<
+
+    "x: " << obLoc.point_x[objectNo] << endl <<
+    "y: " << obLoc.point_y[objectNo] << endl <<
+    "z: " << obLoc.point_z[objectNo] << endl <<
+
+    "x: " << obLoc.quat_x[objectNo] << endl <<
+    "y: " << obLoc.quat_y[objectNo] << endl <<
+    "z: " << obLoc.quat_z[objectNo] << endl <<
+    "w: " << obLoc.quat_w[objectNo] << endl <<
+
+    "total: " << obLoc.totalObjects[objectNo] << endl;
+}
+
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_publishExistingObjects) {
         printSeparator(0);
@@ -230,6 +248,16 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         float msg_rotation_y = obLoc.quat_y[detectedObject]; //set rotation y to local variable
         float msg_rotation_z = obLoc.quat_z[detectedObject]; //set rotation z to local variable
         float msg_rotation_w = obLoc.quat_w[detectedObject]; //set rotation w to local variable
+        if (DEBUG_printObjectLocation) {
+            printObjectLocation(obLoc, detectedObject);
+        }
+
+        int objectAlreadyInStruct = 0; //set found corresponding object to 0 - not found object
+        int objectArrayPos = 0; //variable to set when object in struct is a match with object in ROS msg
+
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+
+        }
     }
 }
 
