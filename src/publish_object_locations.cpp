@@ -348,6 +348,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (totalExistingObjects != 0) {
         publishExistingObjects(existingObjects, totalExistingObjects);
     }
+    else {
+        cout << "publish array is empty" << endl;
+    }
 }
 
 void broadcastTransformStruct() {
