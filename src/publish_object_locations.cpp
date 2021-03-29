@@ -293,6 +293,11 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             detectedObjects[objectID].point_x = objectsFileStruct[objectArrayPos].point_x;
             detectedObjects[objectID].point_y = objectsFileStruct[objectArrayPos].point_y;
             detectedObjects[objectID].point_z = objectsFileStruct[objectArrayPos].point_z;
+
+            detectedObjects[objectID].quat_x = objectsFileStruct[objectArrayPos].quat_x;
+            detectedObjects[objectID].quat_y = objectsFileStruct[objectArrayPos].quat_y;
+            detectedObjects[objectID].quat_z = objectsFileStruct[objectArrayPos].quat_z;
+            detectedObjects[objectID].quat_w = objectsFileStruct[objectArrayPos].quat_w;
         }
         else {
             //add object to struct and to detected objects_msg
