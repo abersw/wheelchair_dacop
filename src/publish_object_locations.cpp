@@ -227,7 +227,7 @@ void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int obje
     "z: " << obLoc.quat_z[objectNo] << endl <<
     "w: " << obLoc.quat_w[objectNo] << endl <<
 
-    "total: " << obLoc.totalObjects[objectNo] << endl;
+    "total: " << obLoc.totalObjects << endl;
 }
 
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
@@ -235,6 +235,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         printSeparator(0);
     }
     int totalDetectedObjects = obLoc.totalObjects; //get total objects in ROS msg array
+
+    struct Objects detectedObjects[1000]; //struct array for returning objects with correct UID
+    int objectID = 0;
 
     for (int detectedObject = 0; detectedObject < totalDetectedObjects; detectedObject++) { //run through detected objects array
         std::string msg_object_name = obLoc.object_name[detectedObject]; //get detected object name
@@ -283,6 +286,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         }
         if (objectAlreadyInStruct == 1) {
             //don't do anything, but send details to detected_objects msg
+            detectedObjects[objectID].id = objectsFileStruct[objectArrayPos].id;
         }
         else {
             //add object to struct and to detected objects_msg
