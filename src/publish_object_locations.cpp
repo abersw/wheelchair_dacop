@@ -256,7 +256,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         int objectArrayPos = 0; //variable to set when object in struct is a match with object in ROS msg
 
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-            if (DEBUG_objectLocationsCallback) {
+            if (DEBUG_doesObjectAlreadyExist) {
                 cout << "main struct id is " << isObject << endl;
             }
             //set calculations to create a distance threshold - if object is in this box, it's probably the same object
@@ -264,6 +264,28 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             double maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
             double minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
             double maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
+
+            if ( ((msg_translation_x >= minPointThreshold_x) && (msg_translation_x <= maxPointThreshold_x)) && //if there's an object in x bound
+                ((msg_translation_y >= minPointThreshold_y) && (msg_translation_y <= maxPointThreshold_y)) && //if there's an object in y bound
+                msg_object_name == objectsFileStruct[isObject].object_name) { //if it has classified the same object (name)
+                if (DEBUG_doesObjectAlreadyExist) {
+                    cout << "found same object in this location" << endl; //print out found object
+                }
+                objectAlreadyInStruct = 1; //set found object match to 1 - true
+                objectArrayPos = isObject;
+            }
+            else {
+                //no match found in list, leave at 0
+                if (DEBUG_doesObjectAlreadyExist) {
+                    cout << "no match" << endl; //print out no match found
+                }
+            }
+        }
+        if (objectAlreadyInStruct == 1) {
+            //don't do anything, but send details to detected_objects msg
+        }
+        else {
+            //add object to struct and to detected objects_msg
         }
     }
 }
