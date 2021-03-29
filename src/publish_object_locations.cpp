@@ -311,7 +311,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             }
         }
         if (objectAlreadyInStruct == 1) {
-            //don't do anything, but send details to detected_objects msg
+            //don't do anything, but send matched object details to detected_objects struct array
             detectedObjects[objectID].id = objectsFileStruct[objectArrayPos].id;
             detectedObjects[objectID].object_name = objectsFileStruct[objectArrayPos].object_name;
             detectedObjects[objectID].object_confidence = objectsFileStruct[objectArrayPos].object_confidence;
@@ -327,7 +327,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectID++;
         }
         else {
-            //add object to struct and to detected objects_msg
+            //add object main storage struct array
             objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct;
             objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
             objectsFileStruct[totalObjectsFileStruct].object_confidence = msg_object_confidence;
@@ -341,6 +341,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
             objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_w;
 
+            //add object to detected objects struct array
             detectedObjects[objectID].id = objectsFileStruct[totalObjectsFileStruct].id;
             detectedObjects[objectID].object_name = objectsFileStruct[totalObjectsFileStruct].object_name;
             detectedObjects[objectID].object_confidence = objectsFileStruct[totalObjectsFileStruct].object_confidence;
@@ -353,11 +354,11 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             detectedObjects[objectID].quat_y = objectsFileStruct[totalObjectsFileStruct].quat_y;
             detectedObjects[objectID].quat_z = objectsFileStruct[totalObjectsFileStruct].quat_z;
             detectedObjects[objectID].quat_w = objectsFileStruct[totalObjectsFileStruct].quat_w;
-            totalObjectsFileStruct++;
-            objectID++;
+            totalObjectsFileStruct++; //iterate after assigning the detectedObjects array 
+            objectID++; //iterate to next object in detectedObjects
         }
     }
-    publishDetectedObjects(detectedObjects, totalDetectedObjects);
+    publishDetectedObjects(detectedObjects, totalDetectedObjects); //publish detected objects
 }
 
 void broadcastTransformStruct() {
