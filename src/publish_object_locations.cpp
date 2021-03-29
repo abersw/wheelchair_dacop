@@ -204,34 +204,10 @@ void objectsListToStruct(std::string objects_file_loc) {
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
-void publishExistingObjects(const struct Objects existingObjects[1000], int totalExistingObjects) { //publish detected objects with new (static) UIDs
+void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_publishExistingObjects) {
         printSeparator(0);
     }
-    wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
-    for (int isExistingObject = 0; isExistingObject < totalExistingObjects; isExistingObject++) { //run through loop of detected objects
-        if (DEBUG_publishExistingObjects) {
-            cout << existingObjects[isExistingObject].id << ", " << existingObjects[isExistingObject].object_name << endl;
-        }
-        exisObLoc.id.push_back(existingObjects[isExistingObject].id);
-        exisObLoc.object_name.push_back(existingObjects[isExistingObject].object_name);
-        exisObLoc.object_confidence.push_back(existingObjects[isExistingObject].object_confidence);
-
-        exisObLoc.point_x.push_back(existingObjects[isExistingObject].point_x);
-        exisObLoc.point_y.push_back(existingObjects[isExistingObject].point_y);
-        exisObLoc.point_z.push_back(existingObjects[isExistingObject].point_z);
-
-        exisObLoc.quat_x.push_back(existingObjects[isExistingObject].quat_x);
-        exisObLoc.quat_y.push_back(existingObjects[isExistingObject].quat_y);
-        exisObLoc.quat_z.push_back(existingObjects[isExistingObject].quat_z);
-        exisObLoc.quat_w.push_back(existingObjects[isExistingObject].quat_w);
-    }
-    exisObLoc.totalObjects = totalExistingObjects; //set total objects detected
-    ptr_publish_objectUID->publish(exisObLoc); //publish objects detected with new UIDs
-}
-
-void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
-    
 }
 
 void broadcastTransformStruct() {
@@ -299,7 +275,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "publish_object_locations");
 
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 10, objectLocationsCallback);
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 10, objectLocationsCallback); //called every time an object is detected
     ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 1000); //publish to central publishing locations node
     ros::Publisher local_publish_objectUID = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000); //publish to central publishing locations node
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
