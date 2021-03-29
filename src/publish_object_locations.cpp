@@ -76,7 +76,8 @@ void printSeparator(int spaceSize) {
 }
 
 //does the wheelchair dump package exist in the workspace?
-void doesWheelchairDumpPkgExist() {
+std::string doesWheelchairDumpPkgExist() {
+    std::string getDumpPath;
 	if (ros::package::getPath("wheelchair_dump") == "") {
 		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
 		cout << "FATAL:  Closing training_context node. \n";
@@ -86,6 +87,10 @@ void doesWheelchairDumpPkgExist() {
 		ros::shutdown();
 		exit(0);
 	}
+    else {
+        getDumpPath = ros::package::getPath("wheelchair_dump");
+    }
+    return getDumpPath;
 }
 
 //create a file
@@ -140,7 +145,7 @@ int calculateLines(std::string fileName) {
 void objectsListToStruct(std::string objects_file_loc) {
     //add list to stuct - test this first before callback
     //contains transforms between map and object
-    //id, object_name, point_x, point_y, point_z, quat_x, quat_y, quat_z, quat_w
+    //id, object_name, object_confidence, point_x, point_y, point_z, quat_x, quat_y, quat_z, quat_w
     std::string objectsDelimiter = ","; //delimiter character is comma
 	ifstream FILE_READER(objects_file_loc); //open file
     int objectNumber = 0; //iterate on each object
@@ -272,6 +277,11 @@ void objectsStructToList(std::string objects_file_loc) {
 
 
 int main(int argc, char **argv) {
+    wheelchair_dump_loc = doesWheelchairDumpPkgExist();//check to see if dump package exists
+    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
+    createFile(objects_file_loc); //create file if it doesn't exist
+    objectsListToStruct(objects_file_loc); //add list to struct
+
     ros::init(argc, argv, "publish_object_locations");
 
     ros::NodeHandle n;
@@ -283,12 +293,6 @@ int main(int argc, char **argv) {
     //other subscribers can be added to modify the central objects struct to list
     ros::Rate rate(10.0);
 
-    wheelchair_dump_loc = ros::package::getPath("wheelchair_dump"); //get path for dump directory
-    std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
-
-    doesWheelchairDumpPkgExist();//check to see if dump package exists
-    createFile(objects_file_loc); //create file if it doesn't exist
-    objectsListToStruct(objects_file_loc); //add list to struct
 
     while(ros::ok()) {
 
