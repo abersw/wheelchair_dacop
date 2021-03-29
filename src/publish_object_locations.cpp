@@ -245,7 +245,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         float msg_rotation_y = obLoc.quat_y[isMsgObject]; //set rotation y to local variable
         float msg_rotation_z = obLoc.quat_z[isMsgObject]; //set rotation z to local variable
         float msg_rotation_w = obLoc.quat_w[isMsgObject]; //set rotation w to local variable
-        if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
+        /*if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
             //add local variables from above to struct array to store object data referencing map frame
             objectsFileStruct[totalObjectsFileStruct].id = totalObjectsFileStruct; //set first object id to 0
             objectsFileStruct[totalObjectsFileStruct].object_name = msg_object_name;
@@ -260,7 +260,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
             objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_z;
             totalObjectsFileStruct++; //set object id to 1 - and start looping through objects struct
-        }
+        }*/
 
         int foundObjectMatch = 0; //set found corresponding object to 0 - not found object
         int objectInPosition = 0; //variable to set when object in struct is a match with object in ROS msg
