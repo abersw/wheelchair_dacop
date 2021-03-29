@@ -231,7 +231,7 @@ void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int obje
 }
 
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
-    if (DEBUG_publishExistingObjects) {
+    if (DEBUG_objectLocationsCallback) {
         printSeparator(0);
     }
     int totalDetectedObjects = obLoc.totalObjects; //get total objects in ROS msg array
@@ -256,7 +256,14 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         int objectArrayPos = 0; //variable to set when object in struct is a match with object in ROS msg
 
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-
+            if (DEBUG_objectLocationsCallback) {
+                cout << "main struct id is " << isObject << endl;
+            }
+            //set calculations to create a distance threshold - if object is in this box, it's probably the same object
+            double minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
+            double maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
+            double minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
+            double maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
         }
     }
 }
