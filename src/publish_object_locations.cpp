@@ -345,7 +345,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 isExistingObject++;
         }
     }
-    publishExistingObjects(existingObjects, totalExistingObjects);
+    if (totalExistingObjects != 0) {
+        publishExistingObjects(existingObjects, totalExistingObjects);
+    }
 }
 
 void broadcastTransformStruct() {
