@@ -315,7 +315,20 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
             objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_w;
 
+            detectedObjects[objectID].id = objectsFileStruct[totalObjectsFileStruct].id;
+            detectedObjects[objectID].object_name = objectsFileStruct[totalObjectsFileStruct].object_name;
+            detectedObjects[objectID].object_confidence = objectsFileStruct[totalObjectsFileStruct].object_confidence;
+
+            detectedObjects[objectID].point_x = objectsFileStruct[totalObjectsFileStruct].point_x;
+            detectedObjects[objectID].point_y = objectsFileStruct[totalObjectsFileStruct].point_y;
+            detectedObjects[objectID].point_z = objectsFileStruct[totalObjectsFileStruct].point_z;
+
+            detectedObjects[objectID].quat_x = objectsFileStruct[totalObjectsFileStruct].quat_x;
+            detectedObjects[objectID].quat_y = objectsFileStruct[totalObjectsFileStruct].quat_y;
+            detectedObjects[objectID].quat_z = objectsFileStruct[totalObjectsFileStruct].quat_z;
+            detectedObjects[objectID].quat_w = objectsFileStruct[totalObjectsFileStruct].quat_w;
             totalObjectsFileStruct++;
+            objectID++;
         }
     }
 }
