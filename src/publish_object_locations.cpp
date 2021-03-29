@@ -34,7 +34,7 @@ const int DEBUG_doesPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
-const int DEBUG_publishExistingObjects = 0;
+const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
 const int DEBUG_printObjectLocation = 0;
 const int DEBUG_broadcastTransformStruct = 0;
@@ -230,6 +230,32 @@ void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int obje
     "total: " << obLoc.totalObjects << endl;
 }
 
+void publishDetectedObjects(const struct Objects detectedObjects[1000], int totalDetectedObjects) { //publish detected objects with new (static) UIDs
+    if (DEBUG_publishDetectedObjects) {
+        printSeparator(0);
+    }
+    wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
+    for (int isExistingObject = 0; isExistingObject < totalDetectedObjects; isExistingObject++) { //run through loop of detected objects
+        if (DEBUG_publishDetectedObjects) {
+            cout << detectedObjects[isExistingObject].id << ", " << detectedObjects[isExistingObject].object_name << endl;
+        }
+        exisObLoc.id.push_back(detectedObjects[isExistingObject].id);
+        exisObLoc.object_name.push_back(detectedObjects[isExistingObject].object_name);
+        exisObLoc.object_confidence.push_back(detectedObjects[isExistingObject].object_confidence);
+
+        exisObLoc.point_x.push_back(detectedObjects[isExistingObject].point_x);
+        exisObLoc.point_y.push_back(detectedObjects[isExistingObject].point_y);
+        exisObLoc.point_z.push_back(detectedObjects[isExistingObject].point_z);
+
+        exisObLoc.quat_x.push_back(detectedObjects[isExistingObject].quat_x);
+        exisObLoc.quat_y.push_back(detectedObjects[isExistingObject].quat_y);
+        exisObLoc.quat_z.push_back(detectedObjects[isExistingObject].quat_z);
+        exisObLoc.quat_w.push_back(detectedObjects[isExistingObject].quat_w);
+    }
+    exisObLoc.totalObjects = totalDetectedObjects; //set total objects detected
+    ptr_publish_objectUID->publish(exisObLoc); //publish objects detected with new UIDs
+}
+
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_objectLocationsCallback) {
         printSeparator(0);
@@ -331,6 +357,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectID++;
         }
     }
+    publishDetectedObjects(detectedObjects, totalDetectedObjects);
 }
 
 void broadcastTransformStruct() {
