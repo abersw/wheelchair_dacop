@@ -216,6 +216,21 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_publishExistingObjects) {
         printSeparator(0);
     }
+    int totalDetectedObjects = obLoc.totalObjects; //get total objects in ROS msg array
+
+    for (int detectedObject = 0; detectedObject < totalDetectedObjects; detectedObject++) { //run through detected objects array
+        std::string msg_object_name = obLoc.object_name[detectedObject]; //get detected object name
+        double msg_object_confidence = obLoc.object_confidence[detectedObject]; //get detected object confidence
+
+        float msg_translation_x = obLoc.point_x[detectedObject]; //set translation x to local variable
+        float msg_translation_y = obLoc.point_y[detectedObject]; //set translation y to local variable
+        float msg_translation_z = obLoc.point_z[detectedObject]; //set translation z to local variable
+
+        float msg_rotation_x = obLoc.quat_x[detectedObject]; //set rotation x to local variable
+        float msg_rotation_y = obLoc.quat_y[detectedObject]; //set rotation y to local variable
+        float msg_rotation_z = obLoc.quat_z[detectedObject]; //set rotation z to local variable
+        float msg_rotation_w = obLoc.quat_w[detectedObject]; //set rotation w to local variable
+    }
 }
 
 void broadcastTransformStruct() {
