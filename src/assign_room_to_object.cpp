@@ -18,6 +18,8 @@
 #include "std_msgs/String.h" //for room name topic
 #include "wheelchair_msgs/objectLocations.h"
 #include "wheelchair_msgs/roomToObjects.h"
+#include "tf/transform_listener.h"
+#include "tf/transform_broadcaster.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -66,6 +68,7 @@ int currentRoomID;
 std::string currentRoomName;
 
 ros::Publisher *ptr_publish_roomsDacop; //global pointer for publishing topic
+tf::TransformListener *ptrListener; //global pointer for transform listener
 
 //list of file locations
 std::string wheelchair_dump_loc;
@@ -365,6 +368,7 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
     if (roomDetected) {
         currentRoomID = tempRoomID; //set temporary room id to current room id
         currentRoomName = tempRoomName; //set temporary room name to current room name
+        //don't update room location struct - probably...
     }
     else {
         //add room not detected to struct
@@ -374,6 +378,18 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
         currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
 
         //get the room location on the map
+        std::string robot_frame = "/base_footprint";
+        tf::StampedTransform translation; //initiate translation for transform object
+        try {
+            ptrListener->waitForTransform("/map", robot_frame, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
+            ptrListener->lookupTransform("/map", robot_frame, ros::Time(), translation); //lookup translation of object from map frame
+        }
+        catch (tf::TransformException ex) {
+            cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
+            ROS_ERROR("%s",ex.what()); //print error
+            ros::Duration(1.0).sleep();
+        }
+
         totalRoomsFileStruct++;
     }
     if (DEBUG_roomNameCallback) {
