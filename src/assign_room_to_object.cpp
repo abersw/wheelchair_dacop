@@ -47,6 +47,7 @@ struct Rooms {
     double quat_w; //get transform rotation quaternion w
 };
 int totalRoomsFileStruct = 0;
+//id,name,pointx,pointy,pointz,quatx,quaty,quatz,quatw
 struct Rooms roomsFileStruct[1000];
 
 
@@ -164,13 +165,43 @@ void roomListToStruct(std::string fileName) {
                 if (lineSection == 0) { //if first delimiter
                     roomsFileStruct[roomNumber].room_id = std::stoi(token); //convert room id string to int
                 }
+                else if (lineSection == 1) {
+                    roomsFileStruct[roomNumber].room_name = token;
+                }
+                else if (lineSection == 2) {
+                    roomsFileStruct[roomNumber].point_x = std::stof(token); //set transform point x
+                }
+                else if (lineSection == 3) {
+                    roomsFileStruct[roomNumber].point_y = std::stof(token); //set transform point y
+                }
+                else if (lineSection == 4) {
+                    roomsFileStruct[roomNumber].point_z = std::stof(token); //set transform point z
+                }
+                else if (lineSection == 5) {
+                    roomsFileStruct[roomNumber].quat_x = std::stof(token); //set rotation to quaternion x
+                }
+                else if (lineSection == 6) {
+                    roomsFileStruct[roomNumber].quat_y = std::stof(token);//set rotation to quaternion y
+                }
+                else if (lineSection == 7) {
+                    roomsFileStruct[roomNumber].quat_z = std::stof(token); //set rotation to quaternion z
+                }
                 lineSection++; //move to next delimiter
             }
-            roomsFileStruct[roomNumber].room_name = line; //set end of line to room name
+            roomsFileStruct[roomNumber].quat_w = std::stof(line); //set end of line to quat w
             if (DEBUG_roomListToStruct) {
                 cout << 
                 roomsFileStruct[roomNumber].room_id << "," << 
-                roomsFileStruct[roomNumber].room_name << endl;
+                roomsFileStruct[roomNumber].room_name << "," <<
+
+                roomsFileStruct[roomNumber].point_x << "," <<
+                roomsFileStruct[roomNumber].point_y << "," <<
+                roomsFileStruct[roomNumber].point_z << "," <<
+
+                roomsFileStruct[roomNumber].quat_x << "," <<
+                roomsFileStruct[roomNumber].quat_y << "," <<
+                roomsFileStruct[roomNumber].quat_z << "," <<
+                roomsFileStruct[roomNumber].quat_w << endl;
             }
             roomNumber++; //go to next room line
         }
