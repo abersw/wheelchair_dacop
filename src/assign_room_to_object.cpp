@@ -36,6 +36,15 @@ const int DEBUG_main = 1;
 struct Rooms {
     int room_id;
     string room_name;
+
+    double point_x; //get transform point x
+    double point_y; //get transform point y
+    double point_z; //get transform point z
+
+    double quat_x; //get transform rotation quaternion x
+    double quat_y; //get transform rotation quaternion y
+    double quat_z; //get transform rotation quaternion z
+    double quat_w; //get transform rotation quaternion w
 };
 int totalRoomsFileStruct = 0;
 struct Rooms roomsFileStruct[1000];
@@ -332,6 +341,8 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
         roomsFileStruct[totalRoomsFileStruct].room_name = roomName_msg; //add new room name to struct
         currentRoomID = roomsFileStruct[totalRoomsFileStruct].room_id; //set room id to current room
         currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
+
+        //get the room location on the map
         totalRoomsFileStruct++;
     }
     if (DEBUG_roomNameCallback) {
