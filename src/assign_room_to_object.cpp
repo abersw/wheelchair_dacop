@@ -383,6 +383,15 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
         try {
             ptrListener->waitForTransform("/map", robot_frame, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
             ptrListener->lookupTransform("/map", robot_frame, ros::Time(), translation); //lookup translation of object from map frame
+
+            //get global translation of object
+            float translation_x = translation.getOrigin().x(); //set translation x to local variable
+            float translation_y = translation.getOrigin().y(); //set translation y to local variable
+            float translation_z = translation.getOrigin().z(); //set translation z to local variable
+            float rotation_x = translation.getRotation().x(); //set rotation x to local variable
+            float rotation_y = translation.getRotation().y(); //set rotation y to local variable
+            float rotation_z = translation.getRotation().z(); //set rotation z to local variable
+            float rotation_w = translation.getRotation().w(); //set rotation w to local variable
         }
         catch (tf::TransformException ex) {
             cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
