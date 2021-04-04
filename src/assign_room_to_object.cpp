@@ -392,6 +392,21 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
             float rotation_y = translation.getRotation().y(); //set rotation y to local variable
             float rotation_z = translation.getRotation().z(); //set rotation z to local variable
             float rotation_w = translation.getRotation().w(); //set rotation w to local variable
+
+            if (DEBUG_roomNameCallback) {
+                printSeparator(0);
+                cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " << roomsFileStruct[totalRoomsFileStruct].room_name << endl; //print out object name
+                cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
+            }
+
+            roomsFileStruct[totalRoomsFileStruct].point_x = translation_x;
+            roomsFileStruct[totalRoomsFileStruct].point_y = translation_y;
+            roomsFileStruct[totalRoomsFileStruct].point_z = translation_z;
+
+            roomsFileStruct[totalRoomsFileStruct].quat_x = rotation_x;
+            roomsFileStruct[totalRoomsFileStruct].quat_y = rotation_y;
+            roomsFileStruct[totalRoomsFileStruct].quat_z = rotation_z;
+            roomsFileStruct[totalRoomsFileStruct].quat_w = rotation_w;
         }
         catch (tf::TransformException ex) {
             cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
