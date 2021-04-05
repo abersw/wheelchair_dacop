@@ -478,13 +478,20 @@ void saveRoomsList() {
     ofstream FILE_WRITER;
 	FILE_WRITER.open(rooms_list_loc);
     for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
-        FILE_WRITER << 
-        roomsFileStruct[isRoom].room_id << "," << 
-        roomsFileStruct[isRoom].room_name << "\n";
+        std::string roomListToSave = 
+        std::to_string(roomsFileStruct[isRoom].room_id) + "," + 
+        roomsFileStruct[isRoom].room_name + "," + 
+        std::to_string(roomsFileStruct[isRoom].point_x) + "," + 
+        std::to_string(roomsFileStruct[isRoom].point_y) + "," + 
+        std::to_string(roomsFileStruct[isRoom].point_z) + "," + 
+        std::to_string(roomsFileStruct[isRoom].quat_x) + "," + 
+        std::to_string(roomsFileStruct[isRoom].quat_y) + "," + 
+        std::to_string(roomsFileStruct[isRoom].quat_z) + "," + 
+        std::to_string(roomsFileStruct[isRoom].quat_w) + "\n";
+
+        FILE_WRITER << roomListToSave;
         if (DEBUG_saveRoomsList) {
-            cout << 
-            roomsFileStruct[isRoom].room_id << "," << 
-            roomsFileStruct[isRoom].room_name << "\n";
+            cout << roomListToSave;
         }
     }
     FILE_WRITER.close();
