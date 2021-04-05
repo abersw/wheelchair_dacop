@@ -18,6 +18,8 @@
 #include "std_msgs/String.h" //for room name topic
 #include "wheelchair_msgs/objectLocations.h"
 #include "wheelchair_msgs/roomToObjects.h"
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/TransformStamped.h"
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
 #include <fstream>
@@ -29,7 +31,7 @@ const int DEBUG_createFile = 0;
 const int DEBUG_roomListToStruct = 0;
 const int DEBUG_roomsDacopToStruct = 0;
 const int DEBUG_objectLocationsCallback = 1;
-const int DEBUG_roomNameCallback = 0;
+const int DEBUG_roomNameCallback = 1;
 const int DEBUG_publishRoomFrame = 0;
 const int DEBUG_publishRoomsDacop = 0;
 const int DEBUG_saveRoomsList = 1;
@@ -173,26 +175,27 @@ void roomListToStruct(std::string fileName) {
                     roomsFileStruct[roomNumber].room_name = token;
                 }
                 else if (lineSection == 2) {
-                    roomsFileStruct[roomNumber].point_x = std::stof(token); //set transform point x
+                    roomsFileStruct[roomNumber].point_x = std::stod(token); //set transform point x
                 }
                 else if (lineSection == 3) {
-                    roomsFileStruct[roomNumber].point_y = std::stof(token); //set transform point y
+                    roomsFileStruct[roomNumber].point_y = std::stod(token); //set transform point y
                 }
                 else if (lineSection == 4) {
-                    roomsFileStruct[roomNumber].point_z = std::stof(token); //set transform point z
+                    roomsFileStruct[roomNumber].point_z = std::stod(token); //set transform point z
                 }
                 else if (lineSection == 5) {
-                    roomsFileStruct[roomNumber].quat_x = std::stof(token); //set rotation to quaternion x
+                    roomsFileStruct[roomNumber].quat_x = std::stod(token); //set rotation to quaternion x
                 }
                 else if (lineSection == 6) {
-                    roomsFileStruct[roomNumber].quat_y = std::stof(token);//set rotation to quaternion y
+                    roomsFileStruct[roomNumber].quat_y = std::stod(token);//set rotation to quaternion y
                 }
                 else if (lineSection == 7) {
-                    roomsFileStruct[roomNumber].quat_z = std::stof(token); //set rotation to quaternion z
+                    roomsFileStruct[roomNumber].quat_z = std::stod(token); //set rotation to quaternion z
                 }
                 lineSection++; //move to next delimiter
             }
-            roomsFileStruct[roomNumber].quat_w = std::stof(line); //set end of line to quat w
+            roomsFileStruct[roomNumber].quat_w = std::stod(line); //set end of line to quat w
+
             if (DEBUG_roomListToStruct) {
                 cout << 
                 roomsFileStruct[roomNumber].room_id << "," << 
@@ -557,7 +560,7 @@ int main (int argc, char **argv) {
     while(ros::ok()) {
         //n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
         //cout << "room param is " << userRoomName << endl;
-        publishRoomFrame();
+        //publishRoomFrame();
         publishRoomsDacop();
         
         if (DEBUG_main) {
