@@ -30,6 +30,7 @@ const int DEBUG_roomListToStruct = 0;
 const int DEBUG_roomsDacopToStruct = 0;
 const int DEBUG_objectLocationsCallback = 1;
 const int DEBUG_roomNameCallback = 0;
+const int DEBUG_publishRoomFrame = 0;
 const int DEBUG_publishRoomsDacop = 0;
 const int DEBUG_saveRoomsList = 1;
 const int DEBUG_saveRoomsDacop = 1;
@@ -423,6 +424,32 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
 }
 
 /**
+ * Function will broadcast room transforms 
+ */
+void publishRoomFrame() {
+    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
+        //do stuff
+        static tf::TransformBroadcaster br; //initialise broadcaster class
+        std::string roomFrameName = std::to_string(roomsFileStruct[isRoom].room_id) + roomsFileStruct[isRoom].room_name; //set frame name for room id and name
+        if (DEBUG_publishRoomFrame) {
+            cout << "frame name is " << roomFrameName << endl;
+        }
+
+        tf::Transform mapTransform;
+        mapTransform.setOrigin( tf::Vector3(roomsFileStruct[isRoom].point_x, roomsFileStruct[isRoom].point_y, roomsFileStruct[isRoom].point_z) );
+
+        tf::Quaternion mapQuaternion(roomsFileStruct[isRoom].quat_x, roomsFileStruct[isRoom].quat_y, roomsFileStruct[isRoom].quat_z, roomsFileStruct[isRoom].quat_w);
+        mapTransform.setRotation(mapQuaternion);
+        br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", roomFrameName));
+
+        //end the map frame object publishing
+        if (DEBUG_publishRoomFrame) {
+            cout << "publishing map frame" << endl;
+        }
+    }
+}
+
+/**
  * Function will publish all objects and associated rooms as a ROS msg array 
  */
 void publishRoomsDacop() {
@@ -530,6 +557,7 @@ int main (int argc, char **argv) {
     while(ros::ok()) {
         //n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
         //cout << "room param is " << userRoomName << endl;
+        publishRoomFrame();
         publishRoomsDacop();
         
         if (DEBUG_main) {
