@@ -49,14 +49,14 @@ struct Objects { //struct for publishing topic
     string object_name; //get object name/class
     double object_confidence; //get object confidence
 
-    double point_x; //get transform point x
-    double point_y; //get transform point y
-    double point_z; //get transform point z
+    float point_x; //get transform point x
+    float point_y; //get transform point y
+    float point_z; //get transform point z
 
-    double quat_x; //get transform rotation quaternion x
-    double quat_y; //get transform rotation quaternion y
-    double quat_z; //get transform rotation quaternion z
-    double quat_w; //get transform rotation quaternion w
+    float quat_x; //get transform rotation quaternion x
+    float quat_y; //get transform rotation quaternion y
+    float quat_z; //get transform rotation quaternion z
+    float quat_w; //get transform rotation quaternion w
 };
 struct Objects objectsLocationStruct[1000]; //array for storing object data
 int totalObjectsLocationStruct = 0; //total objects inside struct
