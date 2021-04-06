@@ -37,7 +37,7 @@ const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
 const int DEBUG_printObjectLocation = 1;
-const int DEBUG_broadcastTransformStruct = 0;
+const int DEBUG_broadcastTransformStruct = 1;
 const int DEBUG_objectLocationsCallback = 0;
 const int DEBUG_main = 0;
 
@@ -383,6 +383,7 @@ void broadcastTransformStruct() {
         //end the map frame object publishing
         if (DEBUG_broadcastTransformStruct) {
             cout << "publishing map frame" << endl;
+            cout << mapTransform.getOrigin() << endl;
         }
     }
 }
