@@ -383,7 +383,7 @@ void broadcastTransformStruct() {
         //end the map frame object publishing
         if (DEBUG_broadcastTransformStruct) {
             cout << "publishing map frame" << endl;
-            cout << mapTransform.getOrigin() << endl;
+            cout << mapTransform.getOrigin().x() << ", " << mapTransform.getOrigin().y() << ", " << mapTransform.getOrigin().z() << endl;
         }
     }
 }
