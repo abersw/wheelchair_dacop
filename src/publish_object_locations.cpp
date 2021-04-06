@@ -36,7 +36,7 @@ const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
-const int DEBUG_printObjectLocation = 0;
+const int DEBUG_printObjectLocation = 1;
 const int DEBUG_broadcastTransformStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
 const int DEBUG_main = 0;
@@ -44,16 +44,16 @@ const int DEBUG_main = 0;
 struct Objects { //struct for publishing topic
     int id; //get object id from ros msg
     string object_name; //get object name/class
-    double object_confidence; //get object confidence
+    float object_confidence; //get object confidence
 
-    double point_x; //get transform point x
-    double point_y; //get transform point y
-    double point_z; //get transform point z
+    float point_x; //get transform point x
+    float point_y; //get transform point y
+    float point_z; //get transform point z
 
-    double quat_x; //get transform rotation quaternion x
-    double quat_y; //get transform rotation quaternion y
-    double quat_z; //get transform rotation quaternion z
-    double quat_w; //get transform rotation quaternion w
+    float quat_x; //get transform rotation quaternion x
+    float quat_y; //get transform rotation quaternion y
+    float quat_z; //get transform rotation quaternion z
+    float quat_w; //get transform rotation quaternion w
 };
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
@@ -289,10 +289,10 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 cout << "main struct id is " << isObject << endl;
             }
             //set calculations to create a distance threshold - if object is in this box, it's probably the same object
-            double minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
-            double maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
-            double minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
-            double maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
+            float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
+            float maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
+            float minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
+            float maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
 
             if ( ((msg_translation_x >= minPointThreshold_x) && (msg_translation_x <= maxPointThreshold_x)) && //if there's an object in x bound
                 ((msg_translation_y >= minPointThreshold_y) && (msg_translation_y <= maxPointThreshold_y)) && //if there's an object in y bound

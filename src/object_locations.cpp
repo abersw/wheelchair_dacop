@@ -47,7 +47,7 @@ std::string wheelchair_dump_loc;
 struct Objects { //struct for publishing topic
     int id; //get object id from ros msg
     string object_name; //get object name/class
-    double object_confidence; //get object confidence
+    float object_confidence; //get object confidence
 
     float point_x; //get transform point x
     float point_y; //get transform point y
