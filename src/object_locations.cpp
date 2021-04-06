@@ -200,7 +200,7 @@ std::string publishLocalDetectionTransform(const wheelchair_msgs::foundObjects o
     tf::Quaternion localQuaternion; //initialise quaternion class
     localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
     localTransform.setRotation(localQuaternion); //set quaternion from struct data
-    br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_left_camera_depth_link", DETframename)); //broadcast transform frame from zed camera link
+    br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "base_footprint", DETframename)); //broadcast transform frame from zed camera link
     //end the temporary frame publishing
     return DETframename;
 }
