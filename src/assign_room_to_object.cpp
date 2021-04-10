@@ -1,8 +1,8 @@
 /*
  * assign_room_to_object.cpp
  * wheelchair_dacop
- * version: 0.0.1 Majestic Maidenhair
- * Status: Pre-Alpha
+ * version: 0.1.0 Majestic Maidenhair
+ * Status: Alpha
 */
 
 #include <stdio.h>
