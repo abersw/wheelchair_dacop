@@ -280,7 +280,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
     int foundObjectMatch = 0;
     int matchPos = 0;
-
+    if (currentRoomName != "") {
     for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
         if (DEBUG_objectLocationsCallback) {
             cout << "Current obj msg is " << 
@@ -331,6 +331,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectsFileStruct[totalObjectsFileStruct].room_name = currentRoomName; //add current room name to object struct
             totalObjectsFileStruct++; //increase size of object struct array
         }
+    }
     }
 }
 
