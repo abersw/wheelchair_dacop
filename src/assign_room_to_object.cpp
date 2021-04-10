@@ -31,7 +31,7 @@ const int DEBUG_publishRoomFrame = 0;
 const int DEBUG_publishRoomsDacop = 0;
 const int DEBUG_saveRoomsList = 1;
 const int DEBUG_saveRoomsDacop = 1;
-const int DEBUG_main = 1;
+const int DEBUG_main = 0;
 
 struct Rooms {
     int room_id;
@@ -280,6 +280,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
     int foundObjectMatch = 0;
     int matchPos = 0;
+    if (DEBUG_objectLocationsCallback) {
+        cout << "debug current room name is: " << currentRoomName << endl;
+    }
     if (currentRoomName != "") {
         for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
             if (DEBUG_objectLocationsCallback) {
@@ -571,7 +574,7 @@ int main (int argc, char **argv) {
         if (DEBUG_main) {
             cout << "spin \n";
         }
-        ros::spin();
+        ros::spinOnce();
         rate.sleep();
     }
     saveRoomsList();
