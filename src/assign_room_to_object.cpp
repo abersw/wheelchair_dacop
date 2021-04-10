@@ -281,57 +281,57 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int foundObjectMatch = 0;
     int matchPos = 0;
     if (currentRoomName != "") {
-    for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
-        if (DEBUG_objectLocationsCallback) {
-            cout << "Current obj msg is " << 
-            obLoc.id[isObjectMsg] << ", " <<
-            obLoc.object_name[isObjectMsg] << endl;
-        }
-        /*if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
-            objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
-            objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
+        for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
+            if (DEBUG_objectLocationsCallback) {
+                cout << "Current obj msg is " << 
+                obLoc.id[isObjectMsg] << ", " <<
+                obLoc.object_name[isObjectMsg] << endl;
+            }
+            /*if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
+                objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
+                objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
 
-            objectsFileStruct[totalRoomsFileStruct].room_id = currentRoomID; //add current room id to object struct
-            objectsFileStruct[totalRoomsFileStruct].room_name = currentRoomName; //add current room name to object struct
-            totalObjectsFileStruct++; //increase size of object struct array
-        }*/
-        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-            //run through struct for match
-            if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
-            (objectsFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) { //check to see if object IDs match
-                if (DEBUG_objectLocationsCallback) {
-                    cout << "match found: " <<
-                    objectsFileStruct[isObject].object_name << ", " <<
-                    obLoc.object_name[isObjectMsg] << endl;
+                objectsFileStruct[totalRoomsFileStruct].room_id = currentRoomID; //add current room id to object struct
+                objectsFileStruct[totalRoomsFileStruct].room_name = currentRoomName; //add current room name to object struct
+                totalObjectsFileStruct++; //increase size of object struct array
+            }*/
+            for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+                //run through struct for match
+                if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
+                (objectsFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) { //check to see if object IDs match
+                    if (DEBUG_objectLocationsCallback) {
+                        cout << "match found: " <<
+                        objectsFileStruct[isObject].object_name << ", " <<
+                        obLoc.object_name[isObjectMsg] << endl;
+                    }
+                    foundObjectMatch = 1; //set found match var to true
+                    matchPos = isObject; //save array pos of match to variable
                 }
-                foundObjectMatch = 1; //set found match var to true
-                matchPos = isObject; //save array pos of match to variable
+                else {
+                    //don't do anything, if new obstacle is received, then foundObjectMatch remains 0
+                }
+            }
+            if (foundObjectMatch) {
+                //don't need to update object ID and name...
+                //update the object to current room
+                if (DEBUG_objectLocationsCallback) {
+                    cout << "updated existing object" << endl;
+                }
+                objectsFileStruct[matchPos].room_id = currentRoomID;
+                objectsFileStruct[matchPos].room_name = currentRoomName;
             }
             else {
-                //don't do anything, if new obstacle is received, then foundObjectMatch remains 0
+                //add object to struct and assign it a room
+                if (DEBUG_objectLocationsCallback) {
+                    cout << "adding new object to struct" << endl;
+                }
+                objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
+                objectsFileStruct[totalObjectsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
+                objectsFileStruct[totalObjectsFileStruct].room_id = currentRoomID; //add current room id to object struct
+                objectsFileStruct[totalObjectsFileStruct].room_name = currentRoomName; //add current room name to object struct
+                totalObjectsFileStruct++; //increase size of object struct array
             }
         }
-        if (foundObjectMatch) {
-            //don't need to update object ID and name...
-            //update the object to current room
-            if (DEBUG_objectLocationsCallback) {
-                cout << "updated existing object" << endl;
-            }
-            objectsFileStruct[matchPos].room_id = currentRoomID;
-            objectsFileStruct[matchPos].room_name = currentRoomName;
-        }
-        else {
-            //add object to struct and assign it a room
-            if (DEBUG_objectLocationsCallback) {
-                cout << "adding new object to struct" << endl;
-            }
-            objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
-            objectsFileStruct[totalObjectsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
-            objectsFileStruct[totalObjectsFileStruct].room_id = currentRoomID; //add current room id to object struct
-            objectsFileStruct[totalObjectsFileStruct].room_name = currentRoomName; //add current room name to object struct
-            totalObjectsFileStruct++; //increase size of object struct array
-        }
-    }
     }
 }
 
