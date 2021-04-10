@@ -3,11 +3,6 @@
  * wheelchair_dacop
  * version: 0.0.1 Majestic Maidenhair
  * Status: Pre-Alpha
- * 
- * This needs an input from the user - this is the kitchen
- * Detected objects will then be allocated a room
- * 
- * Change room name parameter to topic - then it won't need to continuously check if room exists
 */
 
 #include <stdio.h>
