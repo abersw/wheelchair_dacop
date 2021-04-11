@@ -12,6 +12,7 @@
 #include "ros/package.h" //find ROS packages, needs roslib dependency
 #include "std_msgs/String.h" //for room name topic
 #include "wheelchair_msgs/objectLocations.h"
+#include "wheelchair_msgs/roomLocations.h"
 #include "wheelchair_msgs/roomToObjects.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/TransformStamped.h"
@@ -66,6 +67,7 @@ int currentRoomID;
 std::string currentRoomName;
 
 ros::Publisher *ptr_publish_roomsDacop; //global pointer for publishing topic
+ros::Publisher *ptr_publish_rooms; //global pointer for publishing rooms
 tf::TransformListener *ptrListener; //global pointer for transform listener
 
 //list of file locations
@@ -557,7 +559,9 @@ int main (int argc, char **argv) {
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
     ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 10, roomNameCallback);
     ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::roomToObjects>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000); //publish objects and associated rooms
+    ros::Publisher local_publish_rooms = n.advertise<wheelchair_msgs::roomLocations>("wheelchair_robot/dacop/assign_room_to_objects/rooms", 1000);//publish rooms struct
     ptr_publish_roomsDacop = &local_publish_roomsDacop; //point this local pub variable to global status, so the publish function can access it.
+    ptr_publish_rooms = &local_publish_rooms; //point this local pub variable to global status
     tf::TransformListener listener; //listen to tf tree - to get translation of base_footprint agains map
     ptrListener = &listener; //set to global pointer - to access from another function
     //publish associated object rooms from publish object locations
