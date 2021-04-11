@@ -38,14 +38,14 @@ struct Rooms {
     int room_id;
     string room_name;
 
-    double point_x; //get transform point x
-    double point_y; //get transform point y
-    double point_z; //get transform point z
+    float point_x; //get transform point x
+    float point_y; //get transform point y
+    float point_z; //get transform point z
 
-    double quat_x; //get transform rotation quaternion x
-    double quat_y; //get transform rotation quaternion y
-    double quat_z; //get transform rotation quaternion z
-    double quat_w; //get transform rotation quaternion w
+    float quat_x; //get transform rotation quaternion x
+    float quat_y; //get transform rotation quaternion y
+    float quat_z; //get transform rotation quaternion z
+    float quat_w; //get transform rotation quaternion w
 };
 int totalRoomsFileStruct = 0;
 //id,name,pointx,pointy,pointz,quatx,quaty,quatz,quatw
@@ -172,26 +172,26 @@ void roomListToStruct(std::string fileName) {
                     roomsFileStruct[roomNumber].room_name = token;
                 }
                 else if (lineSection == 2) {
-                    roomsFileStruct[roomNumber].point_x = std::stod(token); //set transform point x
+                    roomsFileStruct[roomNumber].point_x = std::stof(token); //set transform point x
                 }
                 else if (lineSection == 3) {
-                    roomsFileStruct[roomNumber].point_y = std::stod(token); //set transform point y
+                    roomsFileStruct[roomNumber].point_y = std::stof(token); //set transform point y
                 }
                 else if (lineSection == 4) {
-                    roomsFileStruct[roomNumber].point_z = std::stod(token); //set transform point z
+                    roomsFileStruct[roomNumber].point_z = std::stof(token); //set transform point z
                 }
                 else if (lineSection == 5) {
-                    roomsFileStruct[roomNumber].quat_x = std::stod(token); //set rotation to quaternion x
+                    roomsFileStruct[roomNumber].quat_x = std::stof(token); //set rotation to quaternion x
                 }
                 else if (lineSection == 6) {
-                    roomsFileStruct[roomNumber].quat_y = std::stod(token);//set rotation to quaternion y
+                    roomsFileStruct[roomNumber].quat_y = std::stof(token);//set rotation to quaternion y
                 }
                 else if (lineSection == 7) {
-                    roomsFileStruct[roomNumber].quat_z = std::stod(token); //set rotation to quaternion z
+                    roomsFileStruct[roomNumber].quat_z = std::stof(token); //set rotation to quaternion z
                 }
                 lineSection++; //move to next delimiter
             }
-            roomsFileStruct[roomNumber].quat_w = std::stod(line); //set end of line to quat w
+            roomsFileStruct[roomNumber].quat_w = std::stof(line); //set end of line to quat w
 
             if (DEBUG_roomListToStruct) {
                 cout << 
@@ -469,6 +469,28 @@ void publishRoomsDacop() {
 }
 
 /**
+ * Function will publish all rooms stored in struct and publish as a ROS msg array 
+ */
+void publishRoomStruct() {
+    wheelchair_msgs::roomLocations roomLoc; //create ROS msg
+    for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
+        roomLoc.id.push_back(roomsFileStruct[isRoom].room_id);
+        roomLoc.room_name.push_back(roomsFileStruct[isRoom].room_name);
+
+        roomLoc.point_x.push_back(roomsFileStruct[isRoom].point_x);
+        roomLoc.point_y.push_back(roomsFileStruct[isRoom].point_y);
+        roomLoc.point_z.push_back(roomsFileStruct[isRoom].point_z);
+
+        roomLoc.quat_x.push_back(roomsFileStruct[isRoom].quat_x);
+        roomLoc.quat_y.push_back(roomsFileStruct[isRoom].quat_y);
+        roomLoc.quat_z.push_back(roomsFileStruct[isRoom].quat_z);
+        roomLoc.quat_w.push_back(roomsFileStruct[isRoom].quat_w);
+    }
+    roomLoc.totalRooms = totalRoomsFileStruct; //set total rooms found in struct
+    ptr_publish_rooms->publish(roomLoc); //publish struct as ros msg array
+}
+
+/**
  * Last function to save all rooms list struct data into files, ready for using on next startup 
  */
 void saveRoomsList() {
@@ -559,7 +581,7 @@ int main (int argc, char **argv) {
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
     ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 10, roomNameCallback);
     ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::roomToObjects>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000); //publish objects and associated rooms
-    ros::Publisher local_publish_rooms = n.advertise<wheelchair_msgs::roomLocations>("wheelchair_robot/dacop/assign_room_to_objects/rooms", 1000);//publish rooms struct
+    ros::Publisher local_publish_rooms = n.advertise<wheelchair_msgs::roomLocations>("wheelchair_robot/dacop/assign_room_to_object/rooms", 1000);//publish rooms struct
     ptr_publish_roomsDacop = &local_publish_roomsDacop; //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_rooms = &local_publish_rooms; //point this local pub variable to global status
     tf::TransformListener listener; //listen to tf tree - to get translation of base_footprint agains map
@@ -574,6 +596,7 @@ int main (int argc, char **argv) {
         //cout << "room param is " << userRoomName << endl;
         broadcastRoomFrame();
         publishRoomsDacop();
+        publishRoomStruct();
         
         if (DEBUG_main) {
             cout << "spin \n";
