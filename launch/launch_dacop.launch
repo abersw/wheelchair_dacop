@@ -8,4 +8,6 @@
 <node pkg="wheelchair_dacop" name="object_locations" type="object_locations" output="screen" launch-prefix=""></node>
 <!--node to centralise and save to dump dacop file-->
 <node pkg="wheelchair_dacop" name="publish_object_locations" type="publish_object_locations" output="screen" launch-prefix=""></node>
+<!--node to assign room to object and publish associated links-->
+<node pkg="wheelchair_dacop" name="assign_room_to_object" type="assign_room_to_object" output="screen" launch-prefix=""></node>
 </launch>
