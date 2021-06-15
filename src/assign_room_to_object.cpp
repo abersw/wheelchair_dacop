@@ -383,7 +383,7 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
         currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
 
         //get the room location on the map
-        std::string robot_frame = "/base_footprint";
+        std::string robot_frame = "/base_link";
         tf::StampedTransform translation; //initiate translation for transform object
         try {
             ptrListener->waitForTransform("/map", robot_frame, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
