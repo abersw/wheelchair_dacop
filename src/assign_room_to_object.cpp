@@ -584,7 +584,7 @@ int main (int argc, char **argv) {
     ros::Publisher local_publish_rooms = n.advertise<wheelchair_msgs::roomLocations>("wheelchair_robot/dacop/assign_room_to_object/rooms", 1000);//publish rooms struct
     ptr_publish_roomsDacop = &local_publish_roomsDacop; //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_rooms = &local_publish_rooms; //point this local pub variable to global status
-    tf::TransformListener listener; //listen to tf tree - to get translation of base_footprint agains map
+    tf::TransformListener listener; //listen to tf tree - to get translation of base_link against map
     ptrListener = &listener; //set to global pointer - to access from another function
     //publish associated object rooms from publish object locations
     //publish all of objects and rooms struct
