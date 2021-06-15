@@ -30,7 +30,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     //STEP 1 Convert xb3 message to center_bumper frame (i think it is better this way)
     tf::StampedTransform tfStamp;
     try {
-        listener_ptr->lookupTransform("base_footprint", dpth->header.frame_id, ros::Time(0), tfStamp);
+        listener_ptr->lookupTransform("base_link", dpth->header.frame_id, ros::Time(0), tfStamp);
     }
     catch (tf::TransformException ex){
         ROS_ERROR("%s\n", ex.what());
