@@ -10,6 +10,7 @@
 #include <string.h>
 #include "ros/ros.h" //main ROS library
 #include "ros/package.h" //find ROS packages, needs roslib dependency
+#include <std_srvs/Empty.h>
 #include "wheelchair_msgs/foundObjects.h"
 #include "wheelchair_msgs/objectLocations.h"
 
@@ -39,7 +40,10 @@ const int DEBUG_doesObjectAlreadyExist = 0;
 const int DEBUG_printObjectLocation = 0;
 const int DEBUG_broadcastTransformStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
+const int DEBUG_imageSaveObjectAnnotations = 1;
 const int DEBUG_main = 0;
+
+ros::NodeHandle *ptr_n;
 
 struct Objects { //struct for publishing topic
     int id; //get object id from ros msg
@@ -63,6 +67,9 @@ ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing top
 ros::Publisher *ptr_publish_objectUID; //global pointer for publishing topic
 
 std::string wheelchair_dump_loc;
+
+std::string annotated_images_loc;
+static const std::string annotated_images_dir = "/dump/annotated_images/";
 
 //function for printing space sizes
 void printSeparator(int spaceSize) {
@@ -354,6 +361,32 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             detectedObjects[objectID].quat_y = objectsFileStruct[totalObjectsFileStruct].quat_y;
             detectedObjects[objectID].quat_z = objectsFileStruct[totalObjectsFileStruct].quat_z;
             detectedObjects[objectID].quat_w = objectsFileStruct[totalObjectsFileStruct].quat_w;
+
+            //save image of annotated object with id and object name saved as parameter
+            //call the save image service
+            std::string imageName = to_string(detectedObjects[objectID].id) + detectedObjects[objectID].object_name;
+            std::string imgeLocation = annotated_images_loc + imageName + ".jpg";
+            ptr_n->setParam("/wheelchair_robot/image_saver_object_annotation/filename_format", imgeLocation); //set path location in parameter server
+            if (DEBUG_imageSaveObjectAnnotations) {
+                std::string returnParam;
+                if (ptr_n->getParam("/wheelchair_robot/image_saver_object_annotation/filename_format", returnParam)) {
+                    ROS_INFO("Got param: %s", returnParam.c_str()); //print out parameter
+                }
+                else {
+                    ROS_ERROR("Failed to get param 'my_param'"); //couldn't retrieve parameter
+                }
+            }
+            ros::ServiceClient client = ptr_n->serviceClient<std_srvs::Empty>("/wheelchair_robot/image_saver_object_annotation/save"); //call service with empty type
+            if (DEBUG_imageSaveObjectAnnotations) {
+                std_srvs::Empty srv;
+                if (client.call(srv)) {
+                    ROS_INFO("successfully called service"); //service successfully called
+                }
+                else {
+                    ROS_WARN("oops"); //service failed to call
+                }
+            }
+
             totalObjectsFileStruct++; //iterate after assigning the detectedObjects array 
             objectID++; //iterate to next object in detectedObjects
         }
@@ -426,12 +459,14 @@ void objectsStructToList(std::string objects_file_loc) {
 int main(int argc, char **argv) {
     wheelchair_dump_loc = doesPkgExist("wheelchair_dump");//check to see if dump package exists
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
+    annotated_images_loc = wheelchair_dump_loc + annotated_images_dir;
     createFile(objects_file_loc); //create file if it doesn't exist
     objectsListToStruct(objects_file_loc); //add list to struct
 
     ros::init(argc, argv, "publish_object_locations");
 
     ros::NodeHandle n;
+    ptr_n = &n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 10, objectLocationsCallback); //called every time an object is detected
     ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 1000); //publish to central publishing locations node
     ros::Publisher local_publish_objectUID = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000); //publish to central publishing locations node
