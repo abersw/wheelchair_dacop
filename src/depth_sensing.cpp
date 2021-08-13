@@ -5,36 +5,8 @@
  * Status: Gamma
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "ros/ros.h" //main ROS library
-#include <ros/package.h> //find ROS packages, needs roslib dependency
-#include "wheelchair_msgs/mobilenet.h"
-#include "wheelchair_msgs/foundObjects.h"
-#include "sensor_msgs/Image.h"
-#include "sensor_msgs/PointCloud2.h"
+#include "tof_tool/tof_tool_box.h"
 
-//experimental
-#include "geometry_msgs/PointStamped.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Quaternion.h"
-
-#include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
-
-
-#include "tf/transform_broadcaster.h"
-#include "tf/transform_datatypes.h"
-
-#include <fstream>
-#include <iostream>
-
-
-#include <sstream>
 using namespace std;
 
 const int DEBUG_doesWheelchairDumpPkgExist = 0;
@@ -43,6 +15,8 @@ const int DEBUG_broadcastLocalTransform = 0;
 const int DEBUG_getPointDepth = 0;
 const int DEBUG_objectDepthCallback = 0;
 const int DEBUG_main = 0;
+
+TofToolBox *tofToolBox;
 
 ros::Publisher object_depth_pub;
 
@@ -74,32 +48,6 @@ struct DetectedObjects { //struct for containing ros msg from mobilenet node
 int totalObjectsDetected; //total objects in struct
 
 struct DetectedObjects detectedObjects[1000]; //struct array for detected objects
-
-
-//function for printing space sizes
-void printSeparator(int spaceSize) {
-	if (spaceSize == 0) {
-		printf("--------------------------------------------\n");
-	}
-	else {
-		printf("\n");
-		printf("--------------------------------------------\n");
-		printf("\n");
-	}
-}
-
-//does the wheelchair dump package exist in the workspace?
-void doesWheelchairDumpPkgExist() {
-	if (ros::package::getPath("wheelchair_dump") == "") {
-		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
-		cout << "FATAL:  Closing training_context node. \n";
-        if (DEBUG_doesWheelchairDumpPkgExist) {
-    		printSeparator(1);
-        }
-		ros::shutdown();
-		exit(0);
-	}
-}
 
 
 //get resolution of rectified pointcloud image
@@ -207,7 +155,9 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 }
 
 int main(int argc, char **argv) {
-    //stuff to go here
+    TofToolBox tofToolBox_local;
+    tofToolBox = &tofToolBox_local;
+    
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
