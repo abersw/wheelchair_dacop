@@ -9,7 +9,6 @@
 
 using namespace std;
 
-const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_getResolutionOnStartup = 0;
 const int DEBUG_broadcastLocalTransform = 0;
 const int DEBUG_getPointDepth = 0;
@@ -157,7 +156,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 int main(int argc, char **argv) {
     TofToolBox tofToolBox_local;
     tofToolBox = &tofToolBox_local;
-    
+
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
