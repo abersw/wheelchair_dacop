@@ -10,7 +10,6 @@
 using namespace std;
 
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
-const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_translateObjectToMapFrame = 0;
 const int DEBUG_print_foundObjects_msg = 0;
@@ -44,27 +43,6 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
 
-
-//calculate lines from files
-int calculateLines(std::string fileName) {
-	if (DEBUG_calculateLines) {
-		cout << "DEBUG: calculateLines()\n";
-	}
-	ifstream FILE_COUNTER(fileName);
-	std::string getlines;
-	int returnCounter = 0;
-	while (getline (FILE_COUNTER, getlines)) {
-		returnCounter++;
-  		// Output the text from the file
-  		//cout << getlines;
-  		//cout << "\n";
-	}
-	FILE_COUNTER.close();
-    if (DEBUG_calculateLines) {
-        cout << returnCounter << endl;
-    }
-	return returnCounter;
-}
 
 /*
  * translateObjectToMapFrame()
