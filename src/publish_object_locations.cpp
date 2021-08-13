@@ -12,7 +12,6 @@
 
 using namespace std;
 
-const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishDetectedObjects = 0;
@@ -53,33 +52,6 @@ std::string annotated_images_loc;
 static const std::string annotated_images_dir = "/dump/annotated_images/";
 
 
-//create a file
-int createFile(std::string fileName) { //if this doesn't get called, no file is created
-    if (DEBUG_createFile) {
-        printf("DEBUG: createFile()\n");
-    }
-	std::ifstream fileExists(fileName);
-
-	if (fileExists.good() == 1) {
-		//File exists
-        if (DEBUG_createFile) {
-            printf("Weighting file exists\n");
-        }
-		//cout << fileName;
-		return 1;
-	}
-	else {
-		//File doesn't exist
-        if (DEBUG_createFile) {
-            printf("Weighting file doesn't exist\n");
-            printf("creating new file\n");
-        }
-		ofstream NEW_FILE (fileName);
-		NEW_FILE.close();
-		//cout << fileName;
-		return 0;
-	}
-}
 
 //calculate lines from files
 int calculateLines(std::string fileName) {
@@ -415,7 +387,7 @@ int main(int argc, char **argv) {
     wheelchair_dump_loc = tofToolBox->doesPkgExist("wheelchair_dump");//check to see if dump package exists
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
     annotated_images_loc = wheelchair_dump_loc + annotated_images_dir;
-    createFile(objects_file_loc); //create file if it doesn't exist
+    tofToolBox->createFile(objects_file_loc); //create file if it doesn't exist
     objectsListToStruct(objects_file_loc); //add list to struct
 
     ros::init(argc, argv, "publish_object_locations");
