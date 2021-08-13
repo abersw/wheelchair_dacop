@@ -5,29 +5,8 @@
  * Status: Alpha
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "ros/ros.h" //main ROS library
-#include "ros/package.h" //find ROS packages, needs roslib dependency
-#include "wheelchair_msgs/foundObjects.h"
-#include "wheelchair_msgs/objectLocations.h"
+#include "tof_tool/tof_tool_box.h"
 
-//experimental
-#include "geometry_msgs/PointStamped.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/TransformStamped.h"
-
-#include "tf/transform_listener.h"
-#include "tf/transform_broadcaster.h"
-#include <fstream>
-#include <iostream>
-
-
-
-#include <sstream>
 using namespace std;
 
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
@@ -40,6 +19,8 @@ const int DEBUG_print_foundObjects_msg = 0;
 
 const int DEBUG_main = 0;
 const int DEBUG_finish_file_printout = 0;
+
+TofToolBox *tofToolBox;
 
 std::string wheelchair_dump_loc;
 
@@ -66,25 +47,13 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
 
 
-//function for printing space sizes
-void printSeparator(int spaceSize) {
-	if (spaceSize == 0) {
-		printf("--------------------------------------------\n");
-	}
-	else {
-		printf("\n");
-		printf("--------------------------------------------\n");
-		printf("\n");
-	}
-}
-
 //does the wheelchair dump package exist in the workspace?
 void doesWheelchairDumpPkgExist() {
 	if (ros::package::getPath("wheelchair_dump") == "") {
 		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
 		cout << "FATAL:  Closing training_context node. \n";
         if (DEBUG_doesWheelchairDumpPkgExist) {
-    		printSeparator(1);
+    		tofToolBox->printSeparator(1);
         }
 		ros::shutdown();
 		exit(0);
@@ -165,7 +134,7 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
         float rotation_w = translation.getRotation().w(); //set rotation w to local variable
 
         if (DEBUG_translateObjectToMapFrame) {
-            printSeparator(0);
+            tofToolBox->printSeparator(0);
             cout << msg_object_name << ", " << msg_object_confidence << endl; //print out object name
             cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
         }
@@ -228,7 +197,7 @@ void publishObjectStructMsg() {
 
 //print out entire objects ros msg from depth_sensing node
 void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const int isObject) {
-    printSeparator(0);
+    tofToolBox->printSeparator(0);
     cout << "ID: " << objects_msg.id[isObject] << endl;
     cout << "Name: " << objects_msg.object_name[isObject] << endl;
     cout << "Confidence: " << objects_msg.object_confidence[isObject] << endl;
@@ -260,7 +229,9 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
 
 
 int main(int argc, char **argv) {
-    //stuff to go here
+    TofToolBox tofToolBox_local;
+    tofToolBox = &tofToolBox_local;
+
     ros::init(argc, argv, "object_locations");
 
     ros::NodeHandle n;
@@ -284,14 +255,14 @@ int main(int argc, char **argv) {
     //start closing procedure
     cout << "closing ROS node" << endl;
     if (DEBUG_finish_file_printout) {
-        printSeparator(0);
+        tofToolBox->printSeparator(0);
         cout << "file output" << endl;
         for (int objectNumber = 0; objectNumber < totalObjectsLocationStruct; objectNumber++) {
             cout << objectsLocationStruct[objectNumber].id << "," << objectsLocationStruct[objectNumber].object_name << "," << objectsLocationStruct[objectNumber].object_confidence << endl;
             cout << objectsLocationStruct[objectNumber].point_x << ", " << objectsLocationStruct[objectNumber].point_y << ", " << objectsLocationStruct[objectNumber].point_z << endl;
             cout << objectsLocationStruct[objectNumber].quat_x << ", " << objectsLocationStruct[objectNumber].quat_y << ", " << objectsLocationStruct[objectNumber].quat_z << ", " << objectsLocationStruct[objectNumber].quat_w << endl;
         }
-        printSeparator(0);
+        tofToolBox->printSeparator(0);
     }
     return 0;
 }
