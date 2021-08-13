@@ -5,35 +5,13 @@
  * Status: Alpha
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "ros/ros.h" //main ROS library
-#include "ros/package.h" //find ROS packages, needs roslib dependency
-#include <std_srvs/Empty.h>
-#include "wheelchair_msgs/foundObjects.h"
-#include "wheelchair_msgs/objectLocations.h"
-
-//experimental
-#include "geometry_msgs/PointStamped.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/TransformStamped.h"
-
-#include "tf/transform_listener.h"
-#include "tf/transform_broadcaster.h"
-#include <fstream>
-#include <iostream>
 
 #include "tof_tool/tof_tool_box.h"
 
 
 
-#include <sstream>
 using namespace std;
 
-const int DEBUG_doesPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
@@ -46,6 +24,7 @@ const int DEBUG_imageSaveObjectAnnotations = 1;
 const int DEBUG_main = 0;
 
 ros::NodeHandle *ptr_n;
+TofToolBox *tofToolBox;
 
 struct Objects { //struct for publishing topic
     int id; //get object id from ros msg
@@ -73,38 +52,6 @@ std::string wheelchair_dump_loc;
 std::string annotated_images_loc;
 static const std::string annotated_images_dir = "/dump/annotated_images/";
 
-//function for printing space sizes
-void printSeparator(int spaceSize) {
-	if (spaceSize == 0) {
-		printf("--------------------------------------------\n");
-	}
-	else {
-		printf("\n");
-		printf("--------------------------------------------\n");
-		printf("\n");
-	}
-}
-
-//does the wheelchair dump package exist in the workspace?
-std::string doesPkgExist(std::string pkg_name) {
-    std::string getPkgPath;
-	if (ros::package::getPath(pkg_name) == "") {
-		cout << "FATAL:  Couldn't find package " << pkg_name << "\n";
-		cout << "FATAL:  Closing node. \n";
-        if (DEBUG_doesPkgExist) {
-            cout << getPkgPath << endl;
-        }
-		ros::shutdown();
-		exit(0);
-	}
-    else {
-        getPkgPath = ros::package::getPath(pkg_name);
-        if (DEBUG_doesPkgExist) {
-            cout << getPkgPath << endl;
-        }
-    }
-    return getPkgPath;
-}
 
 //create a file
 int createFile(std::string fileName) { //if this doesn't get called, no file is created
@@ -214,7 +161,7 @@ void objectsListToStruct(std::string objects_file_loc) {
                 cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << ", " << objectsFileStruct[objectNumber].object_confidence << endl;
                 cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
                 cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
-                printSeparator(0);
+                tofToolBox->printSeparator(0);
             }
             objectNumber++; //iterate to next object in list
         }
@@ -241,7 +188,7 @@ void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int obje
 
 void publishDetectedObjects(const struct Objects detectedObjects[1000], int totalDetectedObjects) { //publish detected objects with new (static) UIDs
     if (DEBUG_publishDetectedObjects) {
-        printSeparator(0);
+        tofToolBox->printSeparator(0);
     }
     wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
     for (int isExistingObject = 0; isExistingObject < totalDetectedObjects; isExistingObject++) { //run through loop of detected objects
@@ -292,7 +239,7 @@ void saveAnnotatedObjectImage(int objectId, std::string objectName) {
 
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_objectLocationsCallback) {
-        printSeparator(0);
+        tofToolBox->printSeparator(0);
     }
     int totalDetectedObjects = obLoc.totalObjects; //get total objects in ROS msg array
 
@@ -463,7 +410,9 @@ void objectsStructToList(std::string objects_file_loc) {
 
 
 int main(int argc, char **argv) {
-    wheelchair_dump_loc = doesPkgExist("wheelchair_dump");//check to see if dump package exists
+    TofToolBox tofToolBox_local;
+    tofToolBox = &tofToolBox_local;
+    wheelchair_dump_loc = tofToolBox->doesPkgExist("wheelchair_dump");//check to see if dump package exists
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
     annotated_images_loc = wheelchair_dump_loc + annotated_images_dir;
     createFile(objects_file_loc); //create file if it doesn't exist
@@ -481,7 +430,6 @@ int main(int argc, char **argv) {
     //other subscribers can be added to modify the central objects struct to list
     ros::Rate rate(10.0);
 
-    TofToolBox tofToolBox;
 
     while(ros::ok()) {
         //tofToolBox.sayHello(); //test function for tof toolbox
