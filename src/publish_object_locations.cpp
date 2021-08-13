@@ -12,7 +12,6 @@
 
 using namespace std;
 
-const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
@@ -53,26 +52,6 @@ static const std::string annotated_images_dir = "/dump/annotated_images/";
 
 
 
-//calculate lines from files
-int calculateLines(std::string fileName) {
-	if (DEBUG_calculateLines) {
-		cout << "DEBUG: calculateLines()\n";
-	}
-	ifstream FILE_COUNTER(fileName);
-	std::string getlines;
-	int returnCounter = 0;
-	while (getline (FILE_COUNTER, getlines)) {
-        returnCounter++;
-        // Output the text from the file
-        //cout << getlines;
-        //cout << "\n";
-	}
-	FILE_COUNTER.close();
-    if (DEBUG_calculateLines) {
-        cout << returnCounter << endl;
-    }
-	return returnCounter;
-}
 
 void objectsListToStruct(std::string objects_file_loc) {
     //add list to stuct - test this first before callback
