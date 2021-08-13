@@ -5,22 +5,8 @@
  * Status: Alpha
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "ros/ros.h" //main ROS library
-#include "ros/package.h" //find ROS packages, needs roslib dependency
-#include "std_msgs/String.h" //for room name topic
-#include "wheelchair_msgs/objectLocations.h"
-#include "wheelchair_msgs/roomLocations.h"
-#include "wheelchair_msgs/roomToObjects.h"
-#include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/TransformStamped.h"
-#include "tf/transform_listener.h"
-#include "tf/transform_broadcaster.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include "tof_tool/tof_tool_box.h"
+
 using namespace std;
 
 const int DEBUG_createFile = 0;
@@ -33,6 +19,8 @@ const int DEBUG_publishRoomsDacop = 0;
 const int DEBUG_saveRoomsList = 1;
 const int DEBUG_saveRoomsDacop = 1;
 const int DEBUG_main = 0;
+
+TofToolBox *tofToolBox;
 
 struct Rooms {
     int room_id;
@@ -78,31 +66,6 @@ std::string rooms_list_loc; //full path for rooms list
 std::string rooms_dacop_name = "rooms.dacop"; //file with objects associated with rooms
 std::string rooms_dacop_loc; //full path for rooms dacop file
 
-//function for printing space sizes
-void printSeparator(int spaceSize) {
-	if (spaceSize == 0) {
-		printf("--------------------------------------------\n");
-	}
-	else {
-		printf("\n");
-		printf("--------------------------------------------\n");
-		printf("\n");
-	}
-}
-
-/**
- * Does the wheelchair_dump package exist in the workspace?
- * If it's missing, close down the node safely
- */
-void doesWheelchairDumpPkgExist() {
-	if (ros::package::getPath("wheelchair_dump") == "") {
-		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
-		cout << "FATAL:  Closing training_context node. \n";
-		printSeparator(1);
-		ros::shutdown();
-		exit(0);
-	}
-}
 
 /**
  * Function to check if file exists in the 'fileName' path, if it doesn't exist create a new one
@@ -348,7 +311,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
  */
 void roomNameCallback(const std_msgs::String roomNameMsg) {
     if (DEBUG_roomNameCallback) {
-        printSeparator(0);
+        tofToolBox->printSeparator(0);
         cout << "DEBUG_roomNameCallback" << endl;
     }
     std::string roomName_msg = roomNameMsg.data;
@@ -399,7 +362,7 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
             float rotation_w = translation.getRotation().w(); //set rotation w to local variable
 
             if (DEBUG_roomNameCallback) {
-                printSeparator(0);
+                tofToolBox->printSeparator(0);
                 cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " << roomsFileStruct[totalRoomsFileStruct].room_name << endl; //print out object name
                 cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
             }
@@ -561,12 +524,13 @@ void saveRoomsDacop() {
  * @return 0 - end of program
  */
 int main (int argc, char **argv) {
-    //add code here
+    TofToolBox tofToolBox_local;
+    tofToolBox = &tofToolBox_local;
+
     //notes:
     //take UID from publish_objects_location and pass it through here
     //when msg comes through with UID of object - append a room name to the object
-    std::string wheelchair_dump_loc = ros::package::getPath("wheelchair_dump");
-    doesWheelchairDumpPkgExist(); //check to see if dump package is present
+    wheelchair_dump_loc = tofToolBox->doesPkgExist("wheelchair_dump");//check to see if dump package exists
 
 	rooms_list_loc = wheelchair_dump_loc + dump_dacop_loc + rooms_list_name; //concatenate vars to create location of rooms list
     createFile(rooms_list_loc); //check to see if file is present, if not create a new one
