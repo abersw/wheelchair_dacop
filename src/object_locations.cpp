@@ -10,7 +10,6 @@
 using namespace std;
 
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
-const int DEBUG_doesWheelchairDumpPkgExist = 0;
 const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
@@ -46,19 +45,6 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
 
-
-//does the wheelchair dump package exist in the workspace?
-void doesWheelchairDumpPkgExist() {
-	if (ros::package::getPath("wheelchair_dump") == "") {
-		cout << "FATAL:  Couldn't find package 'wheelchair_dump' \n";
-		cout << "FATAL:  Closing training_context node. \n";
-        if (DEBUG_doesWheelchairDumpPkgExist) {
-    		tofToolBox->printSeparator(1);
-        }
-		ros::shutdown();
-		exit(0);
-	}
-}
 
 //create a file
 int createFile(std::string fileName) { //if this doesn't get called, no file is created
