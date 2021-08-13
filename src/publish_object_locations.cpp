@@ -481,9 +481,10 @@ int main(int argc, char **argv) {
     //other subscribers can be added to modify the central objects struct to list
     ros::Rate rate(10.0);
 
+    TofToolBox tofToolBox;
 
     while(ros::ok()) {
-
+        //tofToolBox.sayHello(); //test function for tof toolbox
         broadcastTransformStruct();
         publishObjectStructMsg();
         if (DEBUG_main) {
