@@ -10,7 +10,6 @@
 using namespace std;
 
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
-const int DEBUG_createFile = 0;
 const int DEBUG_calculateLines = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_translateObjectToMapFrame = 0;
@@ -45,34 +44,6 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
 
-
-//create a file
-int createFile(std::string fileName) { //if this doesn't get called, no file is created
-    if (DEBUG_createFile) {
-    	printf("DEBUG: createFile()\n");
-    }
-	std::ifstream fileExists(fileName);
-
-	if (fileExists.good() == 1) {
-		//File exists
-        if (DEBUG_createFile) {
-    		printf("Weighting file exists\n");
-        }
-		//cout << fileName;
-		return 1;
-	}
-	else {
-		//File doesn't exist
-        if (DEBUG_createFile) {
-    		printf("Weighting file doesn't exist\n");
-	    	printf("creating new file\n");
-        }
-		ofstream NEW_FILE (fileName);
-		NEW_FILE.close();
-		//cout << fileName;
-		return 0;
-	}
-}
 
 //calculate lines from files
 int calculateLines(std::string fileName) {
