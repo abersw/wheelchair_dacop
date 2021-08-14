@@ -9,7 +9,6 @@
 
 using namespace std;
 
-const int DEBUG_createFile = 0;
 const int DEBUG_roomListToStruct = 0;
 const int DEBUG_roomsDacopToStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
@@ -66,39 +65,6 @@ std::string rooms_list_loc; //full path for rooms list
 std::string rooms_dacop_name = "rooms.dacop"; //file with objects associated with rooms
 std::string rooms_dacop_loc; //full path for rooms dacop file
 
-
-/**
- * Function to check if file exists in the 'fileName' path, if it doesn't exist create a new one
- *
- * @param pass the path and file name to be created called 'fileName'
- * @return return '1' if file already exists, return '0' if file was missing and has been created
- */
-int createFile(std::string fileName) { //if this doesn't get called, no file is created
-    if (DEBUG_createFile) {
-        printf("DEBUG: createFile()\n");
-    }
-	std::ifstream fileExists(fileName);
-
-	if (fileExists.good() == 1) {
-		//File exists
-        if (DEBUG_createFile) {
-            printf("Weighting file exists\n");
-        }
-		//cout << fileName;
-		return 1;
-	}
-	else {
-		//File doesn't exist
-        if (DEBUG_createFile) {
-            printf("Weighting file doesn't exist\n");
-            printf("creating new file\n");
-        }
-		ofstream NEW_FILE (fileName);
-		NEW_FILE.close();
-		//cout << fileName;
-		return 0;
-	}
-}
 
 /**
  * Take room list file and add it to struct array for processing later 
@@ -533,13 +499,14 @@ int main (int argc, char **argv) {
     wheelchair_dump_loc = tofToolBox->doesPkgExist("wheelchair_dump");//check to see if dump package exists
 
 	rooms_list_loc = wheelchair_dump_loc + dump_dacop_loc + rooms_list_name; //concatenate vars to create location of rooms list
-    createFile(rooms_list_loc); //check to see if file is present, if not create a new one
+    tofToolBox->createFile(rooms_list_loc); //check to see if file is present, if not create a new one
 
     rooms_dacop_loc = wheelchair_dump_loc + dump_dacop_loc + rooms_dacop_name; //concatenate vars to create location of rooms dacop file
-    createFile(rooms_dacop_loc);
+    tofToolBox->createFile(rooms_dacop_loc);
 
     roomListToStruct(rooms_list_loc);
     roomsDacopToStruct(rooms_dacop_loc);
+    
     ros::init(argc, argv, "assign_room_to_object");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
