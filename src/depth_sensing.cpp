@@ -7,6 +7,24 @@
 
 #include "tof_tool/tof_tool_box.h"
 
+#include "wheelchair_msgs/mobilenet.h"
+#include "wheelchair_msgs/foundObjects.h"
+#include "sensor_msgs/Image.h"
+#include "sensor_msgs/PointCloud2.h"
+
+#include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Quaternion.h"
+
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+
+#include "tf/transform_broadcaster.h"
+#include "tf/transform_datatypes.h"
+
 using namespace std;
 
 const int DEBUG_getResolutionOnStartup = 0;

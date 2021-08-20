@@ -7,6 +7,18 @@
 
 #include "tof_tool/tof_tool_box.h"
 
+#include "std_msgs/String.h" //ROS msg type string
+
+#include "wheelchair_msgs/objectLocations.h"
+#include "wheelchair_msgs/roomLocations.h"
+#include "wheelchair_msgs/roomToObjects.h"
+
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/TransformStamped.h"
+
+#include "tf/transform_listener.h"
+#include "tf/transform_broadcaster.h"
+
 using namespace std;
 
 const int DEBUG_roomListToStruct = 0;

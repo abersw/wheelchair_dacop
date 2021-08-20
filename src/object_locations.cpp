@@ -7,6 +7,18 @@
 
 #include "tof_tool/tof_tool_box.h"
 
+#include "wheelchair_msgs/foundObjects.h"
+#include "wheelchair_msgs/objectLocations.h"
+
+#include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/TransformStamped.h"
+
+#include "tf/transform_listener.h"
+#include "tf/transform_broadcaster.h"
+
 using namespace std;
 
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
