@@ -145,13 +145,13 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
 
 void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     //cout << "running time sync \n";
-    /*  Get resolution of camera image */
+    //Get resolution of camera image
     if (gotResolution == 0) {
         getResolutionOnStartup(dpth); //get pointcloud image size
         gotResolution = 1;
     }
 
-    /*  Deserialise the detected object */
+    //Deserialise the detected object
     totalObjectsDetected = obj->totalObjectsInFrame; //set totalobjects number from ros msg to global variable
     //cout << totalObjectsDetected << "\n";
 
