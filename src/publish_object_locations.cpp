@@ -300,7 +300,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
 
             //save image of annotated object with id and object name saved as parameter
             //call the save image service
-            //saveAnnotatedObjectImage(detectedObjects[objectID].id, detectedObjects[objectID].object_name);
+            saveAnnotatedObjectImage(detectedObjects[objectID].id, detectedObjects[objectID].object_name);
 
             totalObjectsFileStruct++; //iterate after assigning the detectedObjects array 
             objectID++; //iterate to next object in detectedObjects
