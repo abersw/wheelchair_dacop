@@ -1,0 +1,6 @@
+<launch>
+<node name="image_saver_object_annotation" ns="wheelchair_robot" pkg="image_view" type="image_saver">
+    <remap from="image" to="/wheelchair_robot/mobilenet/annotated_image" />
+    <param name="save_all_image" value="false" />
+</node>
+</launch>
