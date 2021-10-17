@@ -58,8 +58,6 @@ ros::Publisher *ptr_publish_objectUID; //global pointer for publishing topic
 
 std::string wheelchair_dump_loc;
 
-std::string annotated_images_loc;
-static const std::string annotated_images_dir = "/dump/annotated_images/";
 
 
 
@@ -348,7 +346,6 @@ int main(int argc, char **argv) {
     tofToolBox = &tofToolBox_local;
     wheelchair_dump_loc = tofToolBox->doesPkgExist("wheelchair_dump");//check to see if dump package exists
     std::string objects_file_loc = wheelchair_dump_loc + "/dump/dacop/objects.dacop"; //set path for dacop file (object info)
-    annotated_images_loc = wheelchair_dump_loc + annotated_images_dir;
     tofToolBox->createFile(objects_file_loc); //create file if it doesn't exist
     objectsListToStruct(objects_file_loc); //add list to struct
 
