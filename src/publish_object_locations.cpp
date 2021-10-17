@@ -29,7 +29,6 @@ const int DEBUG_doesObjectAlreadyExist = 0;
 const int DEBUG_printObjectLocation = 0;
 const int DEBUG_broadcastTransformStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
-const int DEBUG_imageSaveObjectAnnotations = 1;
 const int DEBUG_main = 0;
 
 ros::NodeHandle *ptr_n;
