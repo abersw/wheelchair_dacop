@@ -34,7 +34,8 @@ const int DEBUG_main = 0;
 ros::NodeHandle *ptr_n;
 TofToolBox *tofToolBox;
 
-struct Objects { //struct for publishing topic
+//struct for publishing topic r.e. object locations in world
+struct Objects {
     int id; //get object id from ros msg
     string object_name; //get object name/class
     float object_confidence; //get object confidence
@@ -48,11 +49,11 @@ struct Objects { //struct for publishing topic
     float quat_z; //get transform rotation quaternion z
     float quat_w; //get transform rotation quaternion w
 };
-struct Objects objectsFileStruct[100000]; //array for storing object data
-int totalObjectsFileStruct = 0; //total objects inside struct
+struct Objects objectsFileStruct[100000]; //array for storing all object data in world
+int totalObjectsFileStruct = 0; //total objects inside objectsFileStruct struct
 double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
 
-ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
+ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing objectLocations topic
 ros::Publisher *ptr_publish_objectUID; //global pointer for publishing topic
 
 std::string wheelchair_dump_loc;
@@ -61,6 +62,11 @@ std::string wheelchair_dump_loc;
 
 
 
+/**
+ * Function reads in object list from wheelchair dump and assigns data to struct 'objectsFileStruct'
+ *
+ * @param 'objects_file_loc' is a string of the path to objects list
+ */
 void objectsListToStruct(std::string objects_file_loc) {
     //add list to stuct - test this first before callback
     //contains transforms between map and object
@@ -128,6 +134,12 @@ void objectsListToStruct(std::string objects_file_loc) {
     totalObjectsFileStruct = objectNumber; //var to add number of objects in struct
 }
 
+/**
+ * Function prints incoming message of detected objects in frame
+ *
+ * @param 'obLoc' is ros msg of type wheelchair_msgs::objectLocations - publishing the location data for objects
+ * @param 'objectNo' is the position of the object element to print out from the array
+ */
 void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int objectNo) {
     cout << "id: " << obLoc.id[objectNo] << endl <<
     "object name: " << obLoc.object_name[objectNo] << endl <<
@@ -145,6 +157,12 @@ void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int obje
     "total: " << obLoc.totalObjects << endl;
 }
 
+/**
+ * Function publishes an array of objects detected in the current frame
+ *
+ * @param 'detectedObjects' is an array of all objects detected in the current frame
+ * @param 'totalDetectedObjects' is the total number of detected objects in the current frame
+ */
 void publishDetectedObjects(const struct Objects detectedObjects[1000], int totalDetectedObjects) { //publish detected objects with new (static) UIDs
     if (DEBUG_publishDetectedObjects) {
         tofToolBox->printSeparator(0);
@@ -171,6 +189,14 @@ void publishDetectedObjects(const struct Objects detectedObjects[1000], int tota
     ptr_publish_objectUID->publish(exisObLoc); //publish objects detected with new UIDs
 }
 
+/**
+ * Main callback function for the node
+ * Receives the object location data and compares it to an existing struct of objects to see if it already exists
+ * Adds object to struct if it doesn't exist / gets the ID of the object if it already exists
+ * Publishes detected objects in frame with new/existing object ID
+ *
+ * @param 'obLoc' is ros msg of type wheelchair_msgs::objectLocations - publishing the location data for objects
+ */
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_objectLocationsCallback) {
         tofToolBox->printSeparator(0);
@@ -278,6 +304,10 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     publishDetectedObjects(detectedObjects, totalDetectedObjects); //publish detected objects
 }
 
+/**
+ * Function creates and broadcasts a transform (tf) for each object in the objectsFileStruct struct
+ *
+ */
 void broadcastTransformStruct() {
     //add code here to publish struct continuously
     wheelchair_msgs::objectLocations obLoc;
@@ -305,6 +335,10 @@ void broadcastTransformStruct() {
     }
 }
 
+/**
+ * Function publishes the entirety of the objectsFileStruct as a ros msg type wheelchair_msgs::objectLocations
+ *
+ */
 void publishObjectStructMsg() {
     wheelchair_msgs::objectLocations obLoc;
     //publish all objects inside struct
@@ -326,6 +360,11 @@ void publishObjectStructMsg() {
     ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
 }
 
+/**
+ * Function saves contents of objectsFileStruct struct to a list
+ *
+ * @param 'objects_file_loc' is the file path for saving the objects list
+ */
 void objectsStructToList(std::string objects_file_loc) {
     //add struct to list file here
     ofstream FILE_WRITER;
@@ -340,6 +379,12 @@ void objectsStructToList(std::string objects_file_loc) {
 }
 
 
+/**
+ * Main initialiser function for node, sets subscribers and publishers, reads in lists of existing objects
+ *
+ * @param 'obLoc' is ros msg of type wheelchair_msgs::objectLocations - storing the location data for objects
+ * @param 'objectNo' is the position of the object element to print out from the array
+ */
 int main(int argc, char **argv) {
     TofToolBox tofToolBox_local;
     tofToolBox = &tofToolBox_local;
@@ -362,7 +407,7 @@ int main(int argc, char **argv) {
 
 
     while(ros::ok()) {
-        //tofToolBox.sayHello(); //test function for tof toolbox
+        //tofToolBox->sayHello(); //test function for tof toolbox
         broadcastTransformStruct();
         publishObjectStructMsg();
         if (DEBUG_main) {
