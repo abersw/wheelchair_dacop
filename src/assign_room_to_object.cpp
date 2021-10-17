@@ -51,7 +51,7 @@ int totalRoomsFileStruct = 0;
 struct Rooms roomsFileStruct[1000];
 
 
-struct Objects {
+struct Links {
     int object_id;
     string object_name;
 
@@ -59,7 +59,7 @@ struct Objects {
     string room_name;
 };
 int totalObjectsFileStruct = 0;
-struct Objects objectsFileStruct[100000]; //array for storing all object and room data
+struct Links objectsFileStruct[100000]; //array for storing all object and room data
 
 std::string userRoomName;
 int currentRoomID;
