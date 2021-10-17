@@ -174,31 +174,6 @@ void publishDetectedObjects(const struct Objects detectedObjects[1000], int tota
     ptr_publish_objectUID->publish(exisObLoc); //publish objects detected with new UIDs
 }
 
-void saveAnnotatedObjectImage(int objectId, std::string objectName) {
-    std::string imageName = to_string(objectId) + objectName;
-    std::string imgeLocation = annotated_images_loc + imageName + ".jpg";
-    ptr_n->setParam("/wheelchair_robot/image_saver_object_annotation/filename_format", imgeLocation); //set path location in parameter server
-    if (DEBUG_imageSaveObjectAnnotations) {
-        std::string returnParam;
-        if (ptr_n->getParam("/wheelchair_robot/image_saver_object_annotation/filename_format", returnParam)) {
-            ROS_INFO("Got param: %s", returnParam.c_str()); //print out parameter
-        }
-        else {
-            ROS_ERROR("Failed to get param 'my_param'"); //couldn't retrieve parameter
-        }
-    }
-    ros::ServiceClient client = ptr_n->serviceClient<std_srvs::Empty>("/wheelchair_robot/image_saver_object_annotation/save"); //call service with empty type
-    if (DEBUG_imageSaveObjectAnnotations) {
-        std_srvs::Empty srv;
-        if (client.call(srv)) {
-            ROS_INFO("Successfully called image saver service"); //service successfully called
-        }
-        else {
-            ROS_WARN("ERROR: Couldn't call image saver service"); //service failed to call
-        }
-    }
-}
-
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_objectLocationsCallback) {
         tofToolBox->printSeparator(0);
@@ -298,9 +273,6 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             detectedObjects[objectID].quat_z = objectsFileStruct[totalObjectsFileStruct].quat_z;
             detectedObjects[objectID].quat_w = objectsFileStruct[totalObjectsFileStruct].quat_w;
 
-            //save image of annotated object with id and object name saved as parameter
-            //call the save image service
-            saveAnnotatedObjectImage(detectedObjects[objectID].id, detectedObjects[objectID].object_name);
 
             totalObjectsFileStruct++; //iterate after assigning the detectedObjects array 
             objectID++; //iterate to next object in detectedObjects
