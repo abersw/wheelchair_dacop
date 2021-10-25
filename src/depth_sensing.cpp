@@ -62,7 +62,8 @@ struct DetectedObjects { //struct for containing ros msg from mobilenet node
     float pointZ; //Z position of detected object
 };
 
-int totalObjectsDetected; //total objects in struct
+int totalObjectsDetectedROS; //total objects coming from ROS msg
+int totalObjectsDetected; //total objects after filtering out NaN
 
 struct DetectedObjects detectedObjects[1000]; //struct array for detected objects
 
@@ -115,9 +116,9 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         detectedObjects[isObject].centerX = centerWidth; //assign centerWidth to struct center X
         detectedObjects[isObject].centerY = centerHeight; //assign centerHeight to struct center Y
 
-        float X;
-        float Y;
-        float Z;
+        float X = 0;
+        float Y = 0;
+        float Z = 0;
 
         int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step; //get position of point in rectified image array, corresponding with pointcloud
         if (DEBUG_getPointDepth) {
@@ -152,20 +153,34 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     }
 
     //Deserialise the detected object
-    totalObjectsDetected = obj->totalObjectsInFrame; //set totalobjects number from ros msg to global variable
-    //cout << totalObjectsDetected << "\n";
+    totalObjectsDetectedROS = obj->totalObjectsInFrame; //set totalobjects number from ros msg to global variable
+    totalObjectsDetected = 0; //total objects detected after NaN detection
+    //cout << totalObjectsDetectedROS << "\n";
+    //cout << totalObjectsDetected << endl;
 
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) { //iterate through entire ros msg
-        detectedObjects[isObject].object_name = obj->object_name[isObject]; //add object name to struct
-        detectedObjects[isObject].object_confidence = obj->object_confidence[isObject]; //add object confidence to struct
-        detectedObjects[isObject].box_x = obj->box_x[isObject]; //add bounding box x to struct
-        detectedObjects[isObject].box_y = obj->box_y[isObject]; //add bounding box y to struct
-        detectedObjects[isObject].box_width = obj->box_width[isObject]; //add bounding box width to struct
-        detectedObjects[isObject].box_height = obj->box_height[isObject]; //add bounding box height to struct
-        if (DEBUG_objectDepthCallback) {
-            cout << detectedObjects[isObject].object_name << "\n"; //print of object name if DEBUG is true
+    int objectCounter = 0;
+    for (int isObject = 0; isObject < totalObjectsDetectedROS; isObject++) { //iterate through entire ros msg
+        if ((obj->box_x[isObject] != obj->box_x[isObject]) &&
+            (obj->box_y[isObject] != obj->box_y[isObject]) &&
+            (obj->box_width[isObject] != obj->box_width[isObject]) &&
+            (obj->box_height[isObject] != obj->box_height[isObject])) { //check to see if any data includes NaN
+
+            cout << "NaN found, skipping object" << endl;
+            }
+        else {
+            detectedObjects[objectCounter].object_name = obj->object_name[isObject]; //add object name to struct
+            detectedObjects[objectCounter].object_confidence = obj->object_confidence[isObject]; //add object confidence to struct
+            detectedObjects[objectCounter].box_x = obj->box_x[isObject]; //add bounding box x to struct
+            detectedObjects[objectCounter].box_y = obj->box_y[isObject]; //add bounding box y to struct
+            detectedObjects[objectCounter].box_width = obj->box_width[isObject]; //add bounding box width to struct
+            detectedObjects[objectCounter].box_height = obj->box_height[isObject]; //add bounding box height to struct
+            objectCounter++;
+            if (DEBUG_objectDepthCallback) {
+                cout << detectedObjects[objectCounter].object_name << "\n"; //print of object name if DEBUG is true
+            }
         }
     }
+    totalObjectsDetected = objectCounter;
 
     getPointDepth(dpth, obj); //pass depth cloud and mobilenet ros msg to get pointcloud information
     publishObjectLocations(); //publish calculated object points
