@@ -62,8 +62,7 @@ struct DetectedObjects { //struct for containing ros msg from mobilenet node
     float pointZ; //Z position of detected object
 };
 
-int totalObjectsDetectedROS; //total objects coming from ROS msg
-int totalObjectsDetected; //total objects after filtering out NaN
+int totalObjectsDetected[3]; //0 pre-rosmsg, 1 nan filter post rosmsg, 2 nan filter from pcl
 
 struct DetectedObjects detectedObjects[1000]; //struct array for detected objects
 
@@ -82,7 +81,7 @@ void publishObjectLocations() {
     wheelchair_msgs::foundObjects fdObj; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
     int totalObjects = 0;
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+    for (int isObject = 0; isObject < totalObjectsDetected[2]; isObject++) {
         //publish local transform to ros msg for object locations node
         fdObj.id.push_back(isObject);
         fdObj.object_name.push_back(detectedObjects[isObject].object_name);
@@ -106,10 +105,11 @@ void publishObjectLocations() {
 }
 
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    /*  Get depths from bounding box data  */
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        int centerWidth = (detectedObjects[isObject].box_x + detectedObjects[isObject].box_width) / 2; //calculate the centre of the bounding box Y axis (width)
-        int centerHeight = (detectedObjects[isObject].box_y + detectedObjects[isObject].box_height) / 2; //calculate the centre of the bounding box X axis (height)
+    //Get depths from bounding box data
+    int objectCounter = 0;
+    for (int isObject = 0; isObject < totalObjectsDetected[1]; isObject++) {
+        int centerWidth = (int(detectedObjects[isObject].box_x) + int(detectedObjects[isObject].box_width)) / 2; //calculate the centre of the bounding box Y axis (width)
+        int centerHeight = (int(detectedObjects[isObject].box_y) + int(detectedObjects[isObject].box_height)) / 2; //calculate the centre of the bounding box X axis (height)
         if (DEBUG_getPointDepth) {
             cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n"; //print out height and width centre if DEBUG is true
         }
@@ -137,10 +137,27 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         if (DEBUG_getPointDepth) {
             cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
         }
-        detectedObjects[isObject].pointX = X; //add pointcloud point position X to struct
-        detectedObjects[isObject].pointY = Y; //add pointcloud point position Y to struct
-        detectedObjects[isObject].pointZ = Z; //add pointcloud point position Z to struct
+        /*int arrayPosOffset = 0;
+        while ((X != X) && (Y != Y) && (Z != Z)) {
+            cout << "NaN detected, set offset to " << arrayPosOffset << endl;
+            memcpy(&X, &dpth->data[arrayPosX + arrayPosOffset], sizeof(float)); //add value from depth point to X
+            memcpy(&Y, &dpth->data[arrayPosY + arrayPosOffset], sizeof(float)); //add value from depth point to Y
+            memcpy(&Z, &dpth->data[arrayPosZ + arrayPosOffset], sizeof(float)); //add value from depth point to Z
+            arrayPosOffset += 2;
+        }
+        arrayPosOffset = 0;*/
+        if ((X != X) && (Y != Y) && (Z != Z)) {
+            //can't get depth from pointcloud
+            //ignore current object - it's faster
+        }
+        else {
+            detectedObjects[isObject].pointX = X; //add pointcloud point position X to struct
+            detectedObjects[isObject].pointY = Y; //add pointcloud point position Y to struct
+            detectedObjects[isObject].pointZ = Z; //add pointcloud point position Z to struct
+            objectCounter++;
+        }
     }
+    totalObjectsDetected[2] = objectCounter;
 }
 
 
@@ -153,13 +170,13 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
     }
 
     //Deserialise the detected object
-    totalObjectsDetectedROS = obj->totalObjectsInFrame; //set totalobjects number from ros msg to global variable
-    totalObjectsDetected = 0; //total objects detected after NaN detection
+    totalObjectsDetected[0] = obj->totalObjectsInFrame; //set totalobjects number from ros msg to global variable
+    totalObjectsDetected[1] = 0; //total objects detected after NaN detection
     //cout << totalObjectsDetectedROS << "\n";
     //cout << totalObjectsDetected << endl;
 
     int objectCounter = 0;
-    for (int isObject = 0; isObject < totalObjectsDetectedROS; isObject++) { //iterate through entire ros msg
+    for (int isObject = 0; isObject < totalObjectsDetected[0]; isObject++) { //iterate through entire ros msg
         if ((obj->box_x[isObject] != obj->box_x[isObject]) &&
             (obj->box_y[isObject] != obj->box_y[isObject]) &&
             (obj->box_width[isObject] != obj->box_width[isObject]) &&
@@ -180,7 +197,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
             }
         }
     }
-    totalObjectsDetected = objectCounter;
+    totalObjectsDetected[1] = objectCounter;
 
     getPointDepth(dpth, obj); //pass depth cloud and mobilenet ros msg to get pointcloud information
     publishObjectLocations(); //publish calculated object points
