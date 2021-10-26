@@ -112,11 +112,22 @@ std::string publishLocalDetectionTransform(const wheelchair_msgs::foundObjects o
     std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject); //add frame DET object name
     tf::Transform localTransform;
     //create local transform from zed camera to object
-    localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) ); //create transform vector
-    tf::Quaternion localQuaternion; //initialise quaternion class
-    localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
-    localTransform.setRotation(localQuaternion); //set quaternion from struct data
-    br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_camera_center", DETframename)); //broadcast transform frame from zed camera link
+    /*if ((objects_msg.point_x[isObject] != objects_msg.point_x[isObject]) &&
+        (objects_msg.point_y[isObject] != objects_msg.point_y[isObject]) &&
+        (objects_msg.point_z[isObject] != objects_msg.point_z[isObject]) &&
+        (objects_msg.rotation_r[isObject] != objects_msg.rotation_r[isObject]) &&
+        (objects_msg.rotation_p[isObject] != objects_msg.rotation_p[isObject]) &&
+        (objects_msg.rotation_y[isObject] != objects_msg.rotation_y[isObject])) {
+        //NaN detected
+        cout << "NaN detected in DET transform" << endl;
+    }
+    else {*/
+        localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) ); //create transform vector
+        tf::Quaternion localQuaternion; //initialise quaternion class
+        localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
+        localTransform.setRotation(localQuaternion); //set quaternion from struct data
+        br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_camera_center", DETframename)); //broadcast transform frame from zed camera link
+    //}
     //end the temporary frame publishing
     return DETframename;
 }
