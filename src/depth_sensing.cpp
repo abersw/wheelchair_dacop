@@ -25,6 +25,8 @@
 #include "tf/transform_broadcaster.h"
 #include "tf/transform_datatypes.h"
 
+#include <math.h>
+
 using namespace std;
 
 const int DEBUG_getResolutionOnStartup = 0;
@@ -138,7 +140,7 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
             cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
         }
         /*int arrayPosOffset = 0;
-        while ((X != X) && (Y != Y) && (Z != Z)) {
+        while ((isnan(X)) && (isnan(Y)) && (isnan(Z))) {
             cout << "NaN detected, set offset to " << arrayPosOffset << endl;
             memcpy(&X, &dpth->data[arrayPosX + arrayPosOffset], sizeof(float)); //add value from depth point to X
             memcpy(&Y, &dpth->data[arrayPosY + arrayPosOffset], sizeof(float)); //add value from depth point to Y
@@ -146,7 +148,7 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
             arrayPosOffset += 2;
         }
         arrayPosOffset = 0;*/
-        if ((X != X) && (Y != Y) && (Z != Z)) {
+        if ((isnan(X)) && (isnan(Y)) && (isnan(Z))) {
             //can't get depth from pointcloud
             //ignore current object - it's faster
         }
@@ -177,10 +179,10 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
 
     int objectCounter = 0;
     for (int isObject = 0; isObject < totalObjectsDetected[0]; isObject++) { //iterate through entire ros msg
-        if ((obj->box_x[isObject] != obj->box_x[isObject]) &&
-            (obj->box_y[isObject] != obj->box_y[isObject]) &&
-            (obj->box_width[isObject] != obj->box_width[isObject]) &&
-            (obj->box_height[isObject] != obj->box_height[isObject])) { //check to see if any data includes NaN
+        if (isnan(obj->box_x[isObject]) &&
+            isnan(obj->box_y[isObject]) &&
+            isnan(obj->box_width[isObject]) &&
+            isnan(obj->box_height[isObject])) { //check to see if any data includes NaN
 
             cout << "NaN found, skipping object" << endl;
             }
