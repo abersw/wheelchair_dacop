@@ -108,8 +108,9 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
     }
 }
 
-std::string publishLocalDetectionTransform(const wheelchair_msgs::foundObjects objects_msg, int isObject) {
+std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msgs::foundObjects objects_msg, int isObject) {
     //broadcast detected objects in frame
+    int nanDetected = 0;
     static tf::TransformBroadcaster br; //initialise broadcaster class
     std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject); //add frame DET object name
     tf::Transform localTransform;
@@ -122,6 +123,7 @@ std::string publishLocalDetectionTransform(const wheelchair_msgs::foundObjects o
         isnan(objects_msg.rotation_y[isObject])) {
 
         cout << "NaN detected in DET transform" << endl;
+        nanDetected = 1;
     }
     else {
         localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) ); //create transform vector
@@ -131,7 +133,7 @@ std::string publishLocalDetectionTransform(const wheelchair_msgs::foundObjects o
         br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_camera_center", DETframename)); //broadcast transform frame from zed camera link
     }
     //end the temporary frame publishing
-    return DETframename;
+    return std::make_pair(DETframename, nanDetected);
 }
 
 void publishObjectStructMsg() {
@@ -179,8 +181,12 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
         if (DEBUG_print_foundObjects_msg) {
             printFoundObjectsMsg(objects_msg, isObject);
         }
-        std::string DETframename = publishLocalDetectionTransform(objects_msg, isObject); //publish DET transform for detected object
-        translateObjectToMapFrame(objects_msg, isObject, DETframename);
+        std::pair< std::string, int> localDetTransform = publishLocalDetectionTransform(objects_msg, isObject); //publish DET transform for detected object
+        std::string DETframename = localDetTransform.first; //get transform name
+        int nanDetectedLocalTransform = localDetTransform.second; //return 1 if nan, 0 if normal
+        if (!nanDetectedLocalTransform) { //if no nan detected
+            translateObjectToMapFrame(objects_msg, isObject, DETframename); //transofrm to map frame
+        }
     }
     publishObjectStructMsg(); //publish ROS msg for publish object locations node
     totalObjectsLocationStruct = 0; //set object locations struct back to 0 once translations have been published
