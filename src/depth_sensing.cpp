@@ -32,6 +32,7 @@ using namespace std;
 const int DEBUG_getResolutionOnStartup = 0;
 const int DEBUG_publishObjectLocations = 0;
 const int DEBUG_getPointDepth = 0;
+const int DEBUG_nan_detector = 1;
 const int DEBUG_objectDepthCallback = 0;
 const int DEBUG_main = 0;
 
@@ -150,7 +151,9 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         arrayPosOffset = 0;*/
         if ((isnan(X)) && (isnan(Y)) && (isnan(Z))) {
             //can't get depth from pointcloud
-            //ignore current object - it's faster
+            if (DEBUG_nan_detector) {
+                cout << "NaN detected, couldn't get pointcloud depth" << endl;
+            }
         }
         else {
             detectedObjects[isObject].pointX = X; //add pointcloud point position X to struct
@@ -183,9 +186,10 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const w
             isnan(obj->box_y[isObject]) &&
             isnan(obj->box_width[isObject]) &&
             isnan(obj->box_height[isObject])) { //check to see if any data includes NaN
-
-            cout << "NaN found, skipping object" << endl;
+            if (DEBUG_nan_detector) {
+                cout << "NaN found, skipping object" << endl;
             }
+        }
         else {
             detectedObjects[objectCounter].object_name = obj->object_name[isObject]; //add object name to struct
             detectedObjects[objectCounter].object_confidence = obj->object_confidence[isObject]; //add object confidence to struct
