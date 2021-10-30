@@ -87,19 +87,31 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
             cout << msg_object_name << ", " << msg_object_confidence << endl; //print out object name
             cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
         }
-        objectsLocationStruct[totalObjectsLocationStruct].id = totalObjectsLocationStruct;
-        objectsLocationStruct[totalObjectsLocationStruct].object_name = msg_object_name;
-        objectsLocationStruct[totalObjectsLocationStruct].object_confidence = msg_object_confidence;
 
-        objectsLocationStruct[totalObjectsLocationStruct].point_x = translation_x;
-        objectsLocationStruct[totalObjectsLocationStruct].point_y = translation_y;
-        objectsLocationStruct[totalObjectsLocationStruct].point_z = translation_z;
+        if (isnan(translation_x) &&
+            isnan(translation_y) &&
+            isnan(translation_z) &&
+            isnan(rotation_x) &&
+            isnan(rotation_y) &&
+            isnan(rotation_z) &&
+            isnan(rotation_w)) {
+            cout << "NaN detected whilst converting to map frame" << endl;
+        }
+        else {
+            objectsLocationStruct[totalObjectsLocationStruct].id = totalObjectsLocationStruct;
+            objectsLocationStruct[totalObjectsLocationStruct].object_name = msg_object_name;
+            objectsLocationStruct[totalObjectsLocationStruct].object_confidence = msg_object_confidence;
 
-        objectsLocationStruct[totalObjectsLocationStruct].quat_x = rotation_x;
-        objectsLocationStruct[totalObjectsLocationStruct].quat_y = rotation_y;
-        objectsLocationStruct[totalObjectsLocationStruct].quat_z = rotation_z;
-        objectsLocationStruct[totalObjectsLocationStruct].quat_w = rotation_w;
-        totalObjectsLocationStruct++; //add 1 to total objects in storage struct - ready for next time
+            objectsLocationStruct[totalObjectsLocationStruct].point_x = translation_x;
+            objectsLocationStruct[totalObjectsLocationStruct].point_y = translation_y;
+            objectsLocationStruct[totalObjectsLocationStruct].point_z = translation_z;
+
+            objectsLocationStruct[totalObjectsLocationStruct].quat_x = rotation_x;
+            objectsLocationStruct[totalObjectsLocationStruct].quat_y = rotation_y;
+            objectsLocationStruct[totalObjectsLocationStruct].quat_z = rotation_z;
+            objectsLocationStruct[totalObjectsLocationStruct].quat_w = rotation_w;
+            totalObjectsLocationStruct++; //add 1 to total objects in storage struct - ready for next time
+        }
     }
     catch (tf::TransformException ex){
         cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
