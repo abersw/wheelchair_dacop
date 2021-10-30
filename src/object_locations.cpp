@@ -27,6 +27,7 @@ using namespace std;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_translateObjectToMapFrame = 0;
 const int DEBUG_print_foundObjects_msg = 0;
+const int DEBUG_nan_detector = 1;
 
 const int DEBUG_main = 0;
 const int DEBUG_finish_file_printout = 0;
@@ -88,6 +89,7 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
             cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
         }
 
+        //check for NaNs for coordinates in map frame
         if (isnan(translation_x) &&
             isnan(translation_y) &&
             isnan(translation_z) &&
@@ -95,7 +97,9 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
             isnan(rotation_y) &&
             isnan(rotation_z) &&
             isnan(rotation_w)) {
-            cout << "NaN detected whilst converting to map frame" << endl;
+            if (DEBUG_nan_detector) {
+                cout << "NaN detected whilst converting to map frame" << endl;
+            }
         }
         else {
             objectsLocationStruct[totalObjectsLocationStruct].id = totalObjectsLocationStruct;
@@ -127,14 +131,16 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
     std::string DETframename = "DET:" + objects_msg.object_name[isObject] + std::to_string(isObject); //add frame DET object name
     tf::Transform localTransform;
     //create local transform from zed camera to object
+    //check for NaNs in local DET coordinates
     if (isnan(objects_msg.point_x[isObject]) &&
         isnan(objects_msg.point_y[isObject]) &&
         isnan(objects_msg.point_z[isObject]) &&
         isnan(objects_msg.rotation_r[isObject]) &&
         isnan(objects_msg.rotation_p[isObject]) &&
         isnan(objects_msg.rotation_y[isObject])) {
-
-        cout << "NaN detected in DET transform" << endl;
+        if (DEBUG_nan_detector) {
+            cout << "NaN detected in local DET transform" << endl;
+        }
         nanDetected = 1;
     }
     else {
