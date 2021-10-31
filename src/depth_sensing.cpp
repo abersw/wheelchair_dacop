@@ -111,8 +111,11 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
     //Get depths from bounding box data
     int objectCounter = 0;
     for (int isObject = 0; isObject < totalObjectsDetected[1]; isObject++) {
-        int centerWidth = (int(detectedObjects[isObject].box_x) + int(detectedObjects[isObject].box_width)) / 2; //calculate the centre of the bounding box Y axis (width)
-        int centerHeight = (int(detectedObjects[isObject].box_y) + int(detectedObjects[isObject].box_height)) / 2; //calculate the centre of the bounding box X axis (height)
+        double xPercentage = ((1.0/100.0) * (int(detectedObjects[isObject].box_x) + int(detectedObjects[isObject].box_width)));
+        double yPercentage = ((1.0/100.0) * (int(detectedObjects[isObject].box_y) + int(detectedObjects[isObject].box_height)));
+        int centerWidth = xPercentage * 50.0; //calculate the centre of the bounding box Y axis (width)
+        int centerHeight = yPercentage * 50.0; //calculate the centre of the bounding box X axis (height)
+
         if (DEBUG_getPointDepth) {
             cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n"; //print out height and width centre if DEBUG is true
         }
