@@ -122,6 +122,14 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         detectedObjects[isObject].centerX = centerWidth; //assign centerWidth to struct center X
         detectedObjects[isObject].centerY = centerHeight; //assign centerHeight to struct center Y
 
+        /* bounding box depth sampling at 25%
+            *   *   *   25/25%   50/25%   75/25%   0   1   2
+
+            *   *   *   25/50%   50/50%   75/50%   3   4   5
+
+            *   *   *   25/75%   50/75%   75/75%   6   7   8
+        */
+
         float X = 0;
         float Y = 0;
         float Z = 0;
@@ -141,7 +149,7 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float)); //add value from depth point to Z
 
         if (DEBUG_getPointDepth) {
-            cout << X << " x " << Y << " x " << Z << "\n"; //this is the xyz position of the object
+            cout << "X " << X << " Y " << Y << " Z " << Z << endl; //this is the xyz position of the object
         }
         /*int arrayPosOffset = 0;
         while ((isnan(X)) && (isnan(Y)) && (isnan(Z))) {
