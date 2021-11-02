@@ -114,6 +114,39 @@ void publishObjectLocations() {
     object_depth_pub.publish(fdObj); //publish object depths after frame
 }
 
+void samplePoints(const sensor_msgs::PointCloud2::ConstPtr& dpth, int isObject, double xPercentage, double yPercentage) {
+    //get samples from 9 points in bounding box
+    for (int sampleNo = 0; sampleNo < totalSamples; sampleNo++) {
+        int posX = xPercentage * samplePercentages[sampleNo][0];
+        int posY = yPercentage * samplePercentages[sampleNo][1];
+
+        float X = 0;
+        float Y = 0;
+        float Z = 0;
+
+        //get position of point in rectified image array, corresponding with pointcloud
+        int arrayPosition = posY*dpth->row_step + posX*dpth->point_step;
+        if (DEBUG_getPointDepth) {
+            cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
+        }
+
+        int arrayPosX = arrayPosition + dpth->fields[0].offset; // X has an offset of 0
+        int arrayPosY = arrayPosition + dpth->fields[1].offset; // Y has an offset of 4
+        int arrayPosZ = arrayPosition + dpth->fields[2].offset; // Z has an offset of 8
+
+        memcpy(&X, &dpth->data[arrayPosX], sizeof(float)); //add value from depth point to X
+        memcpy(&Y, &dpth->data[arrayPosY], sizeof(float)); //add value from depth point to Y
+        memcpy(&Z, &dpth->data[arrayPosZ], sizeof(float)); //add value from depth point to Z
+
+        if (DEBUG_getPointDepth) {
+            cout << "X " << X << " Y " << Y << " Z " << Z << endl; //this is the xyz position of the object
+        }
+        detectedObjects[isObject].sampleDepth[sampleNo][0] = X;
+        detectedObjects[isObject].sampleDepth[sampleNo][1] = Y;
+        detectedObjects[isObject].sampleDepth[sampleNo][2] = Z;
+    }
+}
+
 void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
     //Get depths from bounding box data
     int objectCounter = 0;
@@ -136,6 +169,10 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
 
             *   *   *   25/75%   50/75%   75/75%   6   7   8
         */
+        /*samplePoints(dpth, isObject, xPercentage, yPercentage);
+        float X = detectedObjects[isObject].sampleDepth[4][0];
+        float Y = detectedObjects[isObject].sampleDepth[4][1];
+        float Z = detectedObjects[isObject].sampleDepth[4][2];*/
 
         float X = 0;
         float Y = 0;
@@ -158,6 +195,7 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         if (DEBUG_getPointDepth) {
             cout << "X " << X << " Y " << Y << " Z " << Z << endl; //this is the xyz position of the object
         }
+
         /*int arrayPosOffset = 0;
         while ((isnan(X)) && (isnan(Y)) && (isnan(Z))) {
             cout << "NaN detected, set offset to " << arrayPosOffset << endl;
@@ -244,6 +282,11 @@ int main(int argc, char **argv) {
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2)); //set callback for synced topics
     object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/dacop/depth_sensing/detected_objects", 1000); //publish topic for object locations
 
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 2; j++) {
+            cout << i << "x" << j << " " <<samplePercentages[i][j] << endl;
+        }
+    }
     if (ros::isShuttingDown()) {
         //do something
     }
