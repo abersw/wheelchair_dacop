@@ -59,11 +59,18 @@ struct DetectedObjects { //struct for containing ros msg from mobilenet node
 
     int centerX; //center of bounding box X position
     int centerY; //center of bounding box Y position
+    float sampleDepth[9][2];
 
     float pointX; //X position of detected object
     float pointY; //Y position of detected object
     float pointZ; //Z position of detected object
 };
+
+double samplePercentages [9][2] = { {25.0, 25.0}, {50.0, 25.0}, {75.0, 25.0},
+                                    {25.0, 50.0}, {50.0, 50.0}, {75.0, 50.0},
+                                    {25.0, 75.0}, {50.0, 75.0}, {75.0, 75.0}
+                                    };
+int totalSamples = 9;
 
 int totalObjectsDetected[3]; //0 pre-rosmsg, 1 nan filter post rosmsg, 2 nan filter from pcl
 
