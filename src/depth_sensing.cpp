@@ -66,11 +66,11 @@ struct DetectedObjects { //struct for containing ros msg from mobilenet node
     float pointZ; //Z position of detected object
 };
 
+int totalSamples = 9;
 double samplePercentages [9][2] = { {25.0, 25.0}, {50.0, 25.0}, {75.0, 25.0},
                                     {25.0, 50.0}, {50.0, 50.0}, {75.0, 50.0},
                                     {25.0, 75.0}, {50.0, 75.0}, {75.0, 75.0}
                                     };
-int totalSamples = 9;
 
 int totalObjectsDetected[3]; //0 pre-rosmsg, 1 nan filter post rosmsg, 2 nan filter from pcl
 
@@ -83,6 +83,15 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     imageWidth = dpth->width; //get width of pointcloud image
     if (DEBUG_getResolutionOnStartup) {
         cout << imageHeight << "x" << imageWidth << "\n"; //print out height and width if debug flag is true
+    }
+}
+
+//print out the sample percentages for each 2d array element
+void printSamplePercentages() {
+    for (int i = 0; i < totalSamples; i++) {
+        for (int j = 0; j < 2; j++) {
+            cout << i << "x" << j << " " <<samplePercentages[i][j] << endl;
+        }
     }
 }
 
@@ -282,11 +291,7 @@ int main(int argc, char **argv) {
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2)); //set callback for synced topics
     object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/dacop/depth_sensing/detected_objects", 1); //publish topic for object locations
 
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 2; j++) {
-            cout << i << "x" << j << " " <<samplePercentages[i][j] << endl;
-        }
-    }
+    //printSamplePercentages();
     if (ros::isShuttingDown()) {
         //do something
     }
