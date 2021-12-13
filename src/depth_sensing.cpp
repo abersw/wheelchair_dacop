@@ -232,6 +232,12 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
 
 
 void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
+    ros::Time timeisnow = ros::Time::now();
+    ros::Time timeforpcld = dpth->header.stamp;
+    int callbackseq = obj->header.seq;
+    cout << "sequence number " << callbackseq << endl;
+    cout << "time is now " << timeisnow << endl;
+    cout << "pc2t is now " << timeforpcld << endl;
     //cout << "running time sync \n";
     //Get resolution of camera image
     if (gotResolution == 0) {
@@ -284,10 +290,10 @@ int main(int argc, char **argv) {
     ros::Rate rate(10.0);
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1); //get transformed pointcloud
-    message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 1); //get mobilenet objects detected
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 100); //get transformed pointcloud
+    message_filters::Subscriber<wheelchair_msgs::mobilenet> objects_sub(n, "wheelchair_robot/mobilenet/detected_objects", 100); //get mobilenet objects detected
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::mobilenet> MySyncPolicy; //approximately sync the topic rate
-    message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(3), depth_sub, objects_sub); //set sync policy
+    message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(20), depth_sub, objects_sub); //set sync policy
     depth_sync.registerCallback(boost::bind(&objectDepthCallback, _1, _2)); //set callback for synced topics
     object_depth_pub = n.advertise<wheelchair_msgs::foundObjects>("wheelchair_robot/dacop/depth_sensing/detected_objects", 1); //publish topic for object locations
 
@@ -299,7 +305,7 @@ int main(int argc, char **argv) {
         cout << "spin \n";
     }
     ros::spin();
-    rate.sleep();
+    //rate.sleep();
 
     return 0;
 }
