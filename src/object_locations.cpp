@@ -58,6 +58,8 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
 
+ros::Time camera_timestamp;
+
 
 /*
  * translateObjectToMapFrame()
@@ -71,8 +73,8 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
     double msg_object_confidence = objects_msg.object_confidence[objectID];
     tf::StampedTransform translation; //initiate translation for transform object
     try {
-        ptrListener->waitForTransform("/map", DETframename, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        ptrListener->lookupTransform("/map", DETframename, ros::Time(), translation); //lookup translation of object from map frame
+        ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        ptrListener->lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
 
         //get global translation of object
         float translation_x = translation.getOrigin().x(); //set translation x to local variable
@@ -148,7 +150,7 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
         tf::Quaternion localQuaternion; //initialise quaternion class
         localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
         localTransform.setRotation(localQuaternion); //set quaternion from struct data
-        br.sendTransform(tf::StampedTransform(localTransform, ros::Time::now(), "zed_camera_center", DETframename)); //broadcast transform frame from zed camera link
+        br.sendTransform(tf::StampedTransform(localTransform, camera_timestamp, "zed_camera_center", DETframename)); //broadcast transform frame from zed camera link
     }
     //end the temporary frame publishing
     return std::make_pair(DETframename, nanDetected);
@@ -178,6 +180,7 @@ void publishObjectStructMsg() {
 //print out entire objects ros msg from depth_sensing node
 void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const int isObject) {
     tofToolBox->printSeparator(0);
+    cout << "camera_timestamp" << objects_msg.camera_timestamp << endl;
     cout << "ID: " << objects_msg.id[isObject] << endl;
     cout << "Name: " << objects_msg.object_name[isObject] << endl;
     cout << "Confidence: " << objects_msg.object_confidence[isObject] << endl;
@@ -194,6 +197,7 @@ void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const
 void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
+    camera_timestamp = objects_msg.camera_timestamp;
     int totalObjects = objects_msg.totalObjects; //get quantity of objects in ROS msg
     for (int isObject = 0; isObject < totalObjects; isObject++) { //iterate through entire ROS msg
         if (DEBUG_print_foundObjects_msg) {
@@ -219,7 +223,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_locations");
 
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/depth_sensing/detected_objects", 1, objectsDetectedCallback); //callback function when objects are detected from depth_sensing
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/depth_sensing/detected_objects", 10, objectsDetectedCallback); //callback function when objects are detected from depth_sensing
     ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/object_locations/detected_objects", 1); //publish to central publishing locations node
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
 
