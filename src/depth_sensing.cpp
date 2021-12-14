@@ -30,6 +30,8 @@
 using namespace std;
 
 const int DEBUG_getResolutionOnStartup = 0;
+const int DEBUG_getNodeTimestamp = 0;
+const int DEBUG_forwardCameraTimestamp = 0;
 const int DEBUG_publishObjectLocations = 0;
 const int DEBUG_getPointDepth = 0;
 const int DEBUG_nan_detector = 1;
@@ -73,6 +75,8 @@ double samplePercentages [9][2] = { {25.0, 25.0}, {50.0, 25.0}, {75.0, 25.0},
                                     };
 
 int totalObjectsDetected[3]; //0 pre-rosmsg, 1 nan filter post rosmsg, 2 nan filter from pcl
+ros::Time camera_timestamp;
+double camera_timestamp_sec = 0.0;
 
 struct DetectedObjects detectedObjects[1000]; //struct array for detected objects
 
@@ -122,6 +126,8 @@ void publishObjectLocations() {
     wheelchair_msgs::foundObjects fdObj; //wheelchair msg for detected object depth
     //probably send this to the sql node for checking
     int totalObjects = 0;
+    fdObj.header.stamp = ros::Time::now();
+    fdObj.camera_timestamp = camera_timestamp;
     for (int isObject = 0; isObject < totalObjectsDetected[2]; isObject++) {
         //publish local transform to ros msg for object locations node
         fdObj.id.push_back(isObject);
