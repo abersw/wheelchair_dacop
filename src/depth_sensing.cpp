@@ -95,6 +95,28 @@ void printSamplePercentages() {
     }
 }
 
+//print out header time stamps for node, pointcloud and detected objects topics
+void getNodeTimestamp(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
+    ros::Time timeisnow = ros::Time::now();
+    ros::Time timeforpcld = dpth->header.stamp;
+    int callbackseq = obj->header.seq;
+    if (DEBUG_getNodeTimestamp) {
+        cout << "sequence number " << callbackseq << endl;
+        cout << "time is now " << timeisnow << endl;
+        cout << "pc2t is now " << timeforpcld << endl;
+    }
+}
+
+//assign source camera timestamp to global variable for publishing to object locations
+void forwardCameraTimestamp(const wheelchair_msgs::mobilenet::ConstPtr& obj) {
+    camera_timestamp = obj->camera_timestamp;
+    camera_timestamp_sec = camera_timestamp.toSec();
+    if (DEBUG_forwardCameraTimestamp) {
+        cout.precision(17);
+        cout << "camera timestamp " << fixed << camera_timestamp << endl;
+    }
+}
+
 
 void publishObjectLocations() {
     wheelchair_msgs::foundObjects fdObj; //wheelchair msg for detected object depth
@@ -232,12 +254,8 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
 
 
 void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::mobilenet::ConstPtr& obj) {
-    ros::Time timeisnow = ros::Time::now();
-    ros::Time timeforpcld = dpth->header.stamp;
-    int callbackseq = obj->header.seq;
-    cout << "sequence number " << callbackseq << endl;
-    cout << "time is now " << timeisnow << endl;
-    cout << "pc2t is now " << timeforpcld << endl;
+    //getNodeTimestamp(dpth, obj);
+    forwardCameraTimestamp(obj);
     //cout << "running time sync \n";
     //Get resolution of camera image
     if (gotResolution == 0) {
