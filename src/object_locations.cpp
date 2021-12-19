@@ -1,8 +1,8 @@
 /*
  * object_locations.cpp
  * wheelchair_dacop
- * version: 0.2.0 Majestic Maidenhair
- * Status: Alpha
+ * version: 1.0.0 Majestic Maidenhair
+ * Status: Gamma
 */
 
 #include "tof_tool/tof_tool_box.h"
@@ -90,7 +90,13 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
         if (DEBUG_translateObjectToMapFrame) {
             tofToolBox->printSeparator(0);
             cout << msg_object_name << ", " << msg_object_confidence << endl; //print out object name
-            cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
+            cout << translation_x << ", " <<
+                    translation_y << ", " <<
+                    translation_z << ", " <<
+                    rotation_x << ", " <<
+                    rotation_y << ", " <<
+                    rotation_z << ", " <<
+                    rotation_w << endl;
         }
 
         //check for NaNs for coordinates in map frame
@@ -176,8 +182,8 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
     //create local transform from zed camera to object
     //check for NaNs in local DET coordinates
     localTransform.setOrigin( 
-            tf::Vector3(objects_msg.point_x[isObject], 
-                        objects_msg.point_y[isObject], 
+            tf::Vector3(objects_msg.point_x[isObject],
+                        objects_msg.point_y[isObject],
                         objects_msg.point_z[isObject]) ); //create transform vector
     int validatedTransform = publishLocalTransformDetectNaN(objects_msg, isObject, localTransform);
 
@@ -188,8 +194,8 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
     else {
         tf::Quaternion localQuaternion; //initialise quaternion class
         localQuaternion.setRPY(
-                objects_msg.rotation_r[isObject], 
-                objects_msg.rotation_p[isObject], 
+                objects_msg.rotation_r[isObject],
+                objects_msg.rotation_p[isObject],
                 objects_msg.rotation_y[isObject]);  //where r p y are fixed
         localTransform.setRotation(localQuaternion); //set quaternion from struct data
         br.sendTransform(
@@ -249,7 +255,8 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
         if (DEBUG_print_foundObjects_msg) {
             printFoundObjectsMsg(objects_msg, isObject);
         }
-        std::pair< std::string, int> localDetTransform = publishLocalDetectionTransform(objects_msg, isObject); //publish DET transform for detected object
+        //publish DET transform for detected object
+        std::pair< std::string, int> localDetTransform = publishLocalDetectionTransform(objects_msg, isObject);
         std::string DETframename = localDetTransform.first; //get transform name
         int nanDetectedLocalTransform = localDetTransform.second; //return 1 if nan, 0 if normal
         if (!nanDetectedLocalTransform) { //if no nan detected
@@ -269,9 +276,12 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_locations");
 
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/depth_sensing/detected_objects", 10, objectsDetectedCallback); //callback function when objects are detected from depth_sensing
-    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/object_locations/detected_objects", 1); //publish to central publishing locations node
-    ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
+    //callback function when objects are detected from depth_sensing
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/depth_sensing/detected_objects", 10, objectsDetectedCallback);
+    //publish to central publishing locations node
+    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/object_locations/detected_objects", 1);
+    //point this local pub variable to global status, so the publish function can access it.
+    ptr_publish_objectLocations = &local_publish_objectLocations;
 
     while (ros::ok()) {
         tf::TransformListener listener;
@@ -292,9 +302,16 @@ int main(int argc, char **argv) {
         tofToolBox->printSeparator(0);
         cout << "file output" << endl;
         for (int objectNumber = 0; objectNumber < totalObjectsLocationStruct; objectNumber++) {
-            cout << objectsLocationStruct[objectNumber].id << "," << objectsLocationStruct[objectNumber].object_name << "," << objectsLocationStruct[objectNumber].object_confidence << endl;
-            cout << objectsLocationStruct[objectNumber].point_x << ", " << objectsLocationStruct[objectNumber].point_y << ", " << objectsLocationStruct[objectNumber].point_z << endl;
-            cout << objectsLocationStruct[objectNumber].quat_x << ", " << objectsLocationStruct[objectNumber].quat_y << ", " << objectsLocationStruct[objectNumber].quat_z << ", " << objectsLocationStruct[objectNumber].quat_w << endl;
+            cout << objectsLocationStruct[objectNumber].id << "," <<
+                    objectsLocationStruct[objectNumber].object_name << "," <<
+                    objectsLocationStruct[objectNumber].object_confidence << endl;
+            cout << objectsLocationStruct[objectNumber].point_x << ", " <<
+                    objectsLocationStruct[objectNumber].point_y << ", " <<
+                    objectsLocationStruct[objectNumber].point_z << endl;
+            cout << objectsLocationStruct[objectNumber].quat_x << ", " <<
+                    objectsLocationStruct[objectNumber].quat_y << ", " <<
+                    objectsLocationStruct[objectNumber].quat_z << ", " <<
+                    objectsLocationStruct[objectNumber].quat_w << endl;
         }
         tofToolBox->printSeparator(0);
     }
