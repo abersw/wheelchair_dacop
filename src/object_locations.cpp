@@ -128,6 +128,45 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
     }
 }
 
+/*
+ * publishLocalTransformDetectNaN()
+ * objects_msg is the entire ROS array msg
+ * isObject is the array number for the ROS array msg
+ * localTransform is associated vector for isObject in objects_msg ROS array
+ * returns 0 for no NaN, 1 for NaN
+*/
+int publishLocalTransformDetectNaN(const wheelchair_msgs::foundObjects objects_msg, int isObject, tf::Transform localTransform) {
+    int detectedNaN = 0;
+    if ((isnan(objects_msg.point_x[isObject])) ||
+        (isnan(objects_msg.point_y[isObject])) ||
+        (isnan(objects_msg.point_z[isObject])) ||
+        (isnan(objects_msg.rotation_r[isObject])) ||
+        (isnan(objects_msg.rotation_p[isObject])) ||
+        (isnan(objects_msg.rotation_y[isObject]))) {
+        if (DEBUG_nan_detector) {
+            cout << "NaN detected in local DET transform" << endl;
+        }
+        detectedNaN = 1;
+    }
+    if ((isnan(localTransform.getOrigin().x())) ||
+        (isnan(localTransform.getOrigin().y())) ||
+        (isnan(localTransform.getOrigin().z()))) {
+        if (DEBUG_nan_detector) {
+            cout << "NaN detected in local DET transform, using getOrigin" << endl;
+        }
+        detectedNaN = 1;
+    }
+    if ((!rviz::validateFloats(localTransform.getOrigin().x())) ||
+        (!rviz::validateFloats(localTransform.getOrigin().y())) ||
+        (!rviz::validateFloats(localTransform.getOrigin().z())) ) {
+        if (DEBUG_nan_detector) {
+            cout << "NaN detected whilst validating localTransform in RVIZ" << endl;
+        }
+        detectedNaN = 1;
+    }
+    return detectedNaN;
+}
+
 std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msgs::foundObjects objects_msg, int isObject) {
     //broadcast detected objects in frame
     int nanDetected = 0;
@@ -136,43 +175,28 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
     tf::Transform localTransform;
     //create local transform from zed camera to object
     //check for NaNs in local DET coordinates
-    if (isnan(objects_msg.point_x[isObject]) ||
-        isnan(objects_msg.point_y[isObject]) ||
-        isnan(objects_msg.point_z[isObject]) ||
-        isnan(objects_msg.rotation_r[isObject]) ||
-        isnan(objects_msg.rotation_p[isObject]) ||
-        isnan(objects_msg.rotation_y[isObject])) {
-        if (DEBUG_nan_detector) {
-            cout << "NaN detected in local DET transform" << endl;
-        }
+    localTransform.setOrigin( 
+            tf::Vector3(objects_msg.point_x[isObject], 
+                        objects_msg.point_y[isObject], 
+                        objects_msg.point_z[isObject]) ); //create transform vector
+    int validatedTransform = publishLocalTransformDetectNaN(objects_msg, isObject, localTransform);
+
+    if (validatedTransform) {
+        //skip object
         nanDetected = 1;
     }
     else {
-        localTransform.setOrigin( tf::Vector3(objects_msg.point_x[isObject], objects_msg.point_y[isObject], objects_msg.point_z[isObject]) ); //create transform vector
-        if ((isnan(localTransform.getOrigin().x())) ||
-            (isnan(localTransform.getOrigin().y())) ||
-            (isnan(localTransform.getOrigin().z()))) {
-            if (DEBUG_nan_detector) {
-                cout << "NaN detected in local DET transform, using getOrigin" << endl;
-            }
-            nanDetected = 1;
-        }
-        else {
-            if ((!rviz::validateFloats(localTransform.getOrigin().x())) ||
-                (!rviz::validateFloats(localTransform.getOrigin().y())) ||
-                (!rviz::validateFloats(localTransform.getOrigin().z())) ) {
-                if (DEBUG_nan_detector) {
-                    cout << "NaN detected whilst validating localTransform in RVIZ" << endl;
-                }
-                nanDetected = 1;
-            }
-            else {
-                tf::Quaternion localQuaternion; //initialise quaternion class
-                localQuaternion.setRPY(objects_msg.rotation_r[isObject], objects_msg.rotation_p[isObject], objects_msg.rotation_y[isObject]);  //where r p y are fixed
-                localTransform.setRotation(localQuaternion); //set quaternion from struct data
-                br.sendTransform(tf::StampedTransform(localTransform, camera_timestamp, "zed_camera_center", DETframename)); //broadcast transform frame from zed camera link
-            }
-        }
+        tf::Quaternion localQuaternion; //initialise quaternion class
+        localQuaternion.setRPY(
+                objects_msg.rotation_r[isObject], 
+                objects_msg.rotation_p[isObject], 
+                objects_msg.rotation_y[isObject]);  //where r p y are fixed
+        localTransform.setRotation(localQuaternion); //set quaternion from struct data
+        br.sendTransform(
+                tf::StampedTransform(localTransform, 
+                                    camera_timestamp, 
+                                    "zed_camera_center", 
+                                    DETframename)); //broadcast transform frame from zed camera link
     }
     //end the temporary frame publishing
     return std::make_pair(DETframename, nanDetected);
