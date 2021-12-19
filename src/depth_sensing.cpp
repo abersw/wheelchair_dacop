@@ -194,7 +194,8 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         int centerHeight = yPercentage * 50.0; //calculate the centre of the bounding box X axis (height)
 
         if (DEBUG_getPointDepth) {
-            cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n"; //print out height and width centre if DEBUG is true
+            //print out height and width centre if DEBUG is true
+            cout << "pixel to extract is " << centerWidth << " x " << centerHeight << "\n";
         }
         detectedObjects[isObject].centerX = centerWidth; //assign centerWidth to struct center X
         detectedObjects[isObject].centerY = centerHeight; //assign centerHeight to struct center Y
@@ -215,7 +216,8 @@ void getPointDepth(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelch
         float Y = 0;
         float Z = 0;
 
-        int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step; //get position of point in rectified image array, corresponding with pointcloud
+        //get position of point in rectified image array, corresponding with pointcloud
+        int arrayPosition = detectedObjects[isObject].centerY*dpth->row_step + detectedObjects[isObject].centerX*dpth->point_step;
         if (DEBUG_getPointDepth) {
             cout << "array position " << arrayPosition << "\n"; //try this out to see if it returns 0 - i.e. top left
         }
