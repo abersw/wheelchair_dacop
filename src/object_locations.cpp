@@ -185,19 +185,20 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
             tf::Vector3(objects_msg.point_x[isObject],
                         objects_msg.point_y[isObject],
                         objects_msg.point_z[isObject]) ); //create transform vector
-    int validatedTransform = publishLocalTransformDetectNaN(objects_msg, isObject, localTransform);
+    tf::Quaternion localQuaternion; //initialise quaternion class
+    localQuaternion.setRPY(
+            objects_msg.rotation_r[isObject],
+            objects_msg.rotation_p[isObject],
+            objects_msg.rotation_y[isObject]);  //where r p y are fixed
+    localTransform.setRotation(localQuaternion); //set quaternion from struct data
+    //int validatedTransform = publishLocalTransformDetectNaN(objects_msg, isObject, localTransform);
+    int validatedTransform = tofToolBox->validateTransform(localTransform);
 
     if (validatedTransform) {
         //skip object
         nanDetected = 1;
     }
     else {
-        tf::Quaternion localQuaternion; //initialise quaternion class
-        localQuaternion.setRPY(
-                objects_msg.rotation_r[isObject],
-                objects_msg.rotation_p[isObject],
-                objects_msg.rotation_y[isObject]);  //where r p y are fixed
-        localTransform.setRotation(localQuaternion); //set quaternion from struct data
         br.sendTransform(
                 tf::StampedTransform(localTransform, 
                                     camera_timestamp, 
@@ -249,7 +250,7 @@ void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const
 void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
-    camera_timestamp = objects_msg.camera_timestamp;
+    camera_timestamp = objects_msg.camera_timestamp; //get camera timestamp via message
     int totalObjects = objects_msg.totalObjects; //get quantity of objects in ROS msg
     for (int isObject = 0; isObject < totalObjects; isObject++) { //iterate through entire ROS msg
         if (DEBUG_print_foundObjects_msg) {
