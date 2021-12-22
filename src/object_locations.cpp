@@ -152,9 +152,9 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
             objects_msg.rotation_p[isObject],
             objects_msg.rotation_y[isObject]);  //where r p y are fixed
     localTransform.setRotation(localQuaternion); //set quaternion from struct data
-    int validatedTransform = tofToolBox->validateTransform(localTransform);
+    int foundNaN = tofToolBox->validateTransform(localTransform);
 
-    if (validatedTransform) {
+    if (foundNaN) {
         //skip object
         nanDetected = 1;
     }
