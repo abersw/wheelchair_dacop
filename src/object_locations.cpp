@@ -78,35 +78,8 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
         ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
         ptrListener->lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
 
-        //get global translation of object
-        float translation_x = translation.getOrigin().x(); //set translation x to local variable
-        float translation_y = translation.getOrigin().y(); //set translation y to local variable
-        float translation_z = translation.getOrigin().z(); //set translation z to local variable
-        float rotation_x = translation.getRotation().x(); //set rotation x to local variable
-        float rotation_y = translation.getRotation().y(); //set rotation y to local variable
-        float rotation_z = translation.getRotation().z(); //set rotation z to local variable
-        float rotation_w = translation.getRotation().w(); //set rotation w to local variable
-
-        if (DEBUG_translateObjectToMapFrame) {
-            tofToolBox->printSeparator(0);
-            cout << msg_object_name << ", " << msg_object_confidence << endl; //print out object name
-            cout << translation_x << ", " <<
-                    translation_y << ", " <<
-                    translation_z << ", " <<
-                    rotation_x << ", " <<
-                    rotation_y << ", " <<
-                    rotation_z << ", " <<
-                    rotation_w << endl;
-        }
-
-        //check for NaNs for coordinates in map frame
-        if (isnan(translation_x) ||
-            isnan(translation_y) ||
-            isnan(translation_z) ||
-            isnan(rotation_x) ||
-            isnan(rotation_y) ||
-            isnan(rotation_z) ||
-            isnan(rotation_w)) {
+        int nanFound = tofToolBox->validateTransform(translation);
+        if (nanFound) {
             if (DEBUG_nan_detector) {
                 cout << "NaN detected whilst converting to map frame" << endl;
             }
@@ -116,14 +89,14 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
             objectsLocationStruct[totalObjectsLocationStruct].object_name = msg_object_name;
             objectsLocationStruct[totalObjectsLocationStruct].object_confidence = msg_object_confidence;
 
-            objectsLocationStruct[totalObjectsLocationStruct].point_x = translation_x;
-            objectsLocationStruct[totalObjectsLocationStruct].point_y = translation_y;
-            objectsLocationStruct[totalObjectsLocationStruct].point_z = translation_z;
+            objectsLocationStruct[totalObjectsLocationStruct].point_x = translation.getOrigin().x(); //set translation x to local variable
+            objectsLocationStruct[totalObjectsLocationStruct].point_y = translation.getOrigin().y(); //set translation y to local variable
+            objectsLocationStruct[totalObjectsLocationStruct].point_z = translation.getOrigin().z(); //set translation z to local variable
 
-            objectsLocationStruct[totalObjectsLocationStruct].quat_x = rotation_x;
-            objectsLocationStruct[totalObjectsLocationStruct].quat_y = rotation_y;
-            objectsLocationStruct[totalObjectsLocationStruct].quat_z = rotation_z;
-            objectsLocationStruct[totalObjectsLocationStruct].quat_w = rotation_w;
+            objectsLocationStruct[totalObjectsLocationStruct].quat_x = translation.getRotation().x(); //set rotation x to local variable
+            objectsLocationStruct[totalObjectsLocationStruct].quat_y = translation.getRotation().y(); //set rotation y to local variable
+            objectsLocationStruct[totalObjectsLocationStruct].quat_z = translation.getRotation().z(); //set rotation z to local variable
+            objectsLocationStruct[totalObjectsLocationStruct].quat_w = translation.getRotation().w(); //set rotation w to local variable
             totalObjectsLocationStruct++; //add 1 to total objects in storage struct - ready for next time
         }
     }
