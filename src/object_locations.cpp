@@ -155,6 +155,8 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
 
 void publishObjectStructMsg() {
     wheelchair_msgs::objectLocations obLoc;
+    obLoc.header.stamp = ros::Time::now();
+    obLoc.camera_timestamp = camera_timestamp;
     //publish all objects inside struct
     for (int isObject = 0; isObject < totalObjectsLocationStruct; isObject++) { //iterate through entire struct
         obLoc.id.push_back(objectsLocationStruct[isObject].id);
