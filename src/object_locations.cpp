@@ -27,6 +27,7 @@ using namespace std;
 
 //DEBUG LINES - set variable to 1 to enable, 0 to disable
 const int DEBUG_objectsListToStruct = 0;
+const int DEBUG_forwardCameraTimestamp = 0;
 const int DEBUG_translateObjectToMapFrame = 0;
 const int DEBUG_print_foundObjects_msg = 0;
 const int DEBUG_nan_detector = 1;
@@ -61,7 +62,17 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing topic
 
 ros::Time camera_timestamp;
+double camera_timestamp_sec;
 
+//assign source camera timestamp to global variable for publishing to object locations
+void forwardCameraTimestamp(const wheelchair_msgs::foundObjects objects_msg) {
+    camera_timestamp = objects_msg.camera_timestamp;
+    camera_timestamp_sec = camera_timestamp.toSec();
+    if (DEBUG_forwardCameraTimestamp) {
+        cout.precision(17);
+        cout << "camera timestamp " << fixed << camera_timestamp << endl;
+    }
+}
 
 /*
  * translateObjectToMapFrame()
@@ -183,7 +194,7 @@ void printFoundObjectsMsg(const wheelchair_msgs::foundObjects objects_msg, const
 void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
     //stuff here on each callback
     //if object isn't detected in room - reduce object influence (instead of deleting?)
-    camera_timestamp = objects_msg.camera_timestamp; //get camera timestamp via message
+    forwardCameraTimestamp(objects_msg); //get camera timestamp via message
     int totalObjects = objects_msg.totalObjects; //get quantity of objects in ROS msg
     for (int isObject = 0; isObject < totalObjects; isObject++) { //iterate through entire ROS msg
         if (DEBUG_print_foundObjects_msg) {
@@ -197,7 +208,9 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
             translateObjectToMapFrame(objects_msg, isObject, DETframename); //transofrm to map frame
         }
     }
-    publishObjectStructMsg(); //publish ROS msg for publish object locations node
+    if (totalObjectsLocationStruct > 0) {
+        publishObjectStructMsg(); //publish ROS msg for publish object locations node
+    }
     totalObjectsLocationStruct = 0; //set object locations struct back to 0 once translations have been published
 }
 
