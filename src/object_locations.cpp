@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n;
     //callback function when objects are detected from depth_sensing
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/depth_sensing/detected_objects", 10, objectsDetectedCallback);
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/depth_sensing/detected_objects", 1000, objectsDetectedCallback);
     //publish to central publishing locations node
     ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/object_locations/detected_objects", 1000);
     //point this local pub variable to global status, so the publish function can access it.
