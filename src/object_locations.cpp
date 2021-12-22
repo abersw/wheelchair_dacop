@@ -134,45 +134,6 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
     }
 }
 
-/*
- * publishLocalTransformDetectNaN()
- * objects_msg is the entire ROS array msg
- * isObject is the array number for the ROS array msg
- * localTransform is associated vector for isObject in objects_msg ROS array
- * returns 0 for no NaN, 1 for NaN
-*/
-int publishLocalTransformDetectNaN(const wheelchair_msgs::foundObjects objects_msg, int isObject, tf::Transform localTransform) {
-    int detectedNaN = 0;
-    if ((isnan(objects_msg.point_x[isObject])) ||
-        (isnan(objects_msg.point_y[isObject])) ||
-        (isnan(objects_msg.point_z[isObject])) ||
-        (isnan(objects_msg.rotation_r[isObject])) ||
-        (isnan(objects_msg.rotation_p[isObject])) ||
-        (isnan(objects_msg.rotation_y[isObject]))) {
-        if (DEBUG_nan_detector) {
-            cout << "NaN detected in local DET transform" << endl;
-        }
-        detectedNaN = 1;
-    }
-    if ((isnan(localTransform.getOrigin().x())) ||
-        (isnan(localTransform.getOrigin().y())) ||
-        (isnan(localTransform.getOrigin().z()))) {
-        if (DEBUG_nan_detector) {
-            cout << "NaN detected in local DET transform, using getOrigin" << endl;
-        }
-        detectedNaN = 1;
-    }
-    if ((!rviz::validateFloats(localTransform.getOrigin().x())) ||
-        (!rviz::validateFloats(localTransform.getOrigin().y())) ||
-        (!rviz::validateFloats(localTransform.getOrigin().z())) ) {
-        if (DEBUG_nan_detector) {
-            cout << "NaN detected whilst validating localTransform in RVIZ" << endl;
-        }
-        detectedNaN = 1;
-    }
-    return detectedNaN;
-}
-
 std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msgs::foundObjects objects_msg, int isObject) {
     //broadcast detected objects in frame
     int nanDetected = 0;
@@ -191,7 +152,6 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
             objects_msg.rotation_p[isObject],
             objects_msg.rotation_y[isObject]);  //where r p y are fixed
     localTransform.setRotation(localQuaternion); //set quaternion from struct data
-    //int validatedTransform = publishLocalTransformDetectNaN(objects_msg, isObject, localTransform);
     int validatedTransform = tofToolBox->validateTransform(localTransform);
 
     if (validatedTransform) {
