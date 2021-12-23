@@ -37,8 +37,6 @@ const int DEBUG_finish_file_printout = 0;
 
 TofToolBox *tofToolBox;
 
-std::string wheelchair_dump_loc;
-
 
 struct Objects { //struct for publishing topic
     int id; //get object id from ros msg
