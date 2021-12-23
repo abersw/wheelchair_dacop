@@ -23,6 +23,7 @@
 
 using namespace std;
 
+const int DEBUG_forwardCameraTimestamp = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
@@ -58,9 +59,25 @@ ros::Publisher *ptr_publish_objectUID; //global pointer for publishing topic
 
 std::string wheelchair_dump_loc;
 
+ros::Time camera_timestamp;
+double camera_timestamp_sec;
 
 
 
+
+/**
+ * assign source camera timestamp to global variable for publishing to object locations
+ *
+ * @param 'obLoc' is a ROS message of type wheelchair_msgs::objectLocations
+ */
+void forwardCameraTimestamp(const wheelchair_msgs::objectLocations obLoc) {
+    camera_timestamp = obLoc.camera_timestamp;
+    camera_timestamp_sec = camera_timestamp.toSec();
+    if (DEBUG_forwardCameraTimestamp) {
+        cout.precision(17);
+        cout << "camera timestamp " << fixed << camera_timestamp << endl;
+    }
+}
 
 /**
  * Function reads in object list from wheelchair dump and assigns data to struct 'objectsFileStruct'
@@ -201,6 +218,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_objectLocationsCallback) {
         tofToolBox->printSeparator(0);
     }
+    forwardCameraTimestamp(obLoc); //get camera timestamp via message
     int totalDetectedObjects = obLoc.totalObjects; //get total objects in ROS msg array
 
     struct Objects detectedObjects[1000]; //struct array for returning objects with correct UID
