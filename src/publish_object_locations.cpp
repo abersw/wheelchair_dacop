@@ -435,7 +435,7 @@ int main(int argc, char **argv) {
             cout << "spin \n";
         }
         ros::spinOnce();
-        rate.sleep();
+        //rate.sleep();
     }
     cout << "saving struct to list" << endl;
     objectsStructToList(objects_file_loc);
