@@ -331,7 +331,7 @@ int main(int argc, char **argv) {
         cout << "spin \n";
     }
     ros::spin();
-    //rate.sleep();
+    rate.sleep();
 
     return 0;
 }
