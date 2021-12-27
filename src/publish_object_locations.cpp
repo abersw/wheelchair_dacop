@@ -52,7 +52,7 @@ struct Objects {
 };
 struct Objects objectsFileStruct[100000]; //array for storing all object data in world
 int totalObjectsFileStruct = 0; //total objects inside objectsFileStruct struct
-double objectTopologyThreshold = 0.5; //this should probably be a bounding box value...
+double objectBoundingBox = 0.5; //this should probably be a bounding box value...
 
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing objectLocations topic
 ros::Publisher *ptr_publish_objectUID; //global pointer for publishing topic
@@ -248,13 +248,16 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 cout << "main struct id is " << isObject << endl;
             }
             //set calculations to create a distance threshold - if object is in this box, it's probably the same object
-            float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectTopologyThreshold; //make minimum x bound
-            float maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectTopologyThreshold; //make maximum x bound
-            float minPointThreshold_y = objectsFileStruct[isObject].point_y - objectTopologyThreshold; //make minimum y bound
-            float maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectTopologyThreshold; //make maximum y bound
+            float minPointThreshold_x = objectsFileStruct[isObject].point_x - objectBoundingBox; //make minimum x bound
+            float maxPointThreshold_x = objectsFileStruct[isObject].point_x + objectBoundingBox; //make maximum x bound
+            float minPointThreshold_y = objectsFileStruct[isObject].point_y - objectBoundingBox; //make minimum y bound
+            float maxPointThreshold_y = objectsFileStruct[isObject].point_y + objectBoundingBox; //make maximum y bound
+            float minPointThreshold_z = objectsFileStruct[isObject].point_z - objectBoundingBox; //make minimum z bound
+            float maxPointThreshold_z = objectsFileStruct[isObject].point_z + objectBoundingBox; //make maximum z bound
 
             if ( ((msg_translation_x >= minPointThreshold_x) && (msg_translation_x <= maxPointThreshold_x)) && //if there's an object in x bound
                 ((msg_translation_y >= minPointThreshold_y) && (msg_translation_y <= maxPointThreshold_y)) && //if there's an object in y bound
+                ((msg_translation_z >= minPointThreshold_z) && (msg_translation_z <= maxPointThreshold_z)) && //if there's an object in y bound
                 msg_object_name == objectsFileStruct[isObject].object_name) { //if it has classified the same object (name)
                 if (DEBUG_doesObjectAlreadyExist) {
                     cout << "found same object in this location" << endl; //print out found object
