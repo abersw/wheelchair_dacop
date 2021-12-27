@@ -217,6 +217,7 @@ void publishDetectedObjects(const struct Objects detectedObjects[1000], int tota
 void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (DEBUG_objectLocationsCallback) {
         tofToolBox->printSeparator(0);
+        cout << "starting new detection ROS array" << endl;
     }
     forwardCameraTimestamp(obLoc); //get camera timestamp via message
     int totalDetectedObjects = obLoc.totalObjects; //get total objects in ROS msg array
@@ -330,11 +331,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
  *
  */
 void broadcastTransformStruct() {
-    //add code here to publish struct continuously
-    wheelchair_msgs::objectLocations obLoc;
     //publish all objects inside struct
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-
+        int nanDetected = 0;
         int objectID = objectsFileStruct[isObject].id;
         std::string objectName = objectsFileStruct[isObject].object_name;
 
@@ -344,14 +343,37 @@ void broadcastTransformStruct() {
         //turn msg to pose
         tf::Transform mapTransform;
         //create map transform from map to object frame
-        mapTransform.setOrigin( tf::Vector3(objectsFileStruct[isObject].point_x, objectsFileStruct[isObject].point_y, objectsFileStruct[isObject].point_z) );
-        tf::Quaternion mapQuaternion(objectsFileStruct[isObject].quat_x, objectsFileStruct[isObject].quat_y, objectsFileStruct[isObject].quat_z, objectsFileStruct[isObject].quat_w);
+        mapTransform.setOrigin(
+                tf::Vector3(
+                        objectsFileStruct[isObject].point_x,
+                        objectsFileStruct[isObject].point_y,
+                        objectsFileStruct[isObject].point_z) );
+        tf::Quaternion mapQuaternion(
+                objectsFileStruct[isObject].quat_x,
+                objectsFileStruct[isObject].quat_y,
+                objectsFileStruct[isObject].quat_z,
+                objectsFileStruct[isObject].quat_w);
         mapTransform.setRotation(mapQuaternion);
-        br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", OBframename));
-        //end the map frame object publishing
-        if (DEBUG_broadcastTransformStruct) {
-            cout << "publishing map frame" << endl;
-            cout << mapTransform.getOrigin().x() << ", " << mapTransform.getOrigin().y() << ", " << mapTransform.getOrigin().z() << endl;
+        int foundNaN = tofToolBox->validateTransform(mapTransform);
+        if (foundNaN) {
+            //skip object
+            nanDetected = 1;
+            cout << "NaN detected when transforming to map frame" << endl;
+        }
+        else {
+            br.sendTransform(
+                    tf::StampedTransform(
+                            mapTransform,
+                            camera_timestamp,
+                            "map",
+                            OBframename));
+            //end the map frame object publishing
+            if (DEBUG_broadcastTransformStruct) {
+                cout << "publishing map frame" << endl;
+                cout << mapTransform.getOrigin().x() << ", " <<
+                        mapTransform.getOrigin().y() << ", " <<
+                        mapTransform.getOrigin().z() << endl;
+            }
         }
     }
 }
