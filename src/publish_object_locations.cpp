@@ -420,9 +420,19 @@ void objectsStructToList(std::string objects_file_loc) {
     ofstream FILE_WRITER;
 	FILE_WRITER.open(objects_file_loc);
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-        FILE_WRITER << objectsFileStruct[isObject].id << "," << objectsFileStruct[isObject].object_name << "," << objectsFileStruct[isObject].object_confidence << "," <<
-        objectsFileStruct[isObject].point_x << "," << objectsFileStruct[isObject].point_y << "," << objectsFileStruct[isObject].point_z << "," <<
-        objectsFileStruct[isObject].quat_x << "," << objectsFileStruct[isObject].quat_y << "," << objectsFileStruct[isObject].quat_z << "," << objectsFileStruct[isObject].quat_w << "\n";
+        FILE_WRITER <<
+            objectsFileStruct[isObject].id << "," <<
+            objectsFileStruct[isObject].object_name << "," <<
+            objectsFileStruct[isObject].object_confidence << "," <<
+
+            objectsFileStruct[isObject].point_x << "," <<
+            objectsFileStruct[isObject].point_y << "," <<
+            objectsFileStruct[isObject].point_z << "," <<
+
+            objectsFileStruct[isObject].quat_x << "," <<
+            objectsFileStruct[isObject].quat_y << "," <<
+            objectsFileStruct[isObject].quat_z << "," <<
+            objectsFileStruct[isObject].quat_w << "\n";
     }
     FILE_WRITER.close();
     cout << "finished saving function" << endl;
@@ -447,9 +457,12 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n;
     ptr_n = &n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 1000, objectLocationsCallback); //called every time an object is detected
-    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 1000); //publish to central publishing locations node
-    ros::Publisher local_publish_objectUID = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000); //publish to central publishing locations node
+    //called every time an object is detected
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 1000, objectLocationsCallback);
+    //publish to central publishing locations node
+    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 1000);
+    //publish to central publishing locations node
+    ros::Publisher local_publish_objectUID = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000);
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_objectUID = &local_publish_objectUID; //point this local pub variable to global status, so the publish function can access it.
     //other subscribers can be added to modify the central objects struct to list
