@@ -140,9 +140,16 @@ void objectsListToStruct(std::string objects_file_loc) {
             objectsFileStruct[objectNumber].quat_w = std::stof(line); //set rotation to quaternion w
             if (DEBUG_objectsListToStruct) { //print off debug lines
                 cout << "sections in line " << lineSection << endl;
-                cout << objectsFileStruct[objectNumber].id << "," << objectsFileStruct[objectNumber].object_name << ", " << objectsFileStruct[objectNumber].object_confidence << endl;
-                cout << objectsFileStruct[objectNumber].point_x << ", " << objectsFileStruct[objectNumber].point_y << ", " << objectsFileStruct[objectNumber].point_z << endl;
-                cout << objectsFileStruct[objectNumber].quat_x << ", " << objectsFileStruct[objectNumber].quat_y << ", " << objectsFileStruct[objectNumber].quat_z << ", " << objectsFileStruct[objectNumber].quat_w << endl;
+                cout << objectsFileStruct[objectNumber].id << "," <<
+                        objectsFileStruct[objectNumber].object_name << ", " <<
+                        objectsFileStruct[objectNumber].object_confidence << endl;
+                cout << objectsFileStruct[objectNumber].point_x << ", " <<
+                        objectsFileStruct[objectNumber].point_y << ", " <<
+                        objectsFileStruct[objectNumber].point_z << endl;
+                cout << objectsFileStruct[objectNumber].quat_x << ", " <<
+                        objectsFileStruct[objectNumber].quat_y << ", " <<
+                        objectsFileStruct[objectNumber].quat_z << ", " <<
+                        objectsFileStruct[objectNumber].quat_w << endl;
                 tofToolBox->printSeparator(0);
             }
             objectNumber++; //iterate to next object in list
