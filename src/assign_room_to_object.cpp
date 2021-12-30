@@ -341,8 +341,16 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
 
             if (DEBUG_roomNameCallback) {
                 tofToolBox->printSeparator(0);
-                cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " << roomsFileStruct[totalRoomsFileStruct].room_name << endl; //print out object name
-                cout << translation_x << ", " << translation_y << ", " << translation_z << ", " << rotation_x << ", " << rotation_y << ", " << rotation_z << ", " << rotation_w << endl;
+                //print out object name
+                cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " <<
+                        roomsFileStruct[totalRoomsFileStruct].room_name << endl;
+                cout << translation_x << ", " <<
+                        translation_y << ", " <<
+                        translation_z << ", " <<
+                        rotation_x << ", " <<
+                        rotation_y << ", " <<
+                        rotation_z << ", " <<
+                        rotation_w << endl;
             }
 
             roomsFileStruct[totalRoomsFileStruct].point_x = translation_x;
@@ -375,17 +383,32 @@ void broadcastRoomFrame() {
     for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) {
         //do stuff
         static tf::TransformBroadcaster br; //initialise broadcaster class
-        std::string roomFrameName = std::to_string(roomsFileStruct[isRoom].room_id) + roomsFileStruct[isRoom].room_name; //set frame name for room id and name
+        //set frame name for room id and name
+        std::string roomFrameName = std::to_string(roomsFileStruct[isRoom].room_id) + roomsFileStruct[isRoom].room_name;
         if (DEBUG_broadcastRoomFrame) {
             cout << "frame name is " << roomFrameName << endl;
         }
 
         tf::Transform mapTransform;
-        mapTransform.setOrigin( tf::Vector3(roomsFileStruct[isRoom].point_x, roomsFileStruct[isRoom].point_y, roomsFileStruct[isRoom].point_z) );
+        mapTransform.setOrigin(
+                tf::Vector3(
+                        roomsFileStruct[isRoom].point_x,
+                        roomsFileStruct[isRoom].point_y,
+                        roomsFileStruct[isRoom].point_z) );
 
-        tf::Quaternion mapQuaternion(roomsFileStruct[isRoom].quat_x, roomsFileStruct[isRoom].quat_y, roomsFileStruct[isRoom].quat_z, roomsFileStruct[isRoom].quat_w);
+        tf::Quaternion mapQuaternion(
+                roomsFileStruct[isRoom].quat_x,
+                roomsFileStruct[isRoom].quat_y,
+                roomsFileStruct[isRoom].quat_z,
+                roomsFileStruct[isRoom].quat_w);
         mapTransform.setRotation(mapQuaternion);
-        br.sendTransform(tf::StampedTransform(mapTransform, ros::Time::now(), "map", roomFrameName));
+
+        br.sendTransform(
+                tf::StampedTransform(
+                        mapTransform,
+                        ros::Time::now(),
+                        "map",
+                        roomFrameName));
 
         //end the map frame object publishing
         if (DEBUG_broadcastRoomFrame) {
@@ -521,10 +544,12 @@ int main (int argc, char **argv) {
     
     ros::init(argc, argv, "assign_room_to_object");
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 10, objectLocationsCallback);
-    ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 10, roomNameCallback);
-    ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::roomToObjects>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000); //publish objects and associated rooms
-    ros::Publisher local_publish_rooms = n.advertise<wheelchair_msgs::roomLocations>("wheelchair_robot/dacop/assign_room_to_object/rooms", 1000);//publish rooms struct
+    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, objectLocationsCallback);
+    ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 1000, roomNameCallback);
+    //publish objects and associated rooms
+    ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::roomToObjects>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000);
+    //publish rooms struct
+    ros::Publisher local_publish_rooms = n.advertise<wheelchair_msgs::roomLocations>("wheelchair_robot/dacop/assign_room_to_object/rooms", 1000);
     ptr_publish_roomsDacop = &local_publish_roomsDacop; //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_rooms = &local_publish_rooms; //point this local pub variable to global status
     tf::TransformListener listener; //listen to tf tree - to get translation of base_link against map
