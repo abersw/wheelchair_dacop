@@ -294,52 +294,76 @@ void addNewRoomToStruct(std::string roomName_msg) {
     currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
 
     //get the room location on the map
+    int nanDetected = 0;
+    int validTransform = 0;
     std::string map_frame = "/map";
     std::string robot_frame = "/base_link";
     tf::StampedTransform translation; //initiate translation for transform object
-    try {
-        ptrListener->waitForTransform(map_frame, robot_frame, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        ptrListener->lookupTransform(map_frame, robot_frame, ros::Time(), translation); //lookup translation of object from map frame
+    while (validTransform == 0) { //keep looping if transform is not valid
+        try {
+            ptrListener->waitForTransform(map_frame, robot_frame, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
+            ptrListener->lookupTransform(map_frame, robot_frame, ros::Time(), translation); //lookup translation of object from map frame
 
-        //get global translation of object
-        float translation_x = translation.getOrigin().x(); //set translation x to local variable
-        float translation_y = translation.getOrigin().y(); //set translation y to local variable
-        float translation_z = translation.getOrigin().z(); //set translation z to local variable
-        float rotation_x = translation.getRotation().x(); //set rotation x to local variable
-        float rotation_y = translation.getRotation().y(); //set rotation y to local variable
-        float rotation_z = translation.getRotation().z(); //set rotation z to local variable
-        float rotation_w = translation.getRotation().w(); //set rotation w to local variable
+            //get global translation of object
+            float translation_x = translation.getOrigin().x(); //set translation x to local variable
+            float translation_y = translation.getOrigin().y(); //set translation y to local variable
+            float translation_z = translation.getOrigin().z(); //set translation z to local variable
+            float rotation_x = translation.getRotation().x(); //set rotation x to local variable
+            float rotation_y = translation.getRotation().y(); //set rotation y to local variable
+            float rotation_z = translation.getRotation().z(); //set rotation z to local variable
+            float rotation_w = translation.getRotation().w(); //set rotation w to local variable
 
-        if (DEBUG_roomNameCallback) {
-            tofToolBox->printSeparator(0);
-            //print out object name
-            cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " <<
-                    roomsFileStruct[totalRoomsFileStruct].room_name << endl;
-            cout << translation_x << ", " <<
-                    translation_y << ", " <<
-                    translation_z << ", " <<
-                    rotation_x << ", " <<
-                    rotation_y << ", " <<
-                    rotation_z << ", " <<
-                    rotation_w << endl;
+            if (DEBUG_roomNameCallback) {
+                tofToolBox->printSeparator(0);
+                //print out object name
+                cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " <<
+                        roomsFileStruct[totalRoomsFileStruct].room_name << endl;
+                cout << translation_x << ", " <<
+                        translation_y << ", " <<
+                        translation_z << ", " <<
+                        rotation_x << ", " <<
+                        rotation_y << ", " <<
+                        rotation_z << ", " <<
+                        rotation_w << endl;
+            }
+            tf::Transform mapTransform;
+            //create map transform from map to object frame
+            mapTransform.setOrigin(
+                    tf::Vector3(
+                            translation_x,
+                            translation_y,
+                            translation_z) );
+            tf::Quaternion mapQuaternion(
+                    rotation_x,
+                    rotation_y,
+                    rotation_z,
+                    rotation_w);
+            mapTransform.setRotation(mapQuaternion);
+            int foundNaN = tofToolBox->validateTransform(mapTransform);
+            if (foundNaN) {
+                //skip object
+                nanDetected = 1;
+                cout << "NaN detected when transforming to map frame" << endl;
+            }
+            else {
+                roomsFileStruct[totalRoomsFileStruct].point_x = translation_x;
+                roomsFileStruct[totalRoomsFileStruct].point_y = translation_y;
+                roomsFileStruct[totalRoomsFileStruct].point_z = translation_z;
+
+                roomsFileStruct[totalRoomsFileStruct].quat_x = rotation_x;
+                roomsFileStruct[totalRoomsFileStruct].quat_y = rotation_y;
+                roomsFileStruct[totalRoomsFileStruct].quat_z = rotation_z;
+                roomsFileStruct[totalRoomsFileStruct].quat_w = rotation_w;
+                totalRoomsFileStruct++;
+                validTransform = 1; //break out of while loop
+            }
         }
-
-        roomsFileStruct[totalRoomsFileStruct].point_x = translation_x;
-        roomsFileStruct[totalRoomsFileStruct].point_y = translation_y;
-        roomsFileStruct[totalRoomsFileStruct].point_z = translation_z;
-
-        roomsFileStruct[totalRoomsFileStruct].quat_x = rotation_x;
-        roomsFileStruct[totalRoomsFileStruct].quat_y = rotation_y;
-        roomsFileStruct[totalRoomsFileStruct].quat_z = rotation_z;
-        roomsFileStruct[totalRoomsFileStruct].quat_w = rotation_w;
+        catch (tf::TransformException ex) {
+            cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
+            ROS_ERROR("%s",ex.what()); //print error
+            ros::Duration(1.0).sleep();
+        }
     }
-    catch (tf::TransformException ex) {
-        cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
-        ROS_ERROR("%s",ex.what()); //print error
-        ros::Duration(1.0).sleep();
-    }
-
-    totalRoomsFileStruct++;
 }
 
 /**
