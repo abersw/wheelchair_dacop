@@ -282,6 +282,67 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
 }
 
 /**
+ * Function gets current wheelchair pose and adds coordinates to struct
+ *
+ * @param parameter 'roomName_msg' is a string of the room name
+ *        message belongs to std::string
+ */
+void addNewRoomToStruct(std::string roomName_msg) {
+    roomsFileStruct[totalRoomsFileStruct].room_id = totalRoomsFileStruct; //add last room id to struct
+    roomsFileStruct[totalRoomsFileStruct].room_name = roomName_msg; //add new room name to struct
+    currentRoomID = roomsFileStruct[totalRoomsFileStruct].room_id; //set room id to current room
+    currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
+
+    //get the room location on the map
+    std::string map_frame = "/map";
+    std::string robot_frame = "/base_link";
+    tf::StampedTransform translation; //initiate translation for transform object
+    try {
+        ptrListener->waitForTransform(map_frame, robot_frame, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        ptrListener->lookupTransform(map_frame, robot_frame, ros::Time(), translation); //lookup translation of object from map frame
+
+        //get global translation of object
+        float translation_x = translation.getOrigin().x(); //set translation x to local variable
+        float translation_y = translation.getOrigin().y(); //set translation y to local variable
+        float translation_z = translation.getOrigin().z(); //set translation z to local variable
+        float rotation_x = translation.getRotation().x(); //set rotation x to local variable
+        float rotation_y = translation.getRotation().y(); //set rotation y to local variable
+        float rotation_z = translation.getRotation().z(); //set rotation z to local variable
+        float rotation_w = translation.getRotation().w(); //set rotation w to local variable
+
+        if (DEBUG_roomNameCallback) {
+            tofToolBox->printSeparator(0);
+            //print out object name
+            cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " <<
+                    roomsFileStruct[totalRoomsFileStruct].room_name << endl;
+            cout << translation_x << ", " <<
+                    translation_y << ", " <<
+                    translation_z << ", " <<
+                    rotation_x << ", " <<
+                    rotation_y << ", " <<
+                    rotation_z << ", " <<
+                    rotation_w << endl;
+        }
+
+        roomsFileStruct[totalRoomsFileStruct].point_x = translation_x;
+        roomsFileStruct[totalRoomsFileStruct].point_y = translation_y;
+        roomsFileStruct[totalRoomsFileStruct].point_z = translation_z;
+
+        roomsFileStruct[totalRoomsFileStruct].quat_x = rotation_x;
+        roomsFileStruct[totalRoomsFileStruct].quat_y = rotation_y;
+        roomsFileStruct[totalRoomsFileStruct].quat_z = rotation_z;
+        roomsFileStruct[totalRoomsFileStruct].quat_w = rotation_w;
+    }
+    catch (tf::TransformException ex) {
+        cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
+        ROS_ERROR("%s",ex.what()); //print error
+        ros::Duration(1.0).sleep();
+    }
+
+    totalRoomsFileStruct++;
+}
+
+/**
  * Main callback function triggered by received room name topic 
  *
  * @param parameter 'roomNameMsg' is a string of the room name from the wheelchair interface
@@ -293,7 +354,7 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
         cout << "DEBUG_roomNameCallback" << endl;
     }
     std::string roomName_msg = roomNameMsg.data;
-    int roomDetected = 0; //variable flag to see if room name is already present in struct
+    int roomAlreadyExists = 0; //variable flag to see if room name is already present in struct
 
     int tempRoomID; //temporary room id in function scope
     std::string tempRoomName; //temporary room name in function scope
@@ -303,7 +364,7 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
     }
     for (int isRoom = 0; isRoom < totalRoomsFileStruct; isRoom++) { //run through entire rooms struct
         if (roomsFileStruct[isRoom].room_name == roomName_msg) { //if room name in struct is equal to room name from topic
-            roomDetected = 1; //Room is already in rooms struct
+            roomAlreadyExists = 1; //Room is already in rooms struct
             tempRoomID = roomsFileStruct[isRoom].room_id; //set struct room id to temp variable
             tempRoomName = roomsFileStruct[isRoom].room_name; //set struct room name to temp variable
         }
@@ -311,64 +372,14 @@ void roomNameCallback(const std_msgs::String roomNameMsg) {
             //don't set anything, the room detected variable flag will remain at 0
         }
     }
-    if (roomDetected) {
+    if (roomAlreadyExists) {
         currentRoomID = tempRoomID; //set temporary room id to current room id
         currentRoomName = tempRoomName; //set temporary room name to current room name
         //don't update room location struct - probably...
     }
     else {
         //add room not detected to struct
-        roomsFileStruct[totalRoomsFileStruct].room_id = totalRoomsFileStruct; //add last room id to struct
-        roomsFileStruct[totalRoomsFileStruct].room_name = roomName_msg; //add new room name to struct
-        currentRoomID = roomsFileStruct[totalRoomsFileStruct].room_id; //set room id to current room
-        currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
-
-        //get the room location on the map
-        std::string robot_frame = "/base_link";
-        tf::StampedTransform translation; //initiate translation for transform object
-        try {
-            ptrListener->waitForTransform("/map", robot_frame, ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
-            ptrListener->lookupTransform("/map", robot_frame, ros::Time(), translation); //lookup translation of object from map frame
-
-            //get global translation of object
-            float translation_x = translation.getOrigin().x(); //set translation x to local variable
-            float translation_y = translation.getOrigin().y(); //set translation y to local variable
-            float translation_z = translation.getOrigin().z(); //set translation z to local variable
-            float rotation_x = translation.getRotation().x(); //set rotation x to local variable
-            float rotation_y = translation.getRotation().y(); //set rotation y to local variable
-            float rotation_z = translation.getRotation().z(); //set rotation z to local variable
-            float rotation_w = translation.getRotation().w(); //set rotation w to local variable
-
-            if (DEBUG_roomNameCallback) {
-                tofToolBox->printSeparator(0);
-                //print out object name
-                cout << roomsFileStruct[totalRoomsFileStruct].room_id << ", " <<
-                        roomsFileStruct[totalRoomsFileStruct].room_name << endl;
-                cout << translation_x << ", " <<
-                        translation_y << ", " <<
-                        translation_z << ", " <<
-                        rotation_x << ", " <<
-                        rotation_y << ", " <<
-                        rotation_z << ", " <<
-                        rotation_w << endl;
-            }
-
-            roomsFileStruct[totalRoomsFileStruct].point_x = translation_x;
-            roomsFileStruct[totalRoomsFileStruct].point_y = translation_y;
-            roomsFileStruct[totalRoomsFileStruct].point_z = translation_z;
-
-            roomsFileStruct[totalRoomsFileStruct].quat_x = rotation_x;
-            roomsFileStruct[totalRoomsFileStruct].quat_y = rotation_y;
-            roomsFileStruct[totalRoomsFileStruct].quat_z = rotation_z;
-            roomsFileStruct[totalRoomsFileStruct].quat_w = rotation_w;
-        }
-        catch (tf::TransformException ex) {
-            cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
-            ROS_ERROR("%s",ex.what()); //print error
-            ros::Duration(1.0).sleep();
-        }
-
-        totalRoomsFileStruct++;
+        addNewRoomToStruct(roomName_msg);
     }
     if (DEBUG_roomNameCallback) {
         cout << "current room id is " << currentRoomID << endl;
