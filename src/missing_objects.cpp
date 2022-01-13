@@ -8,11 +8,17 @@
 
 #include "tof_tool/tof_tool_box.h"
 
+#include "wheelchair_msgs/objectLocations.h"
+
 using namespace std;
 
-static const int DEBUG_main = 0;
+static const int DEBUG_main = 1;
 
 TofToolBox *tofToolBox;
+
+void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
+    //add code
+}
 
 int main (int argc, char **argv) {
     TofToolBox tofToolBox_local;
@@ -22,6 +28,9 @@ int main (int argc, char **argv) {
     //when msg comes through with ID of object - append a room name to the object
     ros::init(argc, argv, "missing_objects");
     ros::NodeHandle n;
+
+    //subscribe to full list of objects from central public_object_locations node
+    ros::Subscriber objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/objects", 1000, objectLocationsCallback);
 
     ros::Rate rate(10.0);
 
