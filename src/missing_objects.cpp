@@ -108,7 +108,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
 
     // Convert to ROS data type
     sensor_msgs::PointCloud2 output;
-    pcl::toROSMsg(cloud_filtered, output);
+    //pcl::toROSMsg(cloud_filtered, output);
 
     // Publish the data
     //pcl_pub.publish (output);
