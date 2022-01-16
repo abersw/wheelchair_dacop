@@ -142,6 +142,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/wheelchair_dacop_node.cpp)
 add_executable(cloud_transform src/cloud_transform.cpp)
+add_executable(transform_pc2map src/transform_pc2map.cpp)
 add_executable(depth_sensing src/depth_sensing.cpp)
 add_executable(object_locations src/object_locations.cpp)
 add_executable(publish_object_locations src/publish_object_locations.cpp)
@@ -163,6 +164,7 @@ add_executable(assign_room_to_object src/assign_room_to_object.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(cloud_transform ${catkin_LIBRARIES})
+target_link_libraries(transform_pc2map ${catkin_LIBRARIES})
 target_link_libraries(depth_sensing ${catkin_LIBRARIES})
 target_link_libraries(object_locations ${catkin_LIBRARIES})
 target_link_libraries(publish_object_locations ${catkin_LIBRARIES})
