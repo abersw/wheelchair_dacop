@@ -1,5 +1,5 @@
 /*
- * cloud_transform.cpp
+ * transform_pc2map.cpp
  * wheelchair_dacop
  * version: 1.0.0 Majestic Maidenhair
  * Status: Gamma
@@ -48,6 +48,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     if (DEBUG_framename_output)
         cout << "output frame id is " << cloud_trans.header.frame_id << endl;
     sensor_msgs::PointCloud2 msg_pub;
+    msg_pub.header = dpth->header;
     pcl::toROSMsg(cloud_trans, msg_pub);
     pub.publish(msg_pub);
 }
