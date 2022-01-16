@@ -18,7 +18,8 @@
 
 using namespace std;
 
-static const int DEBUG_framename_input = 1;
+static const int DEBUG_framename_input = 0;
+static const int DEBUG_framename_output = 0;
 
 tf::TransformListener *listener_ptr;
 ros::Publisher pub;
@@ -34,7 +35,7 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     try {
         //transform pointcloud zed_left_camera_frame to map frame
         if (DEBUG_framename_input)
-            cout << "frame id is " << dpth->header.frame_id << endl;
+            cout << "input frame id is " << dpth->header.frame_id << endl;
         listener_ptr->lookupTransform("map", dpth->header.frame_id, dpth->header.stamp, tfStamp);
     }
     catch (tf::TransformException ex){
@@ -44,6 +45,8 @@ void objectDepthCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     // Transform point cloud
     pcl_ros::transformPointCloud (cloud_in,cloud_trans,tfStamp);
     cloud_trans.header.frame_id="map";
+    if (DEBUG_framename_output)
+        cout << "output frame id is " << cloud_trans.header.frame_id << endl;
     sensor_msgs::PointCloud2 msg_pub;
     pcl::toROSMsg(cloud_trans, msg_pub);
     pub.publish(msg_pub);
