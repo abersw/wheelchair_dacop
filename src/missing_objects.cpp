@@ -18,11 +18,9 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_listener.h>
 
-//conversion of ros pointcloud to pcl
-#include <pcl_conversions/pcl_conversions.h>
-
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/conversions.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl_ros/transforms.h>
 #include <pcl/point_cloud.h>
 
@@ -62,6 +60,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     cHull.setInputCloud(cloud);
     cHull.reconstruct (cHull_points);*/
 
+/*
     pcl::PCLPointCloud2 pcl_pc2;
     pcl_conversions::toPCL(*dpth, pcl_pc2);
     //pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -112,6 +111,11 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
 
     // Publish the data
     //pcl_pub.publish (output);
+    */
+
+   //calculate field of view
+   //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
+   //see if transform exists within a range
 }
 
 int main (int argc, char **argv) {
