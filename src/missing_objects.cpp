@@ -2,7 +2,7 @@
  * missing_objects.cpp
  * wheelchair_context
  * version: 0.0.1 Majestic Maidenhair
- * Status: Alpha
+ * Status: Pre-Alpha
  *
 */
 
@@ -20,7 +20,11 @@ TofToolBox *tofToolBox;
 
 ros::Publisher pcl_pub;
 
-//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+int verifyFieldOfView() {
+    //add code here
+    return 0;
+}
+
 
 void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
    //calculate field of view
