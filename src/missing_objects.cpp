@@ -8,31 +8,9 @@
 
 #include "tof_tool/tof_tool_box.h"
 
-#include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
 
 #include "wheelchair_msgs/objectLocations.h"
-
 #include <sensor_msgs/PointCloud2.h>
-#include <tf/transform_listener.h>
-
-#include <pcl/PCLPointCloud2.h>
-#include <pcl/conversions.h>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl_ros/transforms.h>
-#include <pcl/point_cloud.h>
-
-#include <pcl/ModelCoefficients.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_types.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/filters/passthrough.h>
-#include <pcl/filters/project_inliers.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/surface/convex_hull.h>
 
 using namespace std;
 
