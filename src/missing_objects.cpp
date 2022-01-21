@@ -20,6 +20,7 @@
 using namespace std;
 
 static const int DEBUG_addObjectLocationsToStruct = 1;
+static const int DEBUG_getPointCloudTimestamp = 1;
 static const int DEBUG_main = 1;
 
 TofToolBox *tofToolBox;
@@ -41,7 +42,10 @@ struct Objects { //struct for publishing topic
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
 
-ros::Publisher pcl_pub;
+ros::Time camera_timestamp;
+double camera_timestamp_sec;
+
+tf::TransformListener *ptrListener; //global pointer for transform listener
 
 void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
     int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
@@ -77,6 +81,23 @@ void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr
     }
 }
 
+void getPointCloudTimestamp(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
+    camera_timestamp = dpth->header.stamp;
+    camera_timestamp_sec = camera_timestamp.toSec();
+    if (DEBUG_getPointCloudTimestamp) {
+        cout.precision(17);
+        cout << "pointcloud timestamp: " << fixed << camera_timestamp << endl;
+    }
+}
+
+int verifyFielfOfView() {
+    tf::StampedTransform translation; //initiate translation for transform object
+    //try {
+    //    ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+    //    ptrListener->lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
+    return 0;
+}
+
 /**
  * Callback function triggered by received ROS topic detected objects only
  *
@@ -94,12 +115,12 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
-   //calculate field of view
-   //calcualte the orientation of the robot, filter transforms within field of view of the robot
-   //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
-   //see if transform exists within a range
-
-   addObjectLocationsToStruct(obLoc);
+    //calculate field of view
+    //calcualte the orientation of the robot, filter transforms within field of view of the robot
+    //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
+    //see if transform exists within a range
+    getPointCloudTimestamp(dpth);
+    addObjectLocationsToStruct(obLoc);
 }
 
 int main (int argc, char **argv) {
@@ -121,6 +142,9 @@ int main (int argc, char **argv) {
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
+        tf::TransformListener listener;
+        ptrListener = &listener; //set to global pointer - to access from another function
+
         if (DEBUG_main) {
             cout << "spin \n";
         }
