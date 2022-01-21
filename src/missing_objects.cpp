@@ -17,10 +17,22 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
+#include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/Pose.h"
+#include "geometry_msgs/Point.h"
+#include "geometry_msgs/Quaternion.h"
+#include "geometry_msgs/TransformStamped.h"
+
+#include "tf/transform_listener.h"
+#include "tf/transform_broadcaster.h"
+
+#include <math.h>
+
 using namespace std;
 
-static const int DEBUG_addObjectLocationsToStruct = 1;
-static const int DEBUG_getPointCloudTimestamp = 1;
+static const int DEBUG_addObjectLocationsToStruct = 0;
+static const int DEBUG_getPointCloudTimestamp = 0;
+static const int DEBUG_objectsInFielfOfView = 1;
 static const int DEBUG_main = 1;
 
 TofToolBox *tofToolBox;
@@ -41,9 +53,20 @@ struct Objects { //struct for publishing topic
 };
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
+struct Objects *objectsInFielfOfViewStruct[100000];
 
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
+
+struct FOV {
+    double minDepth = 0.1;
+    double maxDepth = 5;
+    //https://support.stereolabs.com/hc/en-us/articles/360007395634-What-is-the-camera-focal-length-and-field-of-view-
+    //HD-720p
+    int fovx = 85; //horizontal field of view in deg
+    int fovy = 54; //vertical field of view in deg
+};
+struct FOV fov;
 
 tf::TransformListener *ptrListener; //global pointer for transform listener
 
@@ -90,11 +113,101 @@ void getPointCloudTimestamp(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     }
 }
 
-int verifyFielfOfView() {
+int objectsInFielfOfView() {
+    /*object_on_world = PoseStamped()
+    object_on_world.header.frame_id = 'map'
+    object_on_world.pose.orientation.w = 1.0
+    object_on_world.pose.position.x = object_x_pos
+    object_on_world.pose.position.y = object_y_pos
+    object_on_world.pose.position.z = object_z_pos
+
+    transform = self.tf_buffer.lookup_transform('camera_depth_optical_frame', 'map', rospy.Time(0), rospy.Duration(1.0))
+    object_on_camera = tf2_geometry_msgs.do_transform_pose(object_on_world, transform) #point on camera_depth_optical_frame*/
+
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+        //geometry_msgs::PoseStamped objectOnWorld;
+
+        /*objectOnWorld.header.frame_id = "map"; //assign the pose 'map' frame
+        objectOnWorld.pose.orientation.w = objectsFileStruct[isObject].quat_w; //assign rotation quat w
+        objectOnWorld.pose.position.x = objectsFileStruct[isObject].point_x;
+        objectOnWorld.pose.position.y = objectsFileStruct[isObject].point_y;
+        objectOnWorld.pose.position.z = objectsFileStruct[isObject].point_z;*/
+        std::string getObjectID = to_string(objectsFileStruct[isObject].id);
+        std::string getObjectName = objectsFileStruct[isObject].object_name;
+        std::string DETframename = "/" + getObjectName + getObjectName;
+
+
+
+        try {
+            tf::StampedTransform cameraTranslation;
+            ptrListener->waitForTransform("zed_camera_center", "/map", camera_timestamp, ros::Duration(1.0)); //wait a few seconds for ROS to respond
+            ptrListener->lookupTransform("zed_camera_center", "/map", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
+            /*try {
+                tf::StampedTransform objectTranslation;
+                ptrListener->waitForTransform(DETframename, cameraTranslation, camera_timestamp, ros::Duration(1.0)); //wait a few seconds for ROS to respond
+                ptrListener->lookupTransform(DETframename, cameraTranslation, camera_timestamp, objectTranslation); //lookup translation of object from map frame
+            }
+            catch (tf::TransformException ex){
+                cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
+                ROS_ERROR("%s",ex.what()); //print error
+                ros::Duration(1.0).sleep();
+            }*/
+        }
+        catch (tf::TransformException ex){
+            cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
+            ROS_ERROR("%s",ex.what()); //print error
+            ros::Duration(1.0).sleep();
+        }
+    }
+
+
+
+
+
+
+
+
+
+    tf::StampedTransform cameraTranslation;
+    try {
+        ptrListener->waitForTransform("/map", "zed_camera_center", camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        ptrListener->lookupTransform("/map", "zed_camera_center", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
+
+        if ((cameraTranslation.getOrigin().z() < fov.minDepth) || (cameraTranslation.getOrigin().z() > fov.maxDepth)) {
+            //objects behind the camera, with a distance minor/higher than the accepted are not considered in the field of fiew
+        }
+        else {
+            double yangle = atan(cameraTranslation.getOrigin().y() / cameraTranslation.getOrigin().z()); //radians
+            double xangle = atan(cameraTranslation.getOrigin().x() / cameraTranslation.getOrigin().z()); //radians
+
+            double absX = abs(fov.fovx / 2 * M_PI / 180);
+            double absY = abs(fov.fovy / 2 * M_PI / 180);
+            if ((xangle < absX) && (yangle < absY)) {
+                cout << "transform inside FOV" << endl;
+            }
+            else {
+                cout << "transform not in FOV" << endl;
+            }
+        }
+    }
+    catch (tf::TransformException ex){
+        cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
+        ROS_ERROR("%s",ex.what()); //print error
+        ros::Duration(1.0).sleep();
+    }
+
+    //notes:
+
     tf::StampedTransform translation; //initiate translation for transform object
-    //try {
-    //    ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
-    //    ptrListener->lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
+    try {
+        //ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        //ptrListener->lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
+    }
+    catch (tf::TransformException ex){
+        cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
+        ROS_ERROR("%s",ex.what()); //print error
+        ros::Duration(1.0).sleep();
+    }
     return 0;
 }
 
