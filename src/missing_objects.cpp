@@ -123,18 +123,19 @@ int objectsInFielfOfView() {
 
     transform = self.tf_buffer.lookup_transform('camera_depth_optical_frame', 'map', rospy.Time(0), rospy.Duration(1.0))
     object_on_camera = tf2_geometry_msgs.do_transform_pose(object_on_world, transform) #point on camera_depth_optical_frame*/
-
+/*
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
         //geometry_msgs::PoseStamped objectOnWorld;
 
-        /*objectOnWorld.header.frame_id = "map"; //assign the pose 'map' frame
-        objectOnWorld.pose.orientation.w = objectsFileStruct[isObject].quat_w; //assign rotation quat w
-        objectOnWorld.pose.position.x = objectsFileStruct[isObject].point_x;
-        objectOnWorld.pose.position.y = objectsFileStruct[isObject].point_y;
-        objectOnWorld.pose.position.z = objectsFileStruct[isObject].point_z;*/
-        std::string getObjectID = to_string(objectsFileStruct[isObject].id);
-        std::string getObjectName = objectsFileStruct[isObject].object_name;
-        std::string DETframename = "/" + getObjectName + getObjectName;
+        //objectOnWorld.header.frame_id = "map"; //assign the pose 'map' frame
+        //objectOnWorld.pose.orientation.w = objectsFileStruct[isObject].quat_w; //assign rotation quat w
+        //objectOnWorld.pose.position.x = objectsFileStruct[isObject].point_x;
+        //objectOnWorld.pose.position.y = objectsFileStruct[isObject].point_y;
+        //objectOnWorld.pose.position.z = objectsFileStruct[isObject].point_z;
+
+        //std::string getObjectID = to_string(objectsFileStruct[isObject].id);
+        //std::string getObjectName = objectsFileStruct[isObject].object_name;
+        //std::string DETframename = "/" + getObjectName + getObjectName;
 
 
 
@@ -142,16 +143,16 @@ int objectsInFielfOfView() {
             tf::StampedTransform cameraTranslation;
             ptrListener->waitForTransform("zed_camera_center", "/map", camera_timestamp, ros::Duration(1.0)); //wait a few seconds for ROS to respond
             ptrListener->lookupTransform("zed_camera_center", "/map", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
-            /*try {
-                tf::StampedTransform objectTranslation;
-                ptrListener->waitForTransform(DETframename, cameraTranslation, camera_timestamp, ros::Duration(1.0)); //wait a few seconds for ROS to respond
-                ptrListener->lookupTransform(DETframename, cameraTranslation, camera_timestamp, objectTranslation); //lookup translation of object from map frame
-            }
-            catch (tf::TransformException ex){
-                cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
-                ROS_ERROR("%s",ex.what()); //print error
-                ros::Duration(1.0).sleep();
-            }*/
+            // try {
+            //     tf::StampedTransform objectTranslation;
+            //     ptrListener->waitForTransform(DETframename, cameraTranslation, camera_timestamp, ros::Duration(1.0)); //wait a few seconds for ROS to respond
+            //     ptrListener->lookupTransform(DETframename, cameraTranslation, camera_timestamp, objectTranslation); //lookup translation of object from map frame
+            // }
+            // catch (tf::TransformException ex){
+            //     cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
+            //     ROS_ERROR("%s",ex.what()); //print error
+            //     ros::Duration(1.0).sleep();
+            // }
         }
         catch (tf::TransformException ex){
             cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
@@ -159,13 +160,27 @@ int objectsInFielfOfView() {
             ros::Duration(1.0).sleep();
         }
     }
+*/
 
 
 
 
 
+/*
+cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
+{
+    assert( initialized() );
+    assert(P_(2, 3) == 0.0); // Calibrated stereo cameras should be in the same plane
 
-
+    // [U V W]^T = P * [X Y Z 1]^T
+    // u = U/W
+    // v = V/W
+    cv::Point2d uv_rect;
+    uv_rect.x = (fx()*xyz.x + Tx()) / xyz.z + cx();
+    uv_rect.y = (fy()*xyz.y + Ty()) / xyz.z + cy();
+    return uv_rect;
+}
+*/
 
 
     tf::StampedTransform cameraTranslation;
