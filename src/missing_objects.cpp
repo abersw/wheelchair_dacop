@@ -11,6 +11,7 @@
 
 #include "wheelchair_msgs/objectLocations.h"
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
@@ -182,9 +183,10 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
 }
 */
 
-
+    cout << "in field of view function" << endl;
     tf::StampedTransform cameraTranslation;
     try {
+        cout << "in try loop" << endl;
         ptrListener->waitForTransform("/map", "zed_camera_center", camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
         ptrListener->lookupTransform("/map", "zed_camera_center", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
 
@@ -212,7 +214,7 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
     }
 
     //notes:
-
+/*
     tf::StampedTransform translation; //initiate translation for transform object
     try {
         //ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
@@ -222,7 +224,7 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
         cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
         ROS_ERROR("%s",ex.what()); //print error
         ros::Duration(1.0).sleep();
-    }
+    }*/
     return 0;
 }
 
@@ -236,6 +238,14 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
     //
 }
 
+void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
+    cout << "find matching points" << endl;
+    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); ++it) {
+        // TODO: do something with the values of x, y, z
+        std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
+    }
+}
+
 /**
  * Callback function triggered by received ROS topic full list of objects
  *
@@ -247,8 +257,12 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     //calcualte the orientation of the robot, filter transforms within field of view of the robot
     //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
     //see if transform exists within a range
+    cout << "inside callback" << endl;
     getPointCloudTimestamp(dpth);
     addObjectLocationsToStruct(obLoc);
+
+    //objectsInFielfOfView(); //need to try and get this working
+    findMatchingPoints(dpth);
 }
 
 int main (int argc, char **argv) {
@@ -262,8 +276,8 @@ int main (int argc, char **argv) {
 
     //full list of objects
     ros::Subscriber detected_objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 100); //get transformed pointcloud
-    message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "wheelchair_robot/dacop/publish_object_locations/objects", 100); //get mobilenet objects detected
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1000); //get transformed pointcloud
+    message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "wheelchair_robot/dacop/publish_object_locations/objects", 1000); //get mobilenet objects detected
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::objectLocations> MySyncPolicy; //approximately sync the topic rate
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(20), depth_sub, objects_sub); //set sync policy
     depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2)); //set callback for synced topics
