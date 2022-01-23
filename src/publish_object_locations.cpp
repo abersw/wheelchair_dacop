@@ -192,6 +192,7 @@ void publishDetectedObjects(const struct Objects detectedObjects[1000], int tota
         tofToolBox->printSeparator(0);
     }
     wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
+    exisObLoc.header.stamp = camera_timestamp;
     for (int isExistingObject = 0; isExistingObject < totalDetectedObjects; isExistingObject++) { //run through loop of detected objects
         if (DEBUG_publishDetectedObjects) {
             cout << detectedObjects[isExistingObject].id << ", " << detectedObjects[isExistingObject].object_name << endl;
@@ -391,6 +392,7 @@ void broadcastTransformStruct() {
  */
 void publishObjectStructMsg() {
     wheelchair_msgs::objectLocations obLoc;
+    obLoc.header.stamp = camera_timestamp;
     //publish all objects inside struct
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
         obLoc.id.push_back(objectsFileStruct[isObject].id);
