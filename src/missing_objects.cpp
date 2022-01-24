@@ -34,6 +34,7 @@ using namespace std;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_objectsInFielfOfView = 1;
+static const int DEBUG_findMatchingPoints_1 = 0;
 static const int DEBUG_main = 1;
 
 TofToolBox *tofToolBox;
@@ -58,6 +59,9 @@ struct Objects *objectsInFielfOfViewStruct[100000];
 
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
+
+double pointBoundaryX = 0.5;
+double pointBoundaryY = 0.5;
 
 struct FOV {
     double minDepth = 0.1;
@@ -242,7 +246,31 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     cout << "find matching points" << endl;
     for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); ++it) {
         // TODO: do something with the values of x, y, z
-        std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
+        double pcloudX = it[0];
+        double pcloudY = it[1];
+        double pcloudZ = it[2];
+        if (DEBUG_findMatchingPoints_1) {
+            //std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
+            std::cout << pcloudX << ", " << pcloudY << ", " << pcloudZ << '\n';
+        }
+        //run through entire struct of objects
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+            double objectPointX = objectsFileStruct[isObject].point_x;
+            double objectPointY = objectsFileStruct[isObject].point_y;
+            double minObjectPointX = objectPointX - pointBoundaryX;
+            double maxObjectPointX = objectPointX + pointBoundaryX;
+            double minObjectPointY = objectPointY - pointBoundaryY;
+            double maxObjectPointY = objectPointY + pointBoundaryY;
+            if ((pcloudX > minObjectPointX) &&
+                (pcloudX < maxObjectPointX) &&
+                (pcloudY > minObjectPointY) &&
+                (pcloudY < maxObjectPointY)) {
+                //transform detected close to pc2 point
+            }
+            else {
+                //transform not detected close to point
+            }
+        }
     }
 }
 
