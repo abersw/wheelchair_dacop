@@ -266,6 +266,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 (pcloudY > minObjectPointY) &&
                 (pcloudY < maxObjectPointY)) {
                 //transform detected close to pc2 point
+                cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
             }
             else {
                 //transform not detected close to point
