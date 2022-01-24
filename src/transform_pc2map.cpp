@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     std::string PARAM_pointcloud_src;
     nh.getParam("/wheelchair_robot/param/pointcloud", PARAM_pointcloud_src);
     ros::Subscriber sub = nh.subscribe(PARAM_pointcloud_src, 1, objectDepthCallback);
-    pub=nh.advertise<sensor_msgs::PointCloud2>("wheelchair_robot/point_cloud",1000);
+    pub=nh.advertise<sensor_msgs::PointCloud2>("wheelchair_robot/point_cloud_map",1000);
 
     ros::spin();
     return 1;
