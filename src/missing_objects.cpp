@@ -31,12 +31,13 @@
 
 using namespace std;
 
+static const int DEBUG_rosPrintSequence = 1;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
-static const int DEBUG_objectsInFielfOfView = 1;
+static const int DEBUG_objectsInFielfOfView = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
-static const int DEBUG_main = 1;
+static const int DEBUG_main = 0;
 
 TofToolBox *tofToolBox;
 
@@ -75,6 +76,13 @@ struct FOV {
 struct FOV fov;
 
 tf::TransformListener *ptrListener; //global pointer for transform listener
+
+void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
+    tofToolBox->printSeparator(0);
+    cout << "depth header seq:  " << dpth->header.seq << endl;
+    cout << "object header seq: " << obLoc->header.seq << endl;
+    tofToolBox->printSeparator(0);
+}
 
 void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
     int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
@@ -289,7 +297,10 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     //calcualte the orientation of the robot, filter transforms within field of view of the robot
     //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
     //see if transform exists within a range
-    cout << "inside callback" << endl;
+    if (DEBUG_rosPrintSequence) {
+        cout << "inside callback" << endl;
+        rosPrintSequence(dpth, obLoc);
+    }
     getPointCloudTimestamp(dpth);
     addObjectLocationsToStruct(obLoc);
 
