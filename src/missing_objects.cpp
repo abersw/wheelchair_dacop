@@ -35,6 +35,7 @@ static const int DEBUG_rosPrintSequence = 1;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_objectsInFielfOfView = 0;
+static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_main = 0;
@@ -58,6 +59,8 @@ struct Objects { //struct for publishing topic
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
 struct Objects *objectsInFielfOfViewStruct[100000];
+struct Objects detectedObjects[10000]; //array for storing detected object data
+int totalObjectsDetected = 0; //total objects inside struct
 
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
@@ -248,7 +251,38 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
-    //
+    totalObjectsDetected = obLoc.totalObjects;
+    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+        detectedObjects[isObject].id = obLoc.id[isObject];
+        detectedObjects[isObject].object_name = obLoc.object_name[isObject];
+        detectedObjects[isObject].object_confidence = obLoc.object_confidence[isObject];
+
+        detectedObjects[isObject].point_x = obLoc.point_x[isObject];
+        detectedObjects[isObject].point_y = obLoc.point_y[isObject];
+        detectedObjects[isObject].point_z = obLoc.point_z[isObject];
+
+        detectedObjects[isObject].quat_x = obLoc.quat_x[isObject];
+        detectedObjects[isObject].quat_y = obLoc.quat_y[isObject];
+        detectedObjects[isObject].quat_z = obLoc.quat_z[isObject];
+        detectedObjects[isObject].quat_w = obLoc.quat_w[isObject];
+    }
+    if (DEBUG_detectedObjectsCallback) { //print off detected objects assignment
+        cout << "total objects detected " << totalObjectsDetected << endl;
+        for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
+            cout << detectedObjects[isObject].id << ", " <<
+            detectedObjects[isObject].object_name << ", " <<
+            detectedObjects[isObject].object_confidence << endl;
+
+            cout << detectedObjects[isObject].point_x << ", " <<
+            detectedObjects[isObject].point_y << ", " <<
+            detectedObjects[isObject].point_z << endl;
+
+            cout << detectedObjects[isObject].quat_x << ", " <<
+            detectedObjects[isObject].quat_y << ", " <<
+            detectedObjects[isObject].quat_z << ", " <<
+            detectedObjects[isObject].quat_w << endl;
+        }
+    }
 }
 
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
