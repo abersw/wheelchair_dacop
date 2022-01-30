@@ -34,7 +34,8 @@ using namespace std;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_objectsInFielfOfView = 1;
-static const int DEBUG_findMatchingPoints_1 = 0;
+static const int DEBUG_findMatchingPoints_rawValues = 0;
+static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_main = 1;
 
 TofToolBox *tofToolBox;
@@ -249,7 +250,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         double pcloudX = it[0];
         double pcloudY = it[1];
         double pcloudZ = it[2];
-        if (DEBUG_findMatchingPoints_1) {
+        if (DEBUG_findMatchingPoints_rawValues) {
             //std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
             std::cout << pcloudX << ", " << pcloudY << ", " << pcloudZ << '\n';
         }
@@ -266,7 +267,9 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 (pcloudY > minObjectPointY) &&
                 (pcloudY < maxObjectPointY)) {
                 //transform detected close to pc2 point
-                cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
+                if (DEBUG_findMatchingPoints_detectedPoints) {
+                    cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
+                }
             }
             else {
                 //transform not detected close to point
