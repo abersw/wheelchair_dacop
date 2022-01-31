@@ -38,7 +38,7 @@ static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_objectsInFielfOfView = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
-static const int DEBUG_findMatchingPoints_detectedPoints = 1;
+static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_main = 0;
 
 TofToolBox *tofToolBox;
@@ -286,17 +286,18 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 //transform detected close to pc2 point
                 if (DEBUG_findMatchingPoints_detectedPoints) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
-                    ros::Duration timeRange(0.5);
-                    ros::Time reverseTime(camera_timestamp - timeRange);
-                    ros::Time forwardTime(camera_timestamp + timeRange);
-                    const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
-                    if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
-                        int totalDet = obLoc->totalObjects;
-                        for (int isDetObject = 0; isDetObject < totalDet; isDetObject++) {
-                            int detObjectID = obLoc->id[isDetObject];
-                            if (detObjectID == objectsFileStruct[isObject].id) {
-                                cout << "THIS OBJECT HAS BEEN REDETECTED!" << endl;
-                            }
+                }
+                ros::Duration timeRangeReverse(0.1);
+                ros::Duration timeRangeForward(0.5);
+                ros::Time reverseTime(camera_timestamp - timeRangeReverse);
+                ros::Time forwardTime(camera_timestamp + timeRangeForward);
+                const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
+                if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
+                    int totalDet = obLoc->totalObjects;
+                    for (int isDetObject = 0; isDetObject < totalDet; isDetObject++) {
+                        int detObjectID = obLoc->id[isDetObject];
+                        if (detObjectID == objectsFileStruct[isObject].id) {
+                            cout << objectsFileStruct[isObject].object_name << " HAS BEEN REDETECTED!" << endl;
                         }
                     }
                 }
