@@ -1,0 +1,6 @@
+<launch>
+<!--add valgrind -v to launch prefix-->
+<!--or add gdb -ex run dash dash args to launch prefix-->
+<!--node to calculate if the object has been detected before-->
+<node pkg="wheelchair_dacop" name="missing_objects" type="missing_objects" output="screen" launch-prefix=""></node>
+</launch>
