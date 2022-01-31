@@ -17,6 +17,7 @@
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/cache.h>
 
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/Pose.h"
@@ -79,6 +80,9 @@ struct FOV {
 struct FOV fov;
 
 tf::TransformListener *ptrListener; //global pointer for transform listener
+
+//https://docs.ros.org/en/api/message_filters/html/c++/classmessage__filters_1_1Cache.html
+message_filters::Cache<wheelchair_msgs::objectLocations> cache; //buffer incoming detected objects
 
 void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
     tofToolBox->printSeparator(0);
@@ -250,39 +254,10 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
-void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
-    totalObjectsDetected = obLoc.totalObjects;
-    for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-        detectedObjects[isObject].id = obLoc.id[isObject];
-        detectedObjects[isObject].object_name = obLoc.object_name[isObject];
-        detectedObjects[isObject].object_confidence = obLoc.object_confidence[isObject];
-
-        detectedObjects[isObject].point_x = obLoc.point_x[isObject];
-        detectedObjects[isObject].point_y = obLoc.point_y[isObject];
-        detectedObjects[isObject].point_z = obLoc.point_z[isObject];
-
-        detectedObjects[isObject].quat_x = obLoc.quat_x[isObject];
-        detectedObjects[isObject].quat_y = obLoc.quat_y[isObject];
-        detectedObjects[isObject].quat_z = obLoc.quat_z[isObject];
-        detectedObjects[isObject].quat_w = obLoc.quat_w[isObject];
-    }
-    if (DEBUG_detectedObjectsCallback) { //print off detected objects assignment
-        cout << "total objects detected " << totalObjectsDetected << endl;
-        for (int isObject = 0; isObject < totalObjectsDetected; isObject++) {
-            cout << detectedObjects[isObject].id << ", " <<
-            detectedObjects[isObject].object_name << ", " <<
-            detectedObjects[isObject].object_confidence << endl;
-
-            cout << detectedObjects[isObject].point_x << ", " <<
-            detectedObjects[isObject].point_y << ", " <<
-            detectedObjects[isObject].point_z << endl;
-
-            cout << detectedObjects[isObject].quat_x << ", " <<
-            detectedObjects[isObject].quat_y << ", " <<
-            detectedObjects[isObject].quat_z << ", " <<
-            detectedObjects[isObject].quat_w << endl;
-        }
-    }
+void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
+    cache.add(obLoc);
+    std::cout << "Oldest time cached is " << cache.getOldestTime() << std::endl;
+    std::cout << "Last time received is " << cache.getLatestTime() << std::endl << std::endl;
 }
 
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
@@ -352,7 +327,12 @@ int main (int argc, char **argv) {
     ros::Rate rate(10.0);
 
     //full list of objects
-    ros::Subscriber detected_objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+    //ros::Subscriber detected_objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+
+    cache.setCacheSize(1000);
+    ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+
+
     //get transformed pointcloud
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1000);
     //get transformed pointcloud
