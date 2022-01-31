@@ -66,8 +66,8 @@ int totalObjectsDetected = 0; //total objects inside struct
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
 
-double pointBoundaryX = 0.5;
-double pointBoundaryY = 0.5;
+double pointBoundaryX = 0.1;
+double pointBoundaryY = 0.1;
 
 struct FOV {
     double minDepth = 0.1;
