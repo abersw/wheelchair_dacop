@@ -291,8 +291,9 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 ros::Duration timeRangeForward(0.5);
                 ros::Time reverseTime(camera_timestamp - timeRangeReverse);
                 ros::Time forwardTime(camera_timestamp + timeRangeForward);
-                const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
-                if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
+                try {
+                    const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
+                    if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
                     int totalDet = obLoc->totalObjects;
                     for (int isDetObject = 0; isDetObject < totalDet; isDetObject++) {
                         int detObjectID = obLoc->id[isDetObject];
@@ -300,6 +301,10 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                             cout << objectsFileStruct[isObject].object_name << " HAS BEEN REDETECTED!" << endl;
                         }
                     }
+                }
+                }
+                catch(std::exception &err) {
+                    cout << "something went wrong... " << err.what() << endl;
                 }
             }
             else {
