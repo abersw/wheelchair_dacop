@@ -296,8 +296,8 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 if (DEBUG_findMatchingPoints_detectedPoints) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
                 }
-                ros::Duration timeRangeReverse(timeRangeReverseValue);
-                ros::Duration timeRangeForward(timeRangeForwardValue);
+                ros::Duration timeRangeReverse(boundary.timeRangeReverseValue);
+                ros::Duration timeRangeForward(boundary.timeRangeForwardValue);
                 ros::Time reverseTime(camera_timestamp - timeRangeReverse); //create boundary back in time
                 ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
 
