@@ -62,12 +62,12 @@ int totalObjectsFileStruct = 0; //total objects inside struct
 struct Objects *objectsInFielfOfViewStruct[100000];
 struct Objects detectedObjects[10000]; //array for storing detected object data
 int totalObjectsDetected = 0; //total objects inside struct
+struct Objects redetectedObjects[1000]; //store objects that have been redetected in struct
+int totalRedetectedObjects = 0; //total objects inside redetected objects struct
 
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
 
-double pointBoundaryX = 0.1;
-double pointBoundaryY = 0.1;
 
 struct FOV {
     double minDepth = 0.1;
@@ -78,6 +78,15 @@ struct FOV {
     int fovy = 54; //vertical field of view in deg
 };
 struct FOV fov;
+
+struct Boundary {
+    double pointBoundaryX = 0.1;
+    double pointBoundaryY = 0.1;
+
+    double timeRangeReverseValue = 0.1;
+    double timeRangeForwardValue = 0.5;
+};
+struct Boundary boundary;
 
 tf::TransformListener *ptrListener; //global pointer for transform listener
 
@@ -275,10 +284,10 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
             double objectPointX = objectsFileStruct[isObject].point_x;
             double objectPointY = objectsFileStruct[isObject].point_y;
-            double minObjectPointX = objectPointX - pointBoundaryX;
-            double maxObjectPointX = objectPointX + pointBoundaryX;
-            double minObjectPointY = objectPointY - pointBoundaryY;
-            double maxObjectPointY = objectPointY + pointBoundaryY;
+            double minObjectPointX = objectPointX - boundary.pointBoundaryX;
+            double maxObjectPointX = objectPointX + boundary.pointBoundaryX;
+            double minObjectPointY = objectPointY - boundary.pointBoundaryY;
+            double maxObjectPointY = objectPointY + boundary.pointBoundaryY;
             if ((pcloudX > minObjectPointX) &&
                 (pcloudX < maxObjectPointX) &&
                 (pcloudY > minObjectPointY) &&
@@ -287,17 +296,22 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 if (DEBUG_findMatchingPoints_detectedPoints) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
                 }
-                ros::Duration timeRangeReverse(0.1);
-                ros::Duration timeRangeForward(0.5);
-                ros::Time reverseTime(camera_timestamp - timeRangeReverse);
-                ros::Time forwardTime(camera_timestamp + timeRangeForward);
+                ros::Duration timeRangeReverse(timeRangeReverseValue);
+                ros::Duration timeRangeForward(timeRangeForwardValue);
+                ros::Time reverseTime(camera_timestamp - timeRangeReverse); //create boundary back in time
+                ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
 
+                //check to see if cache will not return a null
                 if (cache.getElemAfterTime(reverseTime) != NULL) {
+                    //get ros msg after the specified time 'reverseTime'
                     const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
+                    //double check to see msg header stamp isn't too far away from specified time
                     if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
-                        int totalDet = obLoc->totalObjects;
+                        int totalDet = obLoc->totalObjects; //get total number of objects detected
                         for (int isDetObject = 0; isDetObject < totalDet; isDetObject++) {
-                            int detObjectID = obLoc->id[isDetObject];
+                            int detObjectID = obLoc->id[isDetObject]; //get object ID detected
+                            //only need to query object ID, object publisher node deals with 3D bounding boxes
+                            //if object detected and pc2 point close to transform is equal
                             if (detObjectID == objectsFileStruct[isObject].id) {
                                 cout << objectsFileStruct[isObject].object_name << " HAS BEEN REDETECTED!" << endl;
                             }
