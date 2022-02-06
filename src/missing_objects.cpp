@@ -62,8 +62,10 @@ int totalObjectsFileStruct = 0; //total objects inside struct
 struct Objects *objectsInFielfOfViewStruct[100000];
 struct Objects detectedObjects[10000]; //array for storing detected object data
 int totalObjectsDetected = 0; //total objects inside struct
-struct Objects redetectedObjects[1000]; //store objects that have been redetected in struct
-int totalRedetectedObjects = 0; //total objects inside redetected objects struct
+struct Objects objectsRedetected[1000]; //store objects that have been redetected in struct
+int totalObjectsRedetected = 0; //total objects inside redetected objects struct
+struct Objects objectsNotRedetected[1000]; //store objects that should have been redetected
+int totalObjectsNotRedetected = 0; //total objects not redetected by node
 
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
