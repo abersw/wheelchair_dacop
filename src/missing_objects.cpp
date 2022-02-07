@@ -273,6 +273,13 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &o
 
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     cout << "find matching points" << endl;
+    int localObjectsRedetected[1000];
+    int localObjectsRedetectedCounter = 0;
+    int totalLocalObjectsRedetected = 0;
+    int localObjectsNotRedetected[1000];
+    int localObjectsNotRedetectedCounter = 0;
+    int totalLocalObjectsNotRedetected = 0;
+
     for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); ++it) {
         // TODO: do something with the values of x, y, z
         double pcloudX = it[0];
@@ -316,12 +323,40 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                             //if object detected and pc2 point close to transform is equal
                             if (detObjectID == objectsFileStruct[isObject].id) {
                                 cout << objectsFileStruct[isObject].object_name << " HAS BEEN REDETECTED!" << endl;
+                                if (totalLocalObjectsRedetected == 0) {
+                                    //add first element to array
+                                    //assign object id to local array
+                                    localObjectsRedetected[totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
+                                    totalLocalObjectsRedetected++; //iterate to next element in array
+
+                                }
+                                else {
+                                    //run through for loop to see if id has already been detected
+                                    int objectAlreadyInStruct = 0;
+                                    for (int localDet = 0; localDet < totalLocalObjectsRedetected; localDet++) {
+                                        if (objectsFileStruct[isObject].id == localObjectsRedetected[totalLocalObjectsRedetected]) {
+                                            //id is already in struct
+                                            objectAlreadyInStruct = 1;
+                                        }
+                                    }
+                                    if (objectAlreadyInStruct == 0) {
+                                        //object needs adding to objects redetected struct
+                                        localObjectsRedetected[totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
+                                        totalLocalObjectsRedetected++; //iterate to next element in array
+                                    }
+                                    else if (objectAlreadyInStruct == 1) {
+                                        //don't do anything, object already in objects redetected struct
+                                    }
+                                }
                             }
                         }
                     }
                 }
                 else {
                     cout << "Avoided NULL pointer" << endl;
+                    //point is near object transform, but no dnn detection message
+                    //no detection message received, assume object transform with corresponding points are no longer present
+
                 }
             }
             else {
