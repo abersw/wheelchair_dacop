@@ -290,8 +290,10 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
     cache.add(obLoc);
-    std::cout << "Oldest time cached is " << cache.getOldestTime() << std::endl;
-    std::cout << "Last time received is " << cache.getLatestTime() << std::endl << std::endl;
+    if (DEBUG_detectedObjectsCallback) {
+        std::cout << "Oldest time cached is " << cache.getOldestTime() << std::endl;
+        std::cout << "Last time received is " << cache.getLatestTime() << std::endl << std::endl;
+    }
 }
 
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
