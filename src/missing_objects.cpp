@@ -38,6 +38,7 @@ static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_objectsInFielfOfView = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
+static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_main = 0;
@@ -67,6 +68,9 @@ struct Objects objectsRedetected[1000]; //store objects that have been redetecte
 int totalObjectsRedetected = 0; //total objects inside redetected objects struct
 struct Objects objectsNotRedetected[1000]; //store objects that should have been redetected
 int totalObjectsNotRedetected = 0; //total objects not redetected by node
+
+
+struct Objects *matchingsPoints[100000];
 
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
@@ -291,6 +295,41 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &o
 }
 
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
+    int filterTransforms[fov.numberOfPixels];
+    int totalFilterTransforms = 0;
+    if (DEBUG_findMatchingPoints) {
+        cout << "find matching points" << endl;
+    }
+    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); ++it) {
+        double pcloudX = it[0];
+        double pcloudY = it[1];
+        double pcloudZ = it[2];
+        if (DEBUG_findMatchingPoints_rawValues) {
+            //std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
+            std::cout << pcloudX << ", " << pcloudY << ", " << pcloudZ << '\n';
+        }
+        //run through entire struct of objects
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+            double objectPointX = objectsFileStruct[isObject].point_x;
+            double objectPointY = objectsFileStruct[isObject].point_y;
+            double minObjectPointX = objectPointX - boundary.pointBoundaryX;
+            double maxObjectPointX = objectPointX + boundary.pointBoundaryX;
+            double minObjectPointY = objectPointY - boundary.pointBoundaryY;
+            double maxObjectPointY = objectPointY + boundary.pointBoundaryY;
+            if ((pcloudX > minObjectPointX) &&
+                (pcloudX < maxObjectPointX) &&
+                (pcloudY > minObjectPointY) &&
+                (pcloudY < maxObjectPointY)) {
+                //transform detected close to pc2 point
+                if (DEBUG_findMatchingPoints_detectedPoints) {
+                    cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
+                }
+            }
+        }
+    }
+}
+
+/*void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     cout << "find matching points" << endl;
     int localObjectsRedetected[1000];
     int localObjectsRedetectedCounter = 0;
@@ -383,7 +422,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
             }
         }
     }
-}
+}*/
 
 /**
  * Callback function triggered by received ROS topic full list of objects
