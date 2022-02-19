@@ -41,6 +41,7 @@ static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
+static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 1;
 static const int DEBUG_main = 0;
 
 TofToolBox *tofToolBox;
@@ -99,6 +100,12 @@ struct Boundary {
     double timeRangeForwardValue = 0.5;
 };
 struct Boundary boundary;
+
+struct MatchingPoints {
+    int totalLocalObjectsRedetected = 0;
+    int localObjectsRedetected[1000];
+};
+struct MatchingPoints matchingPoints;
 
 tf::TransformListener *ptrListener; //global pointer for transform listener
 
@@ -296,6 +303,60 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &o
     }
 }
 
+void getCorrespondingObjectFrame(int isObject) {
+    ros::Duration timeRangeReverse(boundary.timeRangeReverseValue);
+    ros::Duration timeRangeForward(boundary.timeRangeForwardValue);
+    ros::Time reverseTime(camera_timestamp - timeRangeReverse); //create boundary back in time
+    ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
+
+    //check to see if cache will not return a null
+    if (cache.getElemAfterTime(reverseTime) != NULL) {
+        //get ros msg after the specified time 'reverseTime'
+        const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
+        //double check to see msg header stamp isn't too far away from specified time
+        if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
+            int totalDet = obLoc->totalObjects; //get total number of objects detected
+            for (int isDetObject = 0; isDetObject < totalDet; isDetObject++) {
+                int detObjectID = obLoc->id[isDetObject]; //get object ID detected
+                //only need to query object ID, object publisher node deals with 3D bounding boxes
+                //if object detected and pc2 point close to transform is equal
+                if (detObjectID == objectsFileStruct[isObject].id) {
+                    if (DEBUG_getCorrespondingObjectFrame_redetectedObjects) {
+                        cout << objectsFileStruct[isObject].object_name << " HAS BEEN REDETECTED!" << endl;
+                    }
+
+
+                    if (matchingPoints.totalLocalObjectsRedetected == 0) {
+                        //add first element to array
+                        //assign object id to local array
+                        matchingPoints.localObjectsRedetected[matchingPoints.totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
+                        matchingPoints.totalLocalObjectsRedetected++; //iterate to next element in array
+
+                    }
+                    else {
+                        //run through for loop to see if id has already been detected
+                        int objectAlreadyInStruct = 0;
+                        for (int localDet = 0; localDet < matchingPoints.totalLocalObjectsRedetected; localDet++) {
+                            if (objectsFileStruct[isObject].id == matchingPoints.localObjectsRedetected[matchingPoints.totalLocalObjectsRedetected]) {
+                                //id is already in struct
+                                objectAlreadyInStruct = 1;
+                            }
+                        }
+                        if (objectAlreadyInStruct == 0) {
+                            //object needs adding to objects redetected struct
+                            matchingPoints.localObjectsRedetected[matchingPoints.totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
+                            matchingPoints.totalLocalObjectsRedetected++; //iterate to next element in array
+                        }
+                        else if (objectAlreadyInStruct == 1) {
+                            //don't do anything, object already in objects redetected struct
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     int filterTransforms[fov.numberOfPixels];
     int totalFilterTransforms = 0;
@@ -326,6 +387,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 if (DEBUG_findMatchingPoints_detectedPoints) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
                 }
+                getCorrespondingObjectFrame(isObject);
             }
         }
     }
