@@ -32,6 +32,7 @@
 
 using namespace std;
 
+static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
@@ -78,6 +79,11 @@ struct FOV {
     //HD-720p
     int fovx = 85; //horizontal field of view in deg
     int fovy = 54; //vertical field of view in deg
+
+    int gotResolution = 0;
+    int imageHeight;
+    int imageWidth;
+    long numberOfPixels;
 };
 struct FOV fov;
 
@@ -94,6 +100,19 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 
 //https://docs.ros.org/en/api/message_filters/html/c++/classmessage__filters_1_1Cache.html
 message_filters::Cache<wheelchair_msgs::objectLocations> cache; //buffer incoming detected objects
+
+//get resolution of rectified pointcloud image
+void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
+    if (!fov.gotResolution) {
+        fov.imageHeight = dpth->height; //get height of pointcloud image
+        fov.imageWidth = dpth->width; //get width of pointcloud image
+        fov.numberOfPixels = fov.imageHeight * fov.imageWidth;
+        if (DEBUG_getResolutionOnStartup) {
+            cout << fov.imageHeight << "x" << fov.imageWidth << "\n"; //print out height and width if debug flag is true
+        }
+        fov.gotResolution = 1;
+    }
+}
 
 void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
     tofToolBox->printSeparator(0);
@@ -381,6 +400,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
         cout << "inside callback" << endl;
         rosPrintSequence(dpth, obLoc);
     }
+    getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
     addObjectLocationsToStruct(obLoc);
 
