@@ -312,6 +312,13 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &o
     }
 }
 
+/**
+ * Function checks visual object detection to see if object id and transform exist
+ * within same 'frame'
+ *
+ * @param parameter 'isObject' is the position of the object current being
+ * iterated through findMatchingPoints
+ */
 void getCorrespondingObjectFrame(int isObject) {
     ros::Duration timeRangeReverse(boundary.timeRangeReverseValue);
     ros::Duration timeRangeForward(boundary.timeRangeForwardValue);
@@ -366,13 +373,45 @@ void getCorrespondingObjectFrame(int isObject) {
     }
 }
 
-void transformsFoundInPointcloud() {
-    //add code here
+/**
+ * Function adds all transforms with corresponding pc2 points to array
+ *
+ * @param parameter 'isObject' is the position of the object current being
+ * iterated through findMatchingPoints
+ */
+void transformsFoundInPointcloud(int isObject) {
+    if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
+        matchingPoints.objectsList[matchingPoints.totalObjectsList] = objectsFileStruct[isObject].id;
+    }
+    else {
+        int objectAlreadyInList = 0; //flag changes to 1 if object already in lists
+        for (int inList = 0; inList < matchingPoints.totalObjectsList; inList++) { //run through entire list of objects
+            if (objectsFileStruct[isObject].id == matchingPoints.objectsList[inList]) {
+                //id is already in list, set variable to 1
+                objectAlreadyInList = 1;
+            }
+        }
+        if (objectAlreadyInList == 0) { //transform not found in list
+            matchingPoints.objectsList[matchingPoints.totalObjectsList] = objectsFileStruct[isObject].id;
+            matchingPoints.totalObjectsList++;
+        }
+        else if (objectAlreadyInList == 1) { //transform already in list
+            //ignore, object already in struct
+        }
+    }
 }
 
+/**
+ * Function runs through all points in pointcloud and
+ * calculates if transform in close proximity
+ *
+ * @param parameter 'dpth' is ROS message of type pc2
+ *        message belongs to sensor_msgs PointCloud2 constant pointer
+ */
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     int filterTransforms[fov.numberOfPixels];
     int totalFilterTransforms = 0;
+    cout << "number of pixels " << fov.numberOfPixels << endl;
     if (DEBUG_findMatchingPoints) {
         cout << "find matching points" << endl;
     }
@@ -401,7 +440,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
                 }
                 //add corresponding transform to array
-                transformsFoundInPointcloud();
+                transformsFoundInPointcloud(isObject);
                 //check to see if object has been detected from publish objects node
                 getCorrespondingObjectFrame(isObject);
             }
