@@ -63,12 +63,14 @@ struct Objects { //struct for publishing topic
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
 struct Objects *objectsInFielfOfViewStruct[100000];
+/*
 struct Objects detectedObjects[10000]; //array for storing detected object data
 int totalObjectsDetected = 0; //total objects inside struct
 struct Objects objectsRedetected[1000]; //store objects that have been redetected in struct
 int totalObjectsRedetected = 0; //total objects inside redetected objects struct
 struct Objects objectsNotRedetected[1000]; //store objects that should have been redetected
 int totalObjectsNotRedetected = 0; //total objects not redetected by node
+*/
 
 
 struct Objects *matchingsPoints[100000];
@@ -104,6 +106,13 @@ struct Boundary boundary;
 struct MatchingPoints {
     int totalLocalObjectsRedetected = 0;
     int localObjectsRedetected[1000];
+
+    int objectsList[1000]; //all objects to be added to list for filtering
+    int totalObjectsList = 0; //total objects found in pointcloud
+    int objectsRedetected[1000]; //filtered list of objects classified as redetected
+    int totalObjectsRedetected = 0; //total of objects redetected
+    int objectsNotRedetected[1000]; //filtered list of objects classified as not redetected
+    int totalObjectsNotRedetected = 0; //total of objects not redetected
 };
 struct MatchingPoints matchingPoints;
 
@@ -357,6 +366,10 @@ void getCorrespondingObjectFrame(int isObject) {
     }
 }
 
+void transformsFoundInPointcloud() {
+    //add code here
+}
+
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     int filterTransforms[fov.numberOfPixels];
     int totalFilterTransforms = 0;
@@ -387,10 +400,19 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 if (DEBUG_findMatchingPoints_detectedPoints) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
                 }
+                //add corresponding transform to array
+                transformsFoundInPointcloud();
+                //check to see if object has been detected from publish objects node
                 getCorrespondingObjectFrame(isObject);
             }
         }
     }
+    //print out redetected objects in frame
+    //set variables back to 0 for next pointcloud
+    //make list of transforms with close points
+    //make list of transforms with close points and has an associated detection
+    //compare the both lists and work out which objects are missing
+    //probably need a max distance used between transform and camera for visually detecting the object
 }
 
 /*void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
