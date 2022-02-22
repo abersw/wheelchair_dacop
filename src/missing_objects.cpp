@@ -103,13 +103,18 @@ struct Boundary {
 };
 struct Boundary boundary;
 
+struct TransformPoints {
+    int id;
+    int totalCorrespondingPoints = 0;
+};
+
 struct MatchingPoints {
     int totalLocalObjectsRedetected = 0;
     int localObjectsRedetected[1000];
 
-    int objectsList[1000]; //all objects to be added to list for filtering
+    struct TransformPoints objectsList[1000]; //all objects to be added to list for filtering
     int totalObjectsList = 0; //total objects found in pointcloud
-    int objectsRedetected[1000]; //filtered list of objects classified as redetected
+    struct TransformPoints objectsRedetected[1000]; //filtered list of objects classified as redetected
     int totalObjectsRedetected = 0; //total of objects redetected
     int objectsNotRedetected[1000]; //filtered list of objects classified as not redetected
     int totalObjectsNotRedetected = 0; //total of objects not redetected
@@ -299,6 +304,15 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
 }
 
 /**
+ * Function resets matching points total variables back to 0
+ */
+void resetMatchingPoints() {
+    matchingPoints.totalObjectsList = 0;
+    matchingPoints.totalObjectsRedetected = 0;
+    matchingPoints.totalObjectsNotRedetected = 0;
+}
+
+/**
  * Callback function triggered by received ROS topic detected objects only
  *
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
@@ -342,26 +356,30 @@ void getCorrespondingObjectFrame(int isObject) {
                     }
 
 
-                    if (matchingPoints.totalLocalObjectsRedetected == 0) {
+                    if (matchingPoints.totalObjectsRedetected == 0) {
                         //add first element to array
                         //assign object id to local array
-                        matchingPoints.localObjectsRedetected[matchingPoints.totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
-                        matchingPoints.totalLocalObjectsRedetected++; //iterate to next element in array
+                        matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].id = objectsFileStruct[isObject].id;
+                        matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].totalCorrespondingPoints++;
+                        matchingPoints.totalObjectsRedetected++; //iterate to next element in array
 
                     }
                     else {
                         //run through for loop to see if id has already been detected
                         int objectAlreadyInStruct = 0;
-                        for (int localDet = 0; localDet < matchingPoints.totalLocalObjectsRedetected; localDet++) {
-                            if (objectsFileStruct[isObject].id == matchingPoints.localObjectsRedetected[matchingPoints.totalLocalObjectsRedetected]) {
+                        for (int localDet = 0; localDet < matchingPoints.totalObjectsRedetected; localDet++) {
+                            if (objectsFileStruct[isObject].id == matchingPoints.objectsRedetected[localDet].id) {
                                 //id is already in struct
                                 objectAlreadyInStruct = 1;
+                                //add 1 to total points with corresponding transform
+                                matchingPoints.objectsRedetected[localDet].totalCorrespondingPoints++;
                             }
                         }
                         if (objectAlreadyInStruct == 0) {
                             //object needs adding to objects redetected struct
-                            matchingPoints.localObjectsRedetected[matchingPoints.totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
-                            matchingPoints.totalLocalObjectsRedetected++; //iterate to next element in array
+                            matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].id = objectsFileStruct[isObject].id;
+                            matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].totalCorrespondingPoints++;
+                            matchingPoints.totalObjectsRedetected++; //iterate to next element in array
                         }
                         else if (objectAlreadyInStruct == 1) {
                             //don't do anything, object already in objects redetected struct
@@ -381,18 +399,23 @@ void getCorrespondingObjectFrame(int isObject) {
  */
 void transformsFoundInPointcloud(int isObject) {
     if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
-        matchingPoints.objectsList[matchingPoints.totalObjectsList] = objectsFileStruct[isObject].id;
+        matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
+        matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
+        matchingPoints.totalObjectsList++; //iterate to next item in array
     }
     else {
         int objectAlreadyInList = 0; //flag changes to 1 if object already in lists
         for (int inList = 0; inList < matchingPoints.totalObjectsList; inList++) { //run through entire list of objects
-            if (objectsFileStruct[isObject].id == matchingPoints.objectsList[inList]) {
+            if (objectsFileStruct[isObject].id == matchingPoints.objectsList[inList].id) {
                 //id is already in list, set variable to 1
                 objectAlreadyInList = 1;
+                //add 1 to total points with corresponding transform
+                matchingPoints.objectsList[inList].totalCorrespondingPoints++;
             }
         }
         if (objectAlreadyInList == 0) { //transform not found in list
-            matchingPoints.objectsList[matchingPoints.totalObjectsList] = objectsFileStruct[isObject].id;
+            matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
+            matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
             matchingPoints.totalObjectsList++;
         }
         else if (objectAlreadyInList == 1) { //transform already in list
@@ -409,6 +432,7 @@ void transformsFoundInPointcloud(int isObject) {
  *        message belongs to sensor_msgs PointCloud2 constant pointer
  */
 void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
+    resetMatchingPoints(); //reset variables back to 0 for matching points struct
     int filterTransforms[fov.numberOfPixels];
     int totalFilterTransforms = 0;
     cout << "number of pixels " << fov.numberOfPixels << endl;
