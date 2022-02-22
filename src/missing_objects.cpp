@@ -106,6 +106,8 @@ struct Boundary boundary;
 struct TransformPoints {
     int id;
     int totalCorrespondingPoints = 0;
+
+    int foundFlag = 0;
 };
 
 struct MatchingPoints {
@@ -116,7 +118,7 @@ struct MatchingPoints {
     int totalObjectsList = 0; //total objects found in pointcloud
     struct TransformPoints objectsRedetected[1000]; //filtered list of objects classified as redetected
     int totalObjectsRedetected = 0; //total of objects redetected
-    int objectsNotRedetected[1000]; //filtered list of objects classified as not redetected
+    struct TransformPoints objectsNotRedetected[1000]; //filtered list of objects classified as not redetected
     int totalObjectsNotRedetected = 0; //total of objects not redetected
 };
 struct MatchingPoints matchingPoints;
@@ -307,6 +309,10 @@ cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
  * Function resets matching points total variables back to 0
  */
 void resetMatchingPoints() {
+    //reset found flags
+    for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
+        matchingPoints.objectsList[isObject].foundFlag = 0;
+    }
     matchingPoints.totalObjectsList = 0;
     matchingPoints.totalObjectsRedetected = 0;
     matchingPoints.totalObjectsNotRedetected = 0;
@@ -573,6 +579,39 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     }
 }*/
 
+void calculateMissingObjects() {
+    //run through entire list of objects that should be detected
+    //set a flag to 0
+    //run through list of redetected objects
+    //set a flag to 1 if ids are equal in both lists
+    //run through entire list again, and pick out object flags that are still 0
+    //objects of 0 are missing.
+    for (int isDetection = 0; isDetection < matchingPoints.totalObjectsList; isDetection++) {
+        int getDetectedObjectID = matchingPoints.objectsList[isDetection].id;
+        for (int isRedetection = 0; isRedetection < matchingPoints.totalObjectsRedetected; isRedetection++) {
+            int getRedetectedObjectID = matchingPoints.objectsRedetected[isRedetection].id;
+            if (getDetectedObjectID == getRedetectedObjectID) {
+                matchingPoints.objectsList[isDetection].foundFlag = 1;
+            }
+            else {
+                //found flag remains at 0 in struct
+            }
+        }
+    }
+    //add objects with found flags equal 0 to non detections array
+    for (int isDetection = 0; isDetection < matchingPoints.totalObjectsList; isDetection++) {
+        int getDetectedObjectID = matchingPoints.objectsList[isDetection].id;
+        if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
+            //add missing/non detected object to array
+            matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].id = getDetectedObjectID;
+            matchingPoints.totalObjectsNotRedetected++;
+        }
+        else if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
+            //ignore objects that have already been redetected
+        }
+    }
+}
+
 /**
  * Callback function triggered by received ROS topic full list of objects
  *
@@ -594,6 +633,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
 
     //objectsInFielfOfView(); //need to try and get this working
     findMatchingPoints(dpth);
+    calculateMissingObjects();
 }
 
 int main (int argc, char **argv) {
