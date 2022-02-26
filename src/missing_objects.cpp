@@ -41,7 +41,10 @@ static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
-static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 1;
+static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
+static const int DEBUG_printAllObjects = 1;
+static const int DEBUG_printRedetectedObjects = 1;
+static const int DEBUG_printMissingObjects = 1;
 static const int DEBUG_main = 0;
 
 TofToolBox *tofToolBox;
@@ -612,6 +615,39 @@ void calculateMissingObjects() {
     }
 }
 
+void printAllObjects() {
+    if (DEBUG_printAllObjects) {
+        cout << "objectsList array: all objects that should be found" << endl;
+        for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
+            cout <<
+            matchingPoints.objectsList[isObject].id << ", " <<
+            matchingPoints.objectsList[isObject].totalCorrespondingPoints << endl;
+        }
+    }
+}
+
+void printRedetectedObjects() {
+    if (DEBUG_printRedetectedObjects) {
+        cout << "objectsRedetected array: all objects that have been redetected" << endl;
+        for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
+            cout <<
+            matchingPoints.objectsRedetected[isObject].id << ", " <<
+            matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints << endl;
+        }
+    }
+}
+
+void printMissingObjects() {
+    if (DEBUG_printMissingObjects) {
+        cout << "objectsNotRedetected array: all objects that are missing, that should be detected" << endl;
+        for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
+            cout <<
+            matchingPoints.objectsNotRedetected[isObject].id << ", " <<
+            matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints << endl;
+        }
+    }
+}
+
 /**
  * Callback function triggered by received ROS topic full list of objects
  *
@@ -634,6 +670,10 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     //objectsInFielfOfView(); //need to try and get this working
     findMatchingPoints(dpth);
     calculateMissingObjects();
+    //print array of objects
+    printAllObjects();
+    printRedetectedObjects();
+    printMissingObjects();
 }
 
 int main (int argc, char **argv) {
