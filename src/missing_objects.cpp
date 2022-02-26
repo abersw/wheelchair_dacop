@@ -108,6 +108,7 @@ struct Boundary boundary;
 
 struct TransformPoints {
     int id;
+    std::string object_name;
     int totalCorrespondingPoints = 0;
 
     int foundFlag = 0;
@@ -361,7 +362,10 @@ void getCorrespondingObjectFrame(int isObject) {
                 //if object detected and pc2 point close to transform is equal
                 if (detObjectID == objectsFileStruct[isObject].id) {
                     if (DEBUG_getCorrespondingObjectFrame_redetectedObjects) {
-                        cout << objectsFileStruct[isObject].object_name << " HAS BEEN REDETECTED!" << endl;
+                        cout <<
+                        objectsFileStruct[isObject].id << ":" <<
+                        objectsFileStruct[isObject].object_name <<
+                        " HAS BEEN REDETECTED!" << endl;
                     }
 
 
@@ -369,6 +373,7 @@ void getCorrespondingObjectFrame(int isObject) {
                         //add first element to array
                         //assign object id to local array
                         matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].id = objectsFileStruct[isObject].id;
+                        matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].object_name = objectsFileStruct[isObject].object_name;
                         matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].totalCorrespondingPoints++;
                         matchingPoints.totalObjectsRedetected++; //iterate to next element in array
 
@@ -387,6 +392,7 @@ void getCorrespondingObjectFrame(int isObject) {
                         if (objectAlreadyInStruct == 0) {
                             //object needs adding to objects redetected struct
                             matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].id = objectsFileStruct[isObject].id;
+                            matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].object_name = objectsFileStruct[isObject].object_name;
                             matchingPoints.objectsRedetected[matchingPoints.totalObjectsRedetected].totalCorrespondingPoints++;
                             matchingPoints.totalObjectsRedetected++; //iterate to next element in array
                         }
@@ -409,6 +415,7 @@ void getCorrespondingObjectFrame(int isObject) {
 void transformsFoundInPointcloud(int isObject) {
     if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
         matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
+        matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
         matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
         matchingPoints.totalObjectsList++; //iterate to next item in array
     }
@@ -424,6 +431,7 @@ void transformsFoundInPointcloud(int isObject) {
         }
         if (objectAlreadyInList == 0) { //transform not found in list
             matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
+            matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
             matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
             matchingPoints.totalObjectsList++;
         }
@@ -604,9 +612,11 @@ void calculateMissingObjects() {
     //add objects with found flags equal 0 to non detections array
     for (int isDetection = 0; isDetection < matchingPoints.totalObjectsList; isDetection++) {
         int getDetectedObjectID = matchingPoints.objectsList[isDetection].id;
+        std::string getDetectedObjectName = matchingPoints.objectsList[isDetection].object_name;
         if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
             //add missing/non detected object to array
             matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].id = getDetectedObjectID;
+            matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].object_name = getDetectedObjectName;
             matchingPoints.totalObjectsNotRedetected++;
         }
         else if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
@@ -621,6 +631,7 @@ void printAllObjects() {
         for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
             cout <<
             matchingPoints.objectsList[isObject].id << ", " <<
+            matchingPoints.objectsList[isObject].object_name << ", " <<
             matchingPoints.objectsList[isObject].totalCorrespondingPoints << endl;
         }
     }
@@ -632,6 +643,7 @@ void printRedetectedObjects() {
         for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
             cout <<
             matchingPoints.objectsRedetected[isObject].id << ", " <<
+            matchingPoints.objectsRedetected[isObject].object_name << ", " <<
             matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints << endl;
         }
     }
@@ -643,6 +655,7 @@ void printMissingObjects() {
         for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
             cout <<
             matchingPoints.objectsNotRedetected[isObject].id << ", " <<
+            matchingPoints.objectsNotRedetected[isObject].object_name << ", " <<
             matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints << endl;
         }
     }
