@@ -673,6 +673,7 @@ void publishAllObjects() {
     for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
         misObj.id[isObject] = matchingPoints.objectsList[isObject].id;
         misObj.object_name[isObject] = matchingPoints.objectsList[isObject].object_name;
+        misObj.totalCorrespondingPoints[isObject] = matchingPoints.objectsList[isObject].totalCorrespondingPoints;
     }
     ptr_pub_objectsList->publish(misObj);
 }
@@ -684,6 +685,7 @@ void publishRedetectedObjects() {
     for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
         misObj.id[isObject] = matchingPoints.objectsRedetected[isObject].id;
         misObj.object_name[isObject] = matchingPoints.objectsRedetected[isObject].object_name;
+        misObj.totalCorrespondingPoints[isObject] = matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints;
     }
     ptr_pub_objectsRedetected->publish(misObj);
 }
@@ -695,6 +697,7 @@ void publishMissingObjects() {
     for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
         misObj.id[isObject] = matchingPoints.objectsNotRedetected[isObject].id;
         misObj.object_name[isObject] = matchingPoints.objectsNotRedetected[isObject].object_name;
+        misObj.totalCorrespondingPoints[isObject] = matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints;
     }
     ptr_pub_objectsNotRedetected->publish(misObj);
 }
