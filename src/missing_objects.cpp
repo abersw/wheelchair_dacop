@@ -680,9 +680,9 @@ void publishAllObjects() {
     misObj.camera_timestamp = camera_timestamp;
     misObj.totalObjects = matchingPoints.totalObjectsList;
     for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
-        misObj.id[isObject] = matchingPoints.objectsList[isObject].id;
-        misObj.object_name[isObject] = matchingPoints.objectsList[isObject].object_name;
-        misObj.totalCorrespondingPoints[isObject] = matchingPoints.objectsList[isObject].totalCorrespondingPoints;
+        misObj.id.push_back(matchingPoints.objectsList[isObject].id);
+        misObj.object_name.push_back(matchingPoints.objectsList[isObject].object_name);
+        misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsList[isObject].totalCorrespondingPoints);
     }
     ptr_pub_objectsList->publish(misObj);
 }
@@ -692,9 +692,9 @@ void publishRedetectedObjects() {
     misObj.camera_timestamp = camera_timestamp;
     misObj.totalObjects = matchingPoints.totalObjectsRedetected;
     for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
-        misObj.id[isObject] = matchingPoints.objectsRedetected[isObject].id;
-        misObj.object_name[isObject] = matchingPoints.objectsRedetected[isObject].object_name;
-        misObj.totalCorrespondingPoints[isObject] = matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints;
+        misObj.id.push_back(matchingPoints.objectsRedetected[isObject].id);
+        misObj.object_name.push_back(matchingPoints.objectsRedetected[isObject].object_name);
+        misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints);
     }
     ptr_pub_objectsRedetected->publish(misObj);
 }
@@ -704,9 +704,9 @@ void publishMissingObjects() {
     misObj.camera_timestamp = camera_timestamp;
     misObj.totalObjects = matchingPoints.totalObjectsNotRedetected;
     for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
-        misObj.id[isObject] = matchingPoints.objectsNotRedetected[isObject].id;
-        misObj.object_name[isObject] = matchingPoints.objectsNotRedetected[isObject].object_name;
-        misObj.totalCorrespondingPoints[isObject] = matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints;
+        misObj.id.push_back(matchingPoints.objectsNotRedetected[isObject].id);
+        misObj.object_name.push_back(matchingPoints.objectsNotRedetected[isObject].object_name);
+        misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints);
     }
     ptr_pub_objectsNotRedetected->publish(misObj);
 }
@@ -738,9 +738,9 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     printRedetectedObjects();
     printMissingObjects();
     //publish array of objects
-    //publishAllObjects();
-    //publishRedetectedObjects();
-    //publishMissingObjects();
+    publishAllObjects();
+    publishRedetectedObjects();
+    publishMissingObjects();
 }
 
 int main (int argc, char **argv) {
@@ -782,7 +782,7 @@ int main (int argc, char **argv) {
 
     //publish objects that are missing from the frame
     ros::Publisher pub_objectsNotRedetected = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/missing", 1000);
-    ptr_pub_objectsList = &pub_objectsList; //pointer to publish all objects that should be detected
+    ptr_pub_objectsNotRedetected = &pub_objectsNotRedetected; //pointer to publish objects that are missing
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
