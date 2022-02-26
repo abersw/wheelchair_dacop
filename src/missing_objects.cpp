@@ -10,6 +10,7 @@
 
 
 #include "wheelchair_msgs/objectLocations.h"
+#include "wheelchair_msgs/missingObjects.h"
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 
@@ -131,6 +132,10 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 
 //https://docs.ros.org/en/api/message_filters/html/c++/classmessage__filters_1_1Cache.html
 message_filters::Cache<wheelchair_msgs::objectLocations> cache; //buffer incoming detected objects
+
+ros::Publisher *ptr_pub_objectsList;
+ros::Publisher *ptr_pub_objectsRedetected;
+ros::Publisher *ptr_pub_objectsNotRedetected;
 
 //get resolution of rectified pointcloud image
 void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
@@ -661,6 +666,39 @@ void printMissingObjects() {
     }
 }
 
+void publishAllObjects() {
+    wheelchair_msgs::missingObjects misObj;
+    misObj.camera_timestamp = camera_timestamp;
+    misObj.totalObjects = matchingPoints.totalObjectsList;
+    for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
+        misObj.id[isObject] = matchingPoints.objectsList[isObject].id;
+        misObj.object_name[isObject] = matchingPoints.objectsList[isObject].object_name;
+    }
+    ptr_pub_objectsList->publish(misObj);
+}
+
+void publishRedetectedObjects() {
+    wheelchair_msgs::missingObjects misObj;
+    misObj.camera_timestamp = camera_timestamp;
+    misObj.totalObjects = matchingPoints.totalObjectsRedetected;
+    for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
+        misObj.id[isObject] = matchingPoints.objectsRedetected[isObject].id;
+        misObj.object_name[isObject] = matchingPoints.objectsRedetected[isObject].object_name;
+    }
+    ptr_pub_objectsRedetected->publish(misObj);
+}
+
+void publishMissingObjects() {
+    wheelchair_msgs::missingObjects misObj;
+    misObj.camera_timestamp = camera_timestamp;
+    misObj.totalObjects = matchingPoints.totalObjectsNotRedetected;
+    for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
+        misObj.id[isObject] = matchingPoints.objectsNotRedetected[isObject].id;
+        misObj.object_name[isObject] = matchingPoints.objectsNotRedetected[isObject].object_name;
+    }
+    ptr_pub_objectsNotRedetected->publish(misObj);
+}
+
 /**
  * Callback function triggered by received ROS topic full list of objects
  *
@@ -687,6 +725,10 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     printAllObjects();
     printRedetectedObjects();
     printMissingObjects();
+    //publish array of objects
+    publishAllObjects();
+    publishRedetectedObjects();
+    publishMissingObjects();
 }
 
 int main (int argc, char **argv) {
@@ -717,6 +759,18 @@ int main (int argc, char **argv) {
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(20), depth_sub, objects_sub);
     //set callback for synced topics
     depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));
+
+    //publish all objects that should be detected within frame
+    ros::Publisher pub_objectsList = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/all", 1000);
+    ptr_pub_objectsList = &pub_objectsList; //pointer to publish all objects that should be detected
+
+    //publish objects that have been redetected within frame
+    ros::Publisher pub_objectsRedetected = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/redetected", 1000);
+    ptr_pub_objectsRedetected = &pub_objectsRedetected; //pointer to publish all objects that should be detected
+
+    //publish objects that are missing from the frame
+    ros::Publisher pub_objectsNotRedetected = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/missing", 1000);
+    ptr_pub_objectsList = &pub_objectsList; //pointer to publish all objects that should be detected
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
