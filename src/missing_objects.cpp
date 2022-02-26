@@ -729,9 +729,9 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     printRedetectedObjects();
     printMissingObjects();
     //publish array of objects
-    publishAllObjects();
-    publishRedetectedObjects();
-    publishMissingObjects();
+    //publishAllObjects();
+    //publishRedetectedObjects();
+    //publishMissingObjects();
 }
 
 int main (int argc, char **argv) {
