@@ -321,6 +321,15 @@ void resetMatchingPoints() {
     //reset found flags
     for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
         matchingPoints.objectsList[isObject].foundFlag = 0;
+        matchingPoints.objectsList[isObject].totalCorrespondingPoints = 0;
+    }
+    for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
+        matchingPoints.objectsRedetected[isObject].foundFlag = 0;
+        matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints = 0;
+    }
+    for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
+        matchingPoints.objectsNotRedetected[isObject].foundFlag = 0;
+        matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints = 0;
     }
     matchingPoints.totalObjectsList = 0;
     matchingPoints.totalObjectsRedetected = 0;
