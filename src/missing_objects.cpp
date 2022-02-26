@@ -110,7 +110,7 @@ struct Boundary boundary;
 struct TransformPoints {
     int id;
     std::string object_name;
-    int totalCorrespondingPoints = 0;
+    int64_t totalCorrespondingPoints = 0;
 
     int foundFlag = 0;
 };
