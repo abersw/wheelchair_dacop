@@ -99,6 +99,8 @@ struct FOV {
 struct FOV fov;
 
 struct Boundary {
+    double visualMaxBoundary = 1.5; //objects must be within this distance of camera detection
+
     double pointBoundaryX = 0.1;
     double pointBoundaryY = 0.1;
 
@@ -456,6 +458,76 @@ void transformsFoundInPointcloud(int isObject) {
 }
 
 /**
+ * Function adds all transforms with corresponding pc2 points to array
+ *
+ * @param parameter 'isObject' is the position of the object current being
+ * iterated through findMatchingPoints
+ */
+void transformsFoundInPointcloudDistance(int isObject) {
+    tf::TransformListener listener;
+    tf::StampedTransform translation; //initiate translation for transform object
+    if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
+        try {
+            std::string DETframename = std::to_string(objectsFileStruct[isObject].id) + objectsFileStruct[isObject].object_name;
+            listener.waitForTransform("zed_camera_center", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+            listener.lookupTransform("zed_camera_center", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
+            cout << "translation: " << translation.getOrigin().x() << ", " << translation.getOrigin().y() << endl;
+
+            double xTranslation = translation.getOrigin().x();
+            double yTranslation = translation.getOrigin().y();
+            if ((xTranslation <= boundary.visualMaxBoundary) && (yTranslation <= boundary.visualMaxBoundary)) {
+                matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
+                matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
+                matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
+                matchingPoints.totalObjectsList++; //iterate to next item in array
+            }
+        }
+        catch (tf::TransformException ex){
+            cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
+            ROS_ERROR("%s",ex.what()); //print error
+            ros::Duration(1.0).sleep();
+        }
+
+    }
+    else {
+        int objectAlreadyInList = 0; //flag changes to 1 if object already in lists
+        for (int inList = 0; inList < matchingPoints.totalObjectsList; inList++) { //run through entire list of objects
+            if (objectsFileStruct[isObject].id == matchingPoints.objectsList[inList].id) {
+                //id is already in list, set variable to 1
+                objectAlreadyInList = 1;
+                //add 1 to total points with corresponding transform
+                matchingPoints.objectsList[inList].totalCorrespondingPoints++;
+            }
+        }
+        if (objectAlreadyInList == 0) { //transform not found in list
+            try {
+                std::string DETframename = std::to_string(objectsFileStruct[isObject].id) + objectsFileStruct[isObject].object_name;
+                listener.waitForTransform("zed_camera_center", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+                listener.lookupTransform("zed_camera_center", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
+                cout << "translation: " << translation.getOrigin().x() << ", " << translation.getOrigin().y() << endl;
+
+                double xTranslation = translation.getOrigin().x();
+                double yTranslation = translation.getOrigin().y();
+                if ((xTranslation <= boundary.visualMaxBoundary) && (yTranslation <= boundary.visualMaxBoundary)) {
+                    matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
+                    matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
+                    matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
+                    matchingPoints.totalObjectsList++;
+                }
+            }
+            catch (tf::TransformException ex){
+                cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
+                ROS_ERROR("%s",ex.what()); //print error
+                ros::Duration(1.0).sleep();
+            }
+        }
+        else if (objectAlreadyInList == 1) { //transform already in list
+            //ignore, object already in struct
+        }
+    }
+}
+
+/**
  * Function runs through all points in pointcloud and
  * calculates if transform in close proximity
  *
@@ -786,8 +858,8 @@ int main (int argc, char **argv) {
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
-        tf::TransformListener listener;
-        ptrListener = &listener; //set to global pointer - to access from another function
+        //tf::TransformListener listener;
+        //ptrListener = &listener; //set to global pointer - to access from another function
 
         if (DEBUG_main) {
             cout << "spin \n";
