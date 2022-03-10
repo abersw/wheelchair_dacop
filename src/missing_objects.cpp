@@ -1,8 +1,8 @@
 /*
  * missing_objects.cpp
  * wheelchair_context
- * version: 0.0.1 Majestic Maidenhair
- * Status: Pre-Alpha
+ * version: 1.0.0 Majestic Maidenhair
+ * Status: Alpha
  *
 */
 
@@ -37,7 +37,6 @@ static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
-static const int DEBUG_objectsInFielfOfView = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
@@ -66,15 +65,6 @@ struct Objects { //struct for publishing topic
 };
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
-struct Objects *objectsInFielfOfViewStruct[100000];
-/*
-struct Objects detectedObjects[10000]; //array for storing detected object data
-int totalObjectsDetected = 0; //total objects inside struct
-struct Objects objectsRedetected[1000]; //store objects that have been redetected in struct
-int totalObjectsRedetected = 0; //total objects inside redetected objects struct
-struct Objects objectsNotRedetected[1000]; //store objects that should have been redetected
-int totalObjectsNotRedetected = 0; //total objects not redetected by node
-*/
 
 
 struct Objects *matchingsPoints[100000];
@@ -118,9 +108,6 @@ struct TransformPoints {
 };
 
 struct MatchingPoints {
-    int totalLocalObjectsRedetected = 0;
-    int localObjectsRedetected[1000];
-
     struct TransformPoints objectsList[1000]; //all objects to be added to list for filtering
     int totalObjectsList = 0; //total objects found in pointcloud
     struct TransformPoints objectsRedetected[1000]; //filtered list of objects classified as redetected
@@ -200,120 +187,6 @@ void getPointCloudTimestamp(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         cout.precision(17);
         cout << "pointcloud timestamp: " << fixed << camera_timestamp << endl;
     }
-}
-
-int objectsInFielfOfView() {
-    /*object_on_world = PoseStamped()
-    object_on_world.header.frame_id = 'map'
-    object_on_world.pose.orientation.w = 1.0
-    object_on_world.pose.position.x = object_x_pos
-    object_on_world.pose.position.y = object_y_pos
-    object_on_world.pose.position.z = object_z_pos
-
-    transform = self.tf_buffer.lookup_transform('camera_depth_optical_frame', 'map', rospy.Time(0), rospy.Duration(1.0))
-    object_on_camera = tf2_geometry_msgs.do_transform_pose(object_on_world, transform) #point on camera_depth_optical_frame*/
-/*
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-        //geometry_msgs::PoseStamped objectOnWorld;
-
-        //objectOnWorld.header.frame_id = "map"; //assign the pose 'map' frame
-        //objectOnWorld.pose.orientation.w = objectsFileStruct[isObject].quat_w; //assign rotation quat w
-        //objectOnWorld.pose.position.x = objectsFileStruct[isObject].point_x;
-        //objectOnWorld.pose.position.y = objectsFileStruct[isObject].point_y;
-        //objectOnWorld.pose.position.z = objectsFileStruct[isObject].point_z;
-
-        //std::string getObjectID = to_string(objectsFileStruct[isObject].id);
-        //std::string getObjectName = objectsFileStruct[isObject].object_name;
-        //std::string DETframename = "/" + getObjectName + getObjectName;
-
-
-
-        try {
-            tf::StampedTransform cameraTranslation;
-            ptrListener->waitForTransform("zed_camera_center", "/map", camera_timestamp, ros::Duration(1.0)); //wait a few seconds for ROS to respond
-            ptrListener->lookupTransform("zed_camera_center", "/map", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
-            // try {
-            //     tf::StampedTransform objectTranslation;
-            //     ptrListener->waitForTransform(DETframename, cameraTranslation, camera_timestamp, ros::Duration(1.0)); //wait a few seconds for ROS to respond
-            //     ptrListener->lookupTransform(DETframename, cameraTranslation, camera_timestamp, objectTranslation); //lookup translation of object from map frame
-            // }
-            // catch (tf::TransformException ex){
-            //     cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
-            //     ROS_ERROR("%s",ex.what()); //print error
-            //     ros::Duration(1.0).sleep();
-            // }
-        }
-        catch (tf::TransformException ex){
-            cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
-            ROS_ERROR("%s",ex.what()); //print error
-            ros::Duration(1.0).sleep();
-        }
-    }
-*/
-
-
-
-
-
-/*
-cv::Point2d PinholeCameraModel::project3dToPixel(const cv::Point3d& xyz) const
-{
-    assert( initialized() );
-    assert(P_(2, 3) == 0.0); // Calibrated stereo cameras should be in the same plane
-
-    // [U V W]^T = P * [X Y Z 1]^T
-    // u = U/W
-    // v = V/W
-    cv::Point2d uv_rect;
-    uv_rect.x = (fx()*xyz.x + Tx()) / xyz.z + cx();
-    uv_rect.y = (fy()*xyz.y + Ty()) / xyz.z + cy();
-    return uv_rect;
-}
-*/
-
-    cout << "in field of view function" << endl;
-    tf::StampedTransform cameraTranslation;
-    try {
-        cout << "in try loop" << endl;
-        ptrListener->waitForTransform("/map", "zed_camera_center", camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        ptrListener->lookupTransform("/map", "zed_camera_center", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
-
-        if ((cameraTranslation.getOrigin().z() < fov.minDepth) || (cameraTranslation.getOrigin().z() > fov.maxDepth)) {
-            //objects behind the camera, with a distance minor/higher than the accepted are not considered in the field of fiew
-        }
-        else {
-            double yangle = atan(cameraTranslation.getOrigin().y() / cameraTranslation.getOrigin().z()); //radians
-            double xangle = atan(cameraTranslation.getOrigin().x() / cameraTranslation.getOrigin().z()); //radians
-
-            double absX = abs(fov.fovx / 2 * M_PI / 180);
-            double absY = abs(fov.fovy / 2 * M_PI / 180);
-            if ((xangle < absX) && (yangle < absY)) {
-                cout << "transform inside FOV" << endl;
-            }
-            else {
-                cout << "transform not in FOV" << endl;
-            }
-        }
-    }
-    catch (tf::TransformException ex){
-        cout << "Couldn't get base_link to map translation..." << endl; //catchment function if it can't get a translation from the map
-        ROS_ERROR("%s",ex.what()); //print error
-        ros::Duration(1.0).sleep();
-    }
-
-    //notes:
-/*
-    tf::StampedTransform translation; //initiate translation for transform object
-    try {
-        //ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        //ptrListener->lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
-    }
-    catch (tf::TransformException ex){
-        cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
-        ROS_ERROR("%s",ex.what()); //print error
-        ros::Duration(1.0).sleep();
-    }*/
-    return 0;
 }
 
 /**
@@ -581,101 +454,6 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     //probably need a max distance used between transform and camera for visually detecting the object
 }
 
-/*void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
-    cout << "find matching points" << endl;
-    int localObjectsRedetected[1000];
-    int localObjectsRedetectedCounter = 0;
-    int totalLocalObjectsRedetected = 0;
-    int localObjectsNotRedetected[1000];
-    int localObjectsNotRedetectedCounter = 0;
-    int totalLocalObjectsNotRedetected = 0;
-
-    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); ++it) {
-        // TODO: do something with the values of x, y, z
-        double pcloudX = it[0];
-        double pcloudY = it[1];
-        double pcloudZ = it[2];
-        if (DEBUG_findMatchingPoints_rawValues) {
-            //std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
-            std::cout << pcloudX << ", " << pcloudY << ", " << pcloudZ << '\n';
-        }
-        //run through entire struct of objects
-        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-            double objectPointX = objectsFileStruct[isObject].point_x;
-            double objectPointY = objectsFileStruct[isObject].point_y;
-            double minObjectPointX = objectPointX - boundary.pointBoundaryX;
-            double maxObjectPointX = objectPointX + boundary.pointBoundaryX;
-            double minObjectPointY = objectPointY - boundary.pointBoundaryY;
-            double maxObjectPointY = objectPointY + boundary.pointBoundaryY;
-            if ((pcloudX > minObjectPointX) &&
-                (pcloudX < maxObjectPointX) &&
-                (pcloudY > minObjectPointY) &&
-                (pcloudY < maxObjectPointY)) {
-                //transform detected close to pc2 point
-                if (DEBUG_findMatchingPoints_detectedPoints) {
-                    cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
-                }
-                ros::Duration timeRangeReverse(boundary.timeRangeReverseValue);
-                ros::Duration timeRangeForward(boundary.timeRangeForwardValue);
-                ros::Time reverseTime(camera_timestamp - timeRangeReverse); //create boundary back in time
-                ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
-
-                //check to see if cache will not return a null
-                if (cache.getElemAfterTime(reverseTime) != NULL) {
-                    //get ros msg after the specified time 'reverseTime'
-                    const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
-                    //double check to see msg header stamp isn't too far away from specified time
-                    if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
-                        int totalDet = obLoc->totalObjects; //get total number of objects detected
-                        for (int isDetObject = 0; isDetObject < totalDet; isDetObject++) {
-                            int detObjectID = obLoc->id[isDetObject]; //get object ID detected
-                            //only need to query object ID, object publisher node deals with 3D bounding boxes
-                            //if object detected and pc2 point close to transform is equal
-                            if (detObjectID == objectsFileStruct[isObject].id) {
-                                cout << objectsFileStruct[isObject].object_name << " HAS BEEN REDETECTED!" << endl;
-                                if (totalLocalObjectsRedetected == 0) {
-                                    //add first element to array
-                                    //assign object id to local array
-                                    localObjectsRedetected[totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
-                                    totalLocalObjectsRedetected++; //iterate to next element in array
-
-                                }
-                                else {
-                                    //run through for loop to see if id has already been detected
-                                    int objectAlreadyInStruct = 0;
-                                    for (int localDet = 0; localDet < totalLocalObjectsRedetected; localDet++) {
-                                        if (objectsFileStruct[isObject].id == localObjectsRedetected[totalLocalObjectsRedetected]) {
-                                            //id is already in struct
-                                            objectAlreadyInStruct = 1;
-                                        }
-                                    }
-                                    if (objectAlreadyInStruct == 0) {
-                                        //object needs adding to objects redetected struct
-                                        localObjectsRedetected[totalLocalObjectsRedetected] = objectsFileStruct[isObject].id;
-                                        totalLocalObjectsRedetected++; //iterate to next element in array
-                                    }
-                                    else if (objectAlreadyInStruct == 1) {
-                                        //don't do anything, object already in objects redetected struct
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else {
-                    cout << "Avoided NULL pointer" << endl;
-                    //point is near object transform, but no dnn detection message
-                    //no detection message received, assume object transform with corresponding points are no longer present
-
-                }
-            }
-            else {
-                //transform not detected close to point
-            }
-        }
-    }
-}*/
-
 void calculateMissingObjects() {
     //run through entire list of objects that should be detected
     //set a flag to 0
@@ -802,7 +580,6 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     getPointCloudTimestamp(dpth);
     addObjectLocationsToStruct(obLoc);
 
-    //objectsInFielfOfView(); //need to try and get this working
     findMatchingPoints(dpth);
     calculateMissingObjects();
     //print array of objects
@@ -823,9 +600,6 @@ int main (int argc, char **argv) {
     ros::NodeHandle n;
 
     ros::Rate rate(10.0);
-
-    //full list of objects
-    //ros::Subscriber detected_objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
 
     cache.setCacheSize(1000);
     ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
@@ -858,8 +632,6 @@ int main (int argc, char **argv) {
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
-        //tf::TransformListener listener;
-        //ptrListener = &listener; //set to global pointer - to access from another function
 
         if (DEBUG_main) {
             cout << "spin \n";
