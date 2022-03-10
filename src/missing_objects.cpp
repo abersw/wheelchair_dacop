@@ -1,6 +1,6 @@
 /*
  * missing_objects.cpp
- * wheelchair_context
+ * wheelchair_dacop
  * version: 1.0.0 Majestic Maidenhair
  * Status: Alpha
  *
@@ -20,14 +20,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/cache.h>
 
-#include "geometry_msgs/PointStamped.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Point.h"
-#include "geometry_msgs/Quaternion.h"
-#include "geometry_msgs/TransformStamped.h"
-
 #include "tf/transform_listener.h"
-#include "tf/transform_broadcaster.h"
 
 #include <math.h>
 
@@ -411,9 +404,9 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     resetMatchingPoints(); //reset variables back to 0 for matching points struct
     int filterTransforms[fov.numberOfPixels];
     int totalFilterTransforms = 0;
-    cout << "number of pixels " << fov.numberOfPixels << endl;
     if (DEBUG_findMatchingPoints) {
         cout << "find matching points" << endl;
+        cout << "number of pixels " << fov.numberOfPixels << endl;
     }
     for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); ++it) {
         double pcloudX = it[0];
