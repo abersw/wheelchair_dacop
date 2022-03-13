@@ -51,6 +51,22 @@ int totalRoomsFileStruct = 0;
 //id,name,pointx,pointy,pointz,quatx,quaty,quatz,quatw
 struct Rooms roomsFileStruct[1000];
 
+struct Objects { //struct for publishing topic
+    int id; //get object id from ros msg
+    string object_name; //get object name/class
+    float object_confidence; //get object confidence
+
+    float point_x; //get transform point x
+    float point_y; //get transform point y
+    float point_z; //get transform point z
+
+    float quat_x; //get transform rotation quaternion x
+    float quat_y; //get transform rotation quaternion y
+    float quat_z; //get transform rotation quaternion z
+    float quat_w; //get transform rotation quaternion w
+};
+struct Objects objectsFileStruct[100000]; //array for storing object data
+int totalObjectsFileStruct = 0; //total objects inside struct
 
 struct Links {
     int object_id;
