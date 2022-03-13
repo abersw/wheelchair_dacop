@@ -229,8 +229,38 @@ void roomsDacopToStruct(std::string fileName) {
  * @param parameter 'obLoc' is the full list of objects from the publish_object_locations node
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
-void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
-    //do stuff
+void objectLocationsCallback(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
+    int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
+    totalObjectsFileStruct = totalObjectsInMsg; //set message total objects to total objects in file struct
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire msg topic array
+        objectsFileStruct[isObject].id = obLoc->id[isObject]; //assign object id to struct
+        objectsFileStruct[isObject].object_name = obLoc->object_name[isObject]; //assign object name to struct
+        objectsFileStruct[isObject].object_confidence = obLoc->object_confidence[isObject]; //assign object confidence to struct
+
+        objectsFileStruct[isObject].point_x = obLoc->point_x[isObject]; //assign object vector point x to struct
+        objectsFileStruct[isObject].point_y = obLoc->point_y[isObject]; //assign object vector point y to struct
+        objectsFileStruct[isObject].point_z = obLoc->point_z[isObject]; //assign object vector point z to struct
+
+        objectsFileStruct[isObject].quat_x = obLoc->quat_x[isObject]; //assign object quaternion x to struct
+        objectsFileStruct[isObject].quat_y = obLoc->quat_y[isObject]; //assign object quaternion y to struct
+        objectsFileStruct[isObject].quat_z = obLoc->quat_z[isObject]; //assign object quaternion z to struct
+        objectsFileStruct[isObject].quat_w = obLoc->quat_w[isObject]; //assign object quaternion w to struct
+
+        if (DEBUG_objectLocationsCallback) { //print off debug lines
+            cout << "array element in id " << isObject << endl;
+            cout << objectsFileStruct[isObject].id << "," <<
+                    objectsFileStruct[isObject].object_name << ", " <<
+                    objectsFileStruct[isObject].object_confidence << endl;
+            cout << objectsFileStruct[isObject].point_x << ", " <<
+                    objectsFileStruct[isObject].point_y << ", " <<
+                    objectsFileStruct[isObject].point_z << endl;
+            cout << objectsFileStruct[isObject].quat_x << ", " <<
+                    objectsFileStruct[isObject].quat_y << ", " <<
+                    objectsFileStruct[isObject].quat_z << ", " <<
+                    objectsFileStruct[isObject].quat_w << endl;
+            tofToolBox->printSeparator(0);
+        }
+    }
 }
 
 /**
