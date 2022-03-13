@@ -24,6 +24,7 @@ using namespace std;
 const int DEBUG_roomListToStruct = 0;
 const int DEBUG_roomsDacopToStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
+const int DEBUG_detectedObjectsCallback = 0;
 const int DEBUG_roomNameCallback = 0;
 const int DEBUG_broadcastRoomFrame = 0;
 const int DEBUG_publishRoomsDacop = 0;
@@ -207,12 +208,22 @@ void roomsDacopToStruct(std::string fileName) {
 }
 
 /**
- * Main callback function triggered by received ROS topic 
+ * Main callback function triggered by msg of all objects
+ *
+ * @param parameter 'obLoc' is the full list of objects from the publish_object_locations node
+ *        message belongs to wheelchair_msgs objectLocations.msg
+ */
+void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
+    //do stuff
+}
+
+/**
+ * Main callback function triggered by objects detected
  *
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
-void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
+void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
     //add object to struct
     //get ID of object and name
     //check to see if it already exists in this object struct
@@ -223,12 +234,12 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
     int foundObjectMatch = 0;
     int matchPos = 0;
-    if (DEBUG_objectLocationsCallback) {
+    if (DEBUG_detectedObjectsCallback) {
         cout << "debug current room name is: " << currentRoomName << endl;
     }
     if (currentRoomName != "") {
         for (int isObjectMsg = 0; isObjectMsg < totalObjectsInMsg; isObjectMsg++) { //run through ROS topic array
-            if (DEBUG_objectLocationsCallback) {
+            if (DEBUG_detectedObjectsCallback) {
                 cout << "Current obj msg is " << 
                 obLoc.id[isObjectMsg] << ", " <<
                 obLoc.object_name[isObjectMsg] << endl;
@@ -245,7 +256,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 //run through struct for match
                 if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
                 (objectsFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) { //check to see if object IDs match
-                    if (DEBUG_objectLocationsCallback) {
+                    if (DEBUG_detectedObjectsCallback) {
                         cout << "match found: " <<
                         objectsFileStruct[isObject].object_name << ", " <<
                         obLoc.object_name[isObjectMsg] << endl;
@@ -260,7 +271,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             if (foundObjectMatch) {
                 //don't need to update object ID and name...
                 //update the object to current room
-                if (DEBUG_objectLocationsCallback) {
+                if (DEBUG_detectedObjectsCallback) {
                     cout << "updated existing object" << endl;
                 }
                 objectsFileStruct[matchPos].room_id = currentRoomID;
@@ -268,7 +279,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             }
             else {
                 //add object to struct and assign it a room
-                if (DEBUG_objectLocationsCallback) {
+                if (DEBUG_detectedObjectsCallback) {
                     cout << "adding new object to struct" << endl;
                 }
                 objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
@@ -577,7 +588,8 @@ int main (int argc, char **argv) {
     
     ros::init(argc, argv, "assign_room_to_object");
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, objectLocationsCallback);
+    ros::Subscriber objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/objects", 1000, objectLocationsCallback); //full list of objects
+    ros::Subscriber detected_objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
     ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 1000, roomNameCallback);
     //publish objects and associated rooms
     ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::roomToObjects>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000);
