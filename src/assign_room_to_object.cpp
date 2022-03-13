@@ -59,8 +59,8 @@ struct Links {
     int room_id;
     string room_name;
 };
-int totalObjectsFileStruct = 0;
-struct Links objectsFileStruct[100000]; //array for storing all object and room data
+int totalLinkFileStruct = 0;
+struct Links linkFileStruct[100000]; //array for storing all object and room data
 
 std::string userRoomName;
 int currentRoomID;
@@ -183,28 +183,28 @@ void roomsDacopToStruct(std::string fileName) {
                 line.erase(0, pos + objectsDelimiter.length());
                 //deserialise the line section below:
                 if (lineSection == 0) { //if first delimiter
-                    objectsFileStruct[objectNumber].object_id = std::stoi(token); //convert object id string to int
+                    linkFileStruct[objectNumber].object_id = std::stoi(token); //convert object id string to int
                 }
                 else if (lineSection == 1) { //if second delimiter
-                    objectsFileStruct[objectNumber].object_name = token; //get object name
+                    linkFileStruct[objectNumber].object_name = token; //get object name
                 }
                 else if (lineSection == 2) { //if third delimiter
-                    objectsFileStruct[objectNumber].room_id = std::stoi(token); //convert room id string to int
+                    linkFileStruct[objectNumber].room_id = std::stoi(token); //convert room id string to int
                 }
                 lineSection++; //go to next delimiter
             }
-            objectsFileStruct[objectNumber].room_name = line; //get end of line - room name
+            linkFileStruct[objectNumber].room_name = line; //get end of line - room name
             if (DEBUG_roomsDacopToStruct) {
                 cout << 
-                objectsFileStruct[objectNumber].object_id << "," <<
-                objectsFileStruct[objectNumber].object_name << "," <<
-                objectsFileStruct[objectNumber].room_id << "," <<
-                objectsFileStruct[objectNumber].room_name << endl;
+                linkFileStruct[objectNumber].object_id << "," <<
+                linkFileStruct[objectNumber].object_name << "," <<
+                linkFileStruct[objectNumber].room_id << "," <<
+                linkFileStruct[objectNumber].room_name << endl;
             }
             objectNumber++; //go to next object line
         }
     }
-    totalObjectsFileStruct = objectNumber; //set total number of objects in struct to the lines(obstacles) counted
+    totalLinkFileStruct = objectNumber; //set total number of objects in struct to the lines(obstacles) counted
 }
 
 /**
@@ -244,21 +244,21 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 obLoc.id[isObjectMsg] << ", " <<
                 obLoc.object_name[isObjectMsg] << endl;
             }
-            /*if (totalObjectsFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
-                objectsFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
-                objectsFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
+            /*if (totalLinkFileStruct == 0) { //can't start for loop if struct is empty - so add some initial data
+                linkFileStruct[totalRoomsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
+                linkFileStruct[totalRoomsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
 
-                objectsFileStruct[totalRoomsFileStruct].room_id = currentRoomID; //add current room id to object struct
-                objectsFileStruct[totalRoomsFileStruct].room_name = currentRoomName; //add current room name to object struct
-                totalObjectsFileStruct++; //increase size of object struct array
+                linkFileStruct[totalRoomsFileStruct].room_id = currentRoomID; //add current room id to object struct
+                linkFileStruct[totalRoomsFileStruct].room_name = currentRoomName; //add current room name to object struct
+                totalLinkFileStruct++; //increase size of object struct array
             }*/
-            for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+            for (int isObject = 0; isObject < totalLinkFileStruct; isObject++) {
                 //run through struct for match
-                if ((objectsFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
-                (objectsFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) { //check to see if object IDs match
+                if ((linkFileStruct[isObject].object_name == obLoc.object_name[isObjectMsg]) &&  //check to see if object name matches
+                (linkFileStruct[isObject].object_id == obLoc.id[isObjectMsg])) { //check to see if object IDs match
                     if (DEBUG_detectedObjectsCallback) {
                         cout << "match found: " <<
-                        objectsFileStruct[isObject].object_name << ", " <<
+                        linkFileStruct[isObject].object_name << ", " <<
                         obLoc.object_name[isObjectMsg] << endl;
                     }
                     foundObjectMatch = 1; //set found match var to true
@@ -274,19 +274,19 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 if (DEBUG_detectedObjectsCallback) {
                     cout << "updated existing object" << endl;
                 }
-                objectsFileStruct[matchPos].room_id = currentRoomID;
-                objectsFileStruct[matchPos].room_name = currentRoomName;
+                linkFileStruct[matchPos].room_id = currentRoomID;
+                linkFileStruct[matchPos].room_name = currentRoomName;
             }
             else {
                 //add object to struct and assign it a room
                 if (DEBUG_detectedObjectsCallback) {
                     cout << "adding new object to struct" << endl;
                 }
-                objectsFileStruct[totalObjectsFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
-                objectsFileStruct[totalObjectsFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
-                objectsFileStruct[totalObjectsFileStruct].room_id = currentRoomID; //add current room id to object struct
-                objectsFileStruct[totalObjectsFileStruct].room_name = currentRoomName; //add current room name to object struct
-                totalObjectsFileStruct++; //increase size of object struct array
+                linkFileStruct[totalLinkFileStruct].object_id = obLoc.id[isObjectMsg]; //assign current msg object id to struct
+                linkFileStruct[totalLinkFileStruct].object_name = obLoc.object_name[isObjectMsg]; //assign current msg object name to struct
+                linkFileStruct[totalLinkFileStruct].room_id = currentRoomID; //add current room id to object struct
+                linkFileStruct[totalLinkFileStruct].room_name = currentRoomName; //add current room name to object struct
+                totalLinkFileStruct++; //increase size of object struct array
             }
         }
     }
@@ -466,13 +466,13 @@ void broadcastRoomFrame() {
  */
 void publishRoomsDacop() {
     wheelchair_msgs::roomToObjects room2Obj; //create ROS msg
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-        room2Obj.object_id.push_back(objectsFileStruct[isObject].object_id);
-        room2Obj.object_name.push_back(objectsFileStruct[isObject].object_name);
-        room2Obj.room_id.push_back(objectsFileStruct[isObject].room_id);
-        room2Obj.room_name.push_back(objectsFileStruct[isObject].room_name);
+    for (int isObject = 0; isObject < totalLinkFileStruct; isObject++) {
+        room2Obj.object_id.push_back(linkFileStruct[isObject].object_id);
+        room2Obj.object_name.push_back(linkFileStruct[isObject].object_name);
+        room2Obj.room_id.push_back(linkFileStruct[isObject].room_id);
+        room2Obj.room_name.push_back(linkFileStruct[isObject].room_name);
     }
-    room2Obj.totalObjects = totalObjectsFileStruct; //set total objects found in struct
+    room2Obj.totalObjects = totalLinkFileStruct; //set total objects found in struct
     ptr_publish_roomsDacop->publish(room2Obj); //publish struct as ros msg array
 }
 
@@ -541,18 +541,18 @@ void saveRoomsDacop() {
     }
     ofstream FILE_WRITER;
 	FILE_WRITER.open(rooms_dacop_loc);
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+    for (int isObject = 0; isObject < totalLinkFileStruct; isObject++) {
         FILE_WRITER << 
-        objectsFileStruct[isObject].object_id << "," <<
-        objectsFileStruct[isObject].object_name << "," <<
-        objectsFileStruct[isObject].room_id << "," <<
-        objectsFileStruct[isObject].room_name << "\n";
+        linkFileStruct[isObject].object_id << "," <<
+        linkFileStruct[isObject].object_name << "," <<
+        linkFileStruct[isObject].room_id << "," <<
+        linkFileStruct[isObject].room_name << "\n";
         if (DEBUG_saveRoomsDacop) {
             cout << 
-            objectsFileStruct[isObject].object_id << "," <<
-            objectsFileStruct[isObject].object_name << "," <<
-            objectsFileStruct[isObject].room_id << "," <<
-            objectsFileStruct[isObject].room_name << "\n";
+            linkFileStruct[isObject].object_id << "," <<
+            linkFileStruct[isObject].object_name << "," <<
+            linkFileStruct[isObject].room_id << "," <<
+            linkFileStruct[isObject].room_name << "\n";
         }
     }
     FILE_WRITER.close();
