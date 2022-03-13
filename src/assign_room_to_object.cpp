@@ -294,7 +294,6 @@ void addNewRoomToStruct(std::string roomName_msg) {
     currentRoomName = roomsFileStruct[totalRoomsFileStruct].room_name; //set as current room name
 
     //get the room location on the map
-    int nanDetected = 0;
     int validTransform = 0;
     std::string map_frame = "/map";
     std::string robot_frame = "/base_link";
@@ -342,7 +341,6 @@ void addNewRoomToStruct(std::string roomName_msg) {
             int foundNaN = tofToolBox->validateTransform(mapTransform);
             if (foundNaN) {
                 //skip object
-                nanDetected = 1;
                 cout << "NaN detected when transforming to map frame" << endl;
             }
             else {
