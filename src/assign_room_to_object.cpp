@@ -24,7 +24,7 @@ using namespace std;
 const int DEBUG_roomListToStruct = 0;
 const int DEBUG_roomsDacopToStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
-const int DEBUG_detectedObjectsCallback = 0;
+const int DEBUG_detectedObjectsCallback = 1;
 const int DEBUG_roomNameCallback = 0;
 const int DEBUG_broadcastRoomFrame = 0;
 const int DEBUG_publishRoomsDacop = 0;
@@ -232,6 +232,7 @@ void roomsDacopToStruct(std::string fileName) {
 void objectLocationsCallback(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
     int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
     totalObjectsFileStruct = totalObjectsInMsg; //set message total objects to total objects in file struct
+    totalLinkFileStruct = totalObjectsInMsg;
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire msg topic array
         objectsFileStruct[isObject].id = obLoc->id[isObject]; //assign object id to struct
         objectsFileStruct[isObject].object_name = obLoc->object_name[isObject]; //assign object name to struct
@@ -260,6 +261,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations::ConstPtr& o
                     objectsFileStruct[isObject].quat_w << endl;
             tofToolBox->printSeparator(0);
         }
+
+        linkFileStruct[isObject].object_id = objectsFileStruct[isObject].id; //fill allocation spaces in numerical sequence - id
+        linkFileStruct[isObject].object_name = objectsFileStruct[isObject].object_name; //fill allocation spaces in numerical sequence - name
     }
 }
 
@@ -270,6 +274,56 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations::ConstPtr& o
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
+    if (totalLinkFileStruct != 0) {
+        //run through entire list of objects
+        //add object to struct
+        //get ID of object and name
+        //check to see if it already exists in this object struct
+        //if it does update it
+        //if it doesn't add it and assign it a room
+        //eventually all objects should be present and have been assigned a room
+        //publish the entire struct afterwards, to allow the navigation node to probe for object/room locations.
+        int totalObjectsInMsg = obLoc.totalObjects; //total detected objects in ROS msg
+        if (DEBUG_detectedObjectsCallback) {
+            cout << "debug current room name is: " << currentRoomName << endl;
+        }
+        if (currentRoomName != "") {
+            //room name detected
+            //run through list of detected objects
+            for (int isDetObject = 0; isDetObject < totalObjectsInMsg; isDetObject++) {
+                if (DEBUG_detectedObjectsCallback) {
+                    cout << "Current obj msg is " <<
+                    obLoc.id[isDetObject] << ", " <<
+                    obLoc.object_name[isDetObject] << endl;
+                }
+                for (int isLinkObject = 0; isLinkObject < totalLinkFileStruct; isLinkObject++) {
+                    if (linkFileStruct[isLinkObject].object_id == obLoc.id[isDetObject]) {
+                        //found matchind IDs, allocate room id and name to correct memory space
+                        if (DEBUG_detectedObjectsCallback) {
+                            cout <<
+                            "array space and object ID are: " <<
+                            isLinkObject << ", " <<
+                            obLoc.id[isDetObject] << endl;
+                        }
+                    linkFileStruct[isLinkObject].room_id = currentRoomID;
+                    linkFileStruct[isLinkObject].room_name = currentRoomName;
+                    }
+                }
+            }
+        }
+    }
+    else {
+        //don't do anything yet, full list has not been provided
+    }
+}
+
+/**
+ * Main callback function triggered by objects detected
+ *
+ * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
+ *        message belongs to wheelchair_msgs objectLocations.msg
+ */
+void detectedObjectsCallback2(const wheelchair_msgs::objectLocations obLoc) {
     //add object to struct
     //get ID of object and name
     //check to see if it already exists in this object struct
