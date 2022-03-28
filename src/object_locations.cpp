@@ -82,11 +82,10 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
     std::string msg_object_name;
     msg_object_name = objects_msg.object_name[objectID];
     double msg_object_confidence = objects_msg.object_confidence[objectID];
-    tf::TransformListener listener;
     tf::StampedTransform translation; //initiate translation for transform object
     try {
-        listener.waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        listener.lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
+        ptrListener->waitForTransform("/map", DETframename, camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        ptrListener->lookupTransform("/map", DETframename, camera_timestamp, translation); //lookup translation of object from map frame
 
         int nanFound = tofToolBox->validateTransform(translation);
         if (nanFound) {
@@ -143,9 +142,9 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
     }
     else {
         br.sendTransform(
-                tf::StampedTransform(localTransform, 
-                                    ros::Time::now(),
-                                    "zed_camera_center", 
+                tf::StampedTransform(localTransform,
+                                    camera_timestamp,
+                                    "zed_camera_center",
                                     DETframename)); //broadcast transform frame from zed camera link
     }
     //end the temporary frame publishing
@@ -232,8 +231,8 @@ int main(int argc, char **argv) {
     ptr_publish_objectLocations = &local_publish_objectLocations;
 
     while (ros::ok()) {
-        //tf::TransformListener listener;
-        //ptrListener = &listener; //set to global pointer - to access from another function
+        tf::TransformListener listener;
+        ptrListener = &listener; //set to global pointer - to access from another function
 
         ros::Rate rate(10.0);
         
