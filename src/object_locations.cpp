@@ -143,7 +143,7 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
     else {
         br.sendTransform(
                 tf::StampedTransform(localTransform,
-                                    ros::Time::now(),
+                                    camera_timestamp,
                                     "zed_camera_center",
                                     DETframename)); //broadcast transform frame from zed camera link
     }
