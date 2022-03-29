@@ -24,7 +24,8 @@ using namespace std;
 const int DEBUG_roomListToStruct = 0;
 const int DEBUG_roomsDacopToStruct = 0;
 const int DEBUG_objectLocationsCallback = 0;
-const int DEBUG_detectedObjectsCallback = 1;
+const int DEBUG_detectedObjectsCallback = 0;
+const int DEBUG_foundMatchingID = 1;
 const int DEBUG_roomNameCallback = 0;
 const int DEBUG_broadcastRoomFrame = 0;
 const int DEBUG_publishRoomsDacop = 0;
@@ -296,6 +297,8 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
                     obLoc.id[isDetObject] << ", " <<
                     obLoc.object_name[isDetObject] << endl;
                 }
+                int foundMatchingID = 0;
+                int linkObjectID = 0;
                 for (int isLinkObject = 0; isLinkObject < totalLinkFileStruct; isLinkObject++) {
                     if (linkFileStruct[isLinkObject].object_id == obLoc.id[isDetObject]) {
                         //found matchind IDs, allocate room id and name to correct memory space
@@ -305,8 +308,30 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
                             isLinkObject << ", " <<
                             obLoc.id[isDetObject] << endl;
                         }
-                    linkFileStruct[isLinkObject].room_id = currentRoomID;
-                    linkFileStruct[isLinkObject].room_name = currentRoomName;
+                        foundMatchingID = 1;
+                        linkObjectID = isLinkObject;
+                    }
+                    else {
+                        //don't do anything - object ID not matched
+                    }
+                }
+                if (foundMatchingID) {
+                    if (DEBUG_foundMatchingID) {
+                        cout <<
+                        "found matching ID, allocating " <<
+                        currentRoomName <<
+                        " to " <<
+                        linkFileStruct[linkObjectID].object_name <<
+                        endl;
+                    }
+                    linkFileStruct[linkObjectID].room_id = currentRoomID;
+                    linkFileStruct[linkObjectID].room_name = currentRoomName;
+                }
+                else {
+                    if (DEBUG_foundMatchingID) {
+                        cout <<
+                        "something went wrong.... object not in full list" <<
+                        endl;
                     }
                 }
             }
