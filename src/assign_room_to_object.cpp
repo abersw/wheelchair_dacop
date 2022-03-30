@@ -330,7 +330,13 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 else {
                     if (DEBUG_foundMatchingID) {
                         cout <<
-                        "something went wrong.... object not in full list" <<
+                        "something went wrong.... object not in full list\n" <<
+                        "should have detected " <<
+                        obLoc.id[isDetObject] <<
+                        obLoc.object_name[isDetObject] << "\n" <<
+                        "last item in full list was " <<
+                        linkFileStruct[totalLinkFileStruct-1].object_id <<
+                        linkFileStruct[totalLinkFileStruct-1].object_name <<
                         endl;
                     }
                 }
