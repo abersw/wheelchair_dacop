@@ -215,6 +215,112 @@ void publishDetectedObjects(const struct Objects detectedObjects[1000], int tota
 }
 
 /**
+ * Function creates and broadcasts a transform (tf) for each object in the objectsFileStruct struct
+ *
+ */
+void broadcastTransformStruct() {
+    //publish all objects inside struct
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
+        int nanDetected = 0;
+        int objectID = objectsFileStruct[isObject].id;
+        std::string objectName = objectsFileStruct[isObject].object_name;
+
+        static tf::TransformBroadcaster br;
+        std::string OBframename = std::to_string(objectID) + objectName;
+
+        //turn msg to pose
+        tf::Transform mapTransform;
+        //create map transform from map to object frame
+        mapTransform.setOrigin(
+                tf::Vector3(
+                        objectsFileStruct[isObject].point_x,
+                        objectsFileStruct[isObject].point_y,
+                        objectsFileStruct[isObject].point_z) );
+        tf::Quaternion mapQuaternion(
+                objectsFileStruct[isObject].quat_x,
+                objectsFileStruct[isObject].quat_y,
+                objectsFileStruct[isObject].quat_z,
+                objectsFileStruct[isObject].quat_w);
+        mapTransform.setRotation(mapQuaternion);
+        int foundNaN = tofToolBox->validateTransform(mapTransform);
+        if (foundNaN) {
+            //skip object
+            nanDetected = 1;
+            cout << "NaN detected when transforming to map frame" << endl;
+        }
+        else {
+            br.sendTransform(
+                    tf::StampedTransform(
+                            mapTransform,
+                            camera_timestamp,
+                            "map",
+                            OBframename));
+            //end the map frame object publishing
+            if (DEBUG_broadcastTransformStruct) {
+                cout << "publishing map frame" << endl;
+                cout << mapTransform.getOrigin().x() << ", " <<
+                        mapTransform.getOrigin().y() << ", " <<
+                        mapTransform.getOrigin().z() << endl;
+            }
+        }
+    }
+}
+
+/**
+ * Function publishes the entirety of the objectsFileStruct as a ros msg type wheelchair_msgs::objectLocations
+ *
+ */
+void publishObjectStructMsg() {
+    wheelchair_msgs::objectLocations obLoc;
+    obLoc.header.stamp = camera_timestamp;
+    //publish all objects inside struct
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
+        obLoc.id.push_back(objectsFileStruct[isObject].id);
+        obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
+        obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
+
+        obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
+        obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
+        obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
+
+        obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
+        obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
+        obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
+        obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
+    }
+    obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
+    ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
+}
+
+/**
+ * Function saves contents of objectsFileStruct struct to a list
+ *
+ * @param 'objects_file_loc' is the file path for saving the objects list
+ */
+void objectsStructToList(std::string objects_file_loc) {
+    //add struct to list file here
+    ofstream FILE_WRITER;
+	FILE_WRITER.open(objects_file_loc);
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+        FILE_WRITER <<
+            objectsFileStruct[isObject].id << "," <<
+            objectsFileStruct[isObject].object_name << "," <<
+            objectsFileStruct[isObject].object_confidence << "," <<
+
+            objectsFileStruct[isObject].point_x << "," <<
+            objectsFileStruct[isObject].point_y << "," <<
+            objectsFileStruct[isObject].point_z << "," <<
+
+            objectsFileStruct[isObject].quat_x << "," <<
+            objectsFileStruct[isObject].quat_y << "," <<
+            objectsFileStruct[isObject].quat_z << "," <<
+            objectsFileStruct[isObject].quat_w << "\n";
+    }
+    FILE_WRITER.close();
+    cout << "finished saving function" << endl;
+}
+
+/**
  * Main callback function for the node
  * Receives the object location data and compares it to an existing struct of objects to see if it already exists
  * Adds object to struct if it doesn't exist / gets the ID of the object if it already exists
@@ -331,113 +437,8 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectID++; //iterate to next object in detectedObjects
         }
     }
+    publishObjectStructMsg();
     publishDetectedObjects(detectedObjects, totalDetectedObjects); //publish detected objects
-}
-
-/**
- * Function creates and broadcasts a transform (tf) for each object in the objectsFileStruct struct
- *
- */
-void broadcastTransformStruct() {
-    //publish all objects inside struct
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-        int nanDetected = 0;
-        int objectID = objectsFileStruct[isObject].id;
-        std::string objectName = objectsFileStruct[isObject].object_name;
-
-        static tf::TransformBroadcaster br;
-        std::string OBframename = std::to_string(objectID) + objectName;
-
-        //turn msg to pose
-        tf::Transform mapTransform;
-        //create map transform from map to object frame
-        mapTransform.setOrigin(
-                tf::Vector3(
-                        objectsFileStruct[isObject].point_x,
-                        objectsFileStruct[isObject].point_y,
-                        objectsFileStruct[isObject].point_z) );
-        tf::Quaternion mapQuaternion(
-                objectsFileStruct[isObject].quat_x,
-                objectsFileStruct[isObject].quat_y,
-                objectsFileStruct[isObject].quat_z,
-                objectsFileStruct[isObject].quat_w);
-        mapTransform.setRotation(mapQuaternion);
-        int foundNaN = tofToolBox->validateTransform(mapTransform);
-        if (foundNaN) {
-            //skip object
-            nanDetected = 1;
-            cout << "NaN detected when transforming to map frame" << endl;
-        }
-        else {
-            br.sendTransform(
-                    tf::StampedTransform(
-                            mapTransform,
-                            camera_timestamp,
-                            "map",
-                            OBframename));
-            //end the map frame object publishing
-            if (DEBUG_broadcastTransformStruct) {
-                cout << "publishing map frame" << endl;
-                cout << mapTransform.getOrigin().x() << ", " <<
-                        mapTransform.getOrigin().y() << ", " <<
-                        mapTransform.getOrigin().z() << endl;
-            }
-        }
-    }
-}
-
-/**
- * Function publishes the entirety of the objectsFileStruct as a ros msg type wheelchair_msgs::objectLocations
- *
- */
-void publishObjectStructMsg() {
-    wheelchair_msgs::objectLocations obLoc;
-    obLoc.header.stamp = camera_timestamp;
-    //publish all objects inside struct
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-        obLoc.id.push_back(objectsFileStruct[isObject].id);
-        obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
-        obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
-
-        obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
-        obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
-        obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
-
-        obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
-        obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
-        obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
-        obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
-    }
-    obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
-    ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
-}
-
-/**
- * Function saves contents of objectsFileStruct struct to a list
- *
- * @param 'objects_file_loc' is the file path for saving the objects list
- */
-void objectsStructToList(std::string objects_file_loc) {
-    //add struct to list file here
-    ofstream FILE_WRITER;
-	FILE_WRITER.open(objects_file_loc);
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-        FILE_WRITER <<
-            objectsFileStruct[isObject].id << "," <<
-            objectsFileStruct[isObject].object_name << "," <<
-            objectsFileStruct[isObject].object_confidence << "," <<
-
-            objectsFileStruct[isObject].point_x << "," <<
-            objectsFileStruct[isObject].point_y << "," <<
-            objectsFileStruct[isObject].point_z << "," <<
-
-            objectsFileStruct[isObject].quat_x << "," <<
-            objectsFileStruct[isObject].quat_y << "," <<
-            objectsFileStruct[isObject].quat_z << "," <<
-            objectsFileStruct[isObject].quat_w << "\n";
-    }
-    FILE_WRITER.close();
-    cout << "finished saving function" << endl;
 }
 
 
@@ -468,7 +469,7 @@ int main(int argc, char **argv) {
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_objectUID = &local_publish_objectUID; //point this local pub variable to global status, so the publish function can access it.
     //other subscribers can be added to modify the central objects struct to list
-    ros::Rate rate(40.0);
+    ros::Rate rate(50.0);
 
 
     while(ros::ok()) {
