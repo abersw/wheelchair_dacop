@@ -339,8 +339,6 @@ void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
                         linkFileStruct[totalLinkFileStruct-1].object_name <<
                         endl;
                     }
-                    linkFileStruct[linkObjectID].room_id = -1;
-                    linkFileStruct[linkObjectID].room_name = "NULL";
                 }
             }
         }
