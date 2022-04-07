@@ -479,13 +479,13 @@ int main(int argc, char **argv) {
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
+        broadcastTransformStruct();
+        publishObjectStructMsg();
         if (DEBUG_main) {
             cout << "spin \n";
         }
         ros::spinOnce();
         rate.sleep();
-        broadcastTransformStruct();
-        publishObjectStructMsg();
     }
     cout << "saving struct to list" << endl;
     objectsStructToList(objects_file_loc);
