@@ -443,7 +443,6 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectID++; //iterate to next object in detectedObjects
         }
     }
-    publishObjectStructMsg();
     publishDetectedObjects(detectedObjects, totalDetectedObjects); //publish detected objects
 }
 
@@ -475,18 +474,18 @@ int main(int argc, char **argv) {
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_objectUID = &local_publish_objectUID; //point this local pub variable to global status, so the publish function can access it.
     //other subscribers can be added to modify the central objects struct to list
-    ros::Rate rate(50.0);
+    ros::Rate rate(25.0);
 
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
-        broadcastTransformStruct();
-        publishObjectStructMsg();
         if (DEBUG_main) {
             cout << "spin \n";
         }
         ros::spinOnce();
         rate.sleep();
+        broadcastTransformStruct();
+        publishObjectStructMsg();
     }
     cout << "saving struct to list" << endl;
     objectsStructToList(objects_file_loc);
