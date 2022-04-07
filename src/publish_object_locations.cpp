@@ -29,6 +29,7 @@ const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
 const int DEBUG_printObjectLocation = 0;
 const int DEBUG_broadcastTransformStruct = 0;
+const int DEBUG_appendObjectToRosMsg = 0;
 const int DEBUG_objectLocationsCallback = 0;
 const int DEBUG_main = 0;
 
@@ -53,6 +54,8 @@ struct Objects {
 struct Objects objectsFileStruct[100000]; //array for storing all object data in world
 int totalObjectsFileStruct = 0; //total objects inside objectsFileStruct struct
 double objectBoundingBox = 0.5; //this should probably be a bounding box value...
+
+wheelchair_msgs::objectLocations allObjects_rosMsg;
 
 ros::Publisher *ptr_publish_objectLocations; //global pointer for publishing objectLocations topic
 ros::Publisher *ptr_publish_objectUID; //global pointer for publishing topic
@@ -266,30 +269,31 @@ void broadcastTransformStruct() {
     }
 }
 
+void appendObjectToRosMsg() {
+    allObjects_rosMsg.id.push_back(objectsFileStruct[totalObjectsFileStruct].id);
+    allObjects_rosMsg.object_name.push_back(objectsFileStruct[totalObjectsFileStruct].object_name);
+    allObjects_rosMsg.object_confidence.push_back(objectsFileStruct[totalObjectsFileStruct].object_confidence);
+
+    allObjects_rosMsg.point_x.push_back(objectsFileStruct[totalObjectsFileStruct].point_x);
+    allObjects_rosMsg.point_y.push_back(objectsFileStruct[totalObjectsFileStruct].point_y);
+    allObjects_rosMsg.point_z.push_back(objectsFileStruct[totalObjectsFileStruct].point_z);
+
+    allObjects_rosMsg.quat_x.push_back(objectsFileStruct[totalObjectsFileStruct].quat_x);
+    allObjects_rosMsg.quat_y.push_back(objectsFileStruct[totalObjectsFileStruct].quat_y);
+    allObjects_rosMsg.quat_z.push_back(objectsFileStruct[totalObjectsFileStruct].quat_z);
+    allObjects_rosMsg.quat_w.push_back(objectsFileStruct[totalObjectsFileStruct].quat_w);
+}
+
 /**
  * Function publishes the entirety of the objectsFileStruct as a ros msg type wheelchair_msgs::objectLocations
  *
  */
 void publishObjectStructMsg() {
-    wheelchair_msgs::objectLocations obLoc;
-    obLoc.header.stamp = camera_timestamp;
-    //publish all objects inside struct
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-        obLoc.id.push_back(objectsFileStruct[isObject].id);
-        obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
-        obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
-
-        obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
-        obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
-        obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
-
-        obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
-        obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
-        obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
-        obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
-    }
-    obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
-    ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
+    allObjects_rosMsg.header.stamp = ros::Time::now();
+    allObjects_rosMsg.camera_timestamp = camera_timestamp;
+    //objects are dynamically allocated upon discovery to object locations ros msg
+    allObjects_rosMsg.totalObjects = totalObjectsFileStruct;
+    ptr_publish_objectLocations->publish(allObjects_rosMsg); //publish struct as ros msg array
 }
 
 /**
@@ -417,6 +421,8 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectsFileStruct[totalObjectsFileStruct].quat_y = msg_rotation_y;
             objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
             objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_w;
+
+            appendObjectToRosMsg();
 
             //add object to detected objects struct array
             detectedObjects[objectID].id = objectsFileStruct[totalObjectsFileStruct].id;
