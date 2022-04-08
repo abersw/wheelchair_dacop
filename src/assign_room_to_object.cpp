@@ -726,6 +726,7 @@ int main (int argc, char **argv) {
     ros::NodeHandle n;
     ros::Subscriber objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/objects", 1000, objectLocationsCallback); //full list of objects
 
+    //delay object detected thread by 500 milliseconds, to allow the full objects list to be processed
     ros::NodeHandle n_delayThread;
     ros::CallbackQueue callback_queue_delayThread;
     n_delayThread.setCallbackQueue(&callback_queue_delayThread);
