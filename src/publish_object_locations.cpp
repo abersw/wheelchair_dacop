@@ -468,7 +468,7 @@ int main(int argc, char **argv) {
     //called every time an object is detected
     ros::Subscriber sub = n.subscribe("wheelchair_robot/dacop/object_locations/detected_objects", 1000, objectLocationsCallback);
     //publish to central publishing locations node
-    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 1000);
+    ros::Publisher local_publish_objectLocations = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/objects", 5);
     //publish to central publishing locations node
     ros::Publisher local_publish_objectUID = n.advertise<wheelchair_msgs::objectLocations>("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000);
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
