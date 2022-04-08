@@ -19,6 +19,10 @@
 #include "tf/transform_listener.h"
 #include "tf/transform_broadcaster.h"
 
+#include <thread>
+#include <ros/callback_queue.h>
+#include <chrono>
+
 using namespace std;
 
 const int DEBUG_roomListToStruct = 0;
@@ -276,6 +280,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations::ConstPtr& o
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (totalLinkFileStruct != 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500)); //wait 500 milliseconds in thread for all objects to update
         //run through entire list of objects
         //add object to struct
         //get ID of object and name
@@ -720,7 +725,17 @@ int main (int argc, char **argv) {
     ros::init(argc, argv, "assign_room_to_object");
     ros::NodeHandle n;
     ros::Subscriber objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/objects", 1000, objectLocationsCallback); //full list of objects
-    ros::Subscriber detected_objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+
+    ros::NodeHandle n_delayThread;
+    ros::CallbackQueue callback_queue_delayThread;
+    n_delayThread.setCallbackQueue(&callback_queue_delayThread);
+    ros::Subscriber detected_objects_sub = n_delayThread.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+    std::thread spinner_thread_delay([&callback_queue_delayThread]() {
+        ros::SingleThreadedSpinner spinner_delay;
+        spinner_delay.spin(&callback_queue_delayThread);
+    });
+
+    //ros::Subscriber detected_objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
     ros::Subscriber roomName_sub = n.subscribe("wheelchair_robot/user/room_name", 1000, roomNameCallback);
     //publish objects and associated rooms
     ros::Publisher local_publish_roomsDacop = n.advertise<wheelchair_msgs::roomToObjects>("wheelchair_robot/dacop/assign_room_to_object/objects", 1000);
