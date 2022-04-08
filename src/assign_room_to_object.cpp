@@ -724,7 +724,7 @@ int main (int argc, char **argv) {
     
     ros::init(argc, argv, "assign_room_to_object");
     ros::NodeHandle n;
-    ros::Subscriber objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/objects", 10, objectLocationsCallback); //full list of objects
+    ros::Subscriber objects_sub = n.subscribe("wheelchair_robot/dacop/publish_object_locations/objects", 1000, objectLocationsCallback); //full list of objects
 
     //delay object detected thread by 500 milliseconds, to allow the full objects list to be processed
     ros::NodeHandle n_delayThread;
