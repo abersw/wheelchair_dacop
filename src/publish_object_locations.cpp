@@ -269,21 +269,6 @@ void broadcastTransformStruct() {
     }
 }
 
-void appendObjectToRosMsg() {
-    allObjects_rosMsg.id.push_back(objectsFileStruct[totalObjectsFileStruct].id);
-    allObjects_rosMsg.object_name.push_back(objectsFileStruct[totalObjectsFileStruct].object_name);
-    allObjects_rosMsg.object_confidence.push_back(objectsFileStruct[totalObjectsFileStruct].object_confidence);
-
-    allObjects_rosMsg.point_x.push_back(objectsFileStruct[totalObjectsFileStruct].point_x);
-    allObjects_rosMsg.point_y.push_back(objectsFileStruct[totalObjectsFileStruct].point_y);
-    allObjects_rosMsg.point_z.push_back(objectsFileStruct[totalObjectsFileStruct].point_z);
-
-    allObjects_rosMsg.quat_x.push_back(objectsFileStruct[totalObjectsFileStruct].quat_x);
-    allObjects_rosMsg.quat_y.push_back(objectsFileStruct[totalObjectsFileStruct].quat_y);
-    allObjects_rosMsg.quat_z.push_back(objectsFileStruct[totalObjectsFileStruct].quat_z);
-    allObjects_rosMsg.quat_w.push_back(objectsFileStruct[totalObjectsFileStruct].quat_w);
-}
-
 /**
  * Function publishes the entirety of the objectsFileStruct as a ros msg type wheelchair_msgs::objectLocations
  *
@@ -322,6 +307,23 @@ void objectsStructToList(std::string objects_file_loc) {
     }
     FILE_WRITER.close();
     cout << "finished saving function" << endl;
+}
+
+void appendObjectToRosMsg() {
+    allObjects_rosMsg.id.push_back(objectsFileStruct[totalObjectsFileStruct].id);
+    allObjects_rosMsg.object_name.push_back(objectsFileStruct[totalObjectsFileStruct].object_name);
+    allObjects_rosMsg.object_confidence.push_back(objectsFileStruct[totalObjectsFileStruct].object_confidence);
+
+    allObjects_rosMsg.point_x.push_back(objectsFileStruct[totalObjectsFileStruct].point_x);
+    allObjects_rosMsg.point_y.push_back(objectsFileStruct[totalObjectsFileStruct].point_y);
+    allObjects_rosMsg.point_z.push_back(objectsFileStruct[totalObjectsFileStruct].point_z);
+
+    allObjects_rosMsg.quat_x.push_back(objectsFileStruct[totalObjectsFileStruct].quat_x);
+    allObjects_rosMsg.quat_y.push_back(objectsFileStruct[totalObjectsFileStruct].quat_y);
+    allObjects_rosMsg.quat_z.push_back(objectsFileStruct[totalObjectsFileStruct].quat_z);
+    allObjects_rosMsg.quat_w.push_back(objectsFileStruct[totalObjectsFileStruct].quat_w);
+
+    publishObjectStructMsg();
 }
 
 /**
