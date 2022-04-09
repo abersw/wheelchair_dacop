@@ -474,7 +474,7 @@ int main(int argc, char **argv) {
     ptr_publish_objectLocations = &local_publish_objectLocations; //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_objectUID = &local_publish_objectUID; //point this local pub variable to global status, so the publish function can access it.
     //other subscribers can be added to modify the central objects struct to list
-    ros::Rate rate(50.0);
+    ros::Rate rate(25.0);
 
 
     while(ros::ok()) {
