@@ -28,7 +28,7 @@ using namespace std;
 
 static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
-static const int DEBUG_addObjectLocationsToStruct = 0;
+static const int DEBUG_addObjectLocationsToStruct = 1;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
@@ -132,18 +132,20 @@ void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     }
 }
 
-void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
+void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
     tofToolBox->printSeparator(0);
     cout << "depth header seq:  " << dpth->header.seq << endl;
     cout << "object header seq: " << obLoc->header.seq << endl;
     tofToolBox->printSeparator(0);
 }
 
-void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
+void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
     int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
     totalObjectsFileStruct = totalObjectsInMsg; //set message total objects to total objects in file struct
+    cout << "total objects in msg are " << totalObjectsFileStruct << endl;
+    //cout << "first element in array is " << currentObjLoc->object_name[0] << endl;
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire msg topic array
-        objectsFileStruct[isObject].id = obLoc->id[isObject]; //assign object id to struct
+        /*objectsFileStruct[isObject].id = obLoc->id[isObject]; //assign object id to struct
         objectsFileStruct[isObject].object_name = obLoc->object_name[isObject]; //assign object name to struct
         objectsFileStruct[isObject].object_confidence = obLoc->object_confidence[isObject]; //assign object confidence to struct
 
@@ -155,7 +157,7 @@ void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr
         objectsFileStruct[isObject].quat_y = obLoc->quat_y[isObject]; //assign object quaternion y to struct
         objectsFileStruct[isObject].quat_z = obLoc->quat_z[isObject]; //assign object quaternion z to struct
         objectsFileStruct[isObject].quat_w = obLoc->quat_w[isObject]; //assign object quaternion w to struct
-
+        */
         if (DEBUG_addObjectLocationsToStruct) { //print off debug lines
             cout << "array element in id " << isObject << endl;
             cout << objectsFileStruct[isObject].id << "," <<
@@ -560,7 +562,7 @@ void publishMissingObjects() {
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
-void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
+void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
     //calculate field of view
     //calcualte the orientation of the robot, filter transforms within field of view of the robot
     //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
@@ -571,18 +573,18 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     }
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
-    addObjectLocationsToStruct(obLoc);
+    //addObjectLocationsToStruct(obLoc);
 
-    findMatchingPoints(dpth);
-    calculateMissingObjects();
+    /*findMatchingPoints(dpth);
+    calculateMissingObjects();*/
     //print array of objects
-    printAllObjects();
+    /*printAllObjects();
     printRedetectedObjects();
-    printMissingObjects();
+    printMissingObjects();*/
     //publish array of objects
-    publishAllObjects();
+    /*publishAllObjects();
     publishRedetectedObjects();
-    publishMissingObjects();
+    publishMissingObjects();*/
 }
 
 int main (int argc, char **argv) {
@@ -603,7 +605,7 @@ int main (int argc, char **argv) {
     //get transformed pointcloud
     message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
     //get mobilenet objects detected
-    message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "wheelchair_robot/dacop/publish_object_locations/objects", 1000);
+    message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "/wheelchair_robot/dacop/publish_object_locations/objects", 1000);
     //approximately sync the topic rate
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::objectLocations> MySyncPolicy;
     //set sync policy
