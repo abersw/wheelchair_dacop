@@ -31,9 +31,9 @@ using namespace std;
 
 static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
-static const int DEBUG_addObjectLocationsToStruct = 1;
+static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
-static const int DEBUG_detectedObjectsCallback = 0;
+static const int DEBUG_detectedObjectsCallback = 1;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
@@ -141,10 +141,12 @@ void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const whee
 }
 
 void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
+    cout << "thread 1 running" << endl;
     int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
     totalObjectsFileStruct = totalObjectsInMsg; //set message total objects to total objects in file struct
-    cout << "total objects in msg are " << totalObjectsFileStruct << endl;
-    cout << "first element in array is " << obLoc->object_name[0] << endl;
+    if (DEBUG_addObjectLocationsToStruct) {
+        cout << "total objects in msg are " << totalObjectsFileStruct << endl;
+    }
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire msg topic array
         objectsFileStruct[isObject].id = obLoc->id[isObject]; //assign object id to struct
         objectsFileStruct[isObject].object_name = obLoc->object_name[isObject]; //assign object name to struct
@@ -214,6 +216,7 @@ void resetMatchingPoints() {
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
+    cout << "thread 2 running" << endl;
     cache.add(obLoc);
     if (DEBUG_detectedObjectsCallback) {
         std::cout << "Oldest time cached is " << cache.getOldestTime() << std::endl;
@@ -598,10 +601,10 @@ int main (int argc, char **argv) {
     ros::Rate rate(10.0);
 
     cache.setCacheSize(1000);
-    //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/objects", 1000, addObjectLocationsToStruct);
+    //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
 
     //set detected objects through separate thread
-    /*ros::NodeHandle nh_detectedObjects;
+    ros::NodeHandle nh_detectedObjects;
     ros::CallbackQueue callback_queue_detectedObjects;
     nh_detectedObjects.setCallbackQueue(&callback_queue_detectedObjects);
     ros::Subscriber detected_objects_sub = nh_detectedObjects.subscribe(
@@ -611,7 +614,7 @@ int main (int argc, char **argv) {
     std::thread spinner_thread_delay([&callback_queue_detectedObjects]() {
         ros::SingleThreadedSpinner spinner_detectedObjects;
         spinner_detectedObjects.spin(&callback_queue_detectedObjects);
-    });*/
+    });
 
     //add list of all objects to separate thread
     ros::NodeHandle nh_objectsList;
