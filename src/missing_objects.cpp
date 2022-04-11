@@ -33,14 +33,14 @@ static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
-static const int DEBUG_detectedObjectsCallback = 1;
+static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
-static const int DEBUG_printAllObjects = 0;
-static const int DEBUG_printRedetectedObjects = 0;
-static const int DEBUG_printMissingObjects = 0;
+static const int DEBUG_printAllObjects = 1;
+static const int DEBUG_printRedetectedObjects = 1;
+static const int DEBUG_printMissingObjects = 1;
 static const int DEBUG_main = 0;
 
 TofToolBox *tofToolBox;
@@ -141,7 +141,6 @@ void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const whee
 }
 
 void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
-    cout << "thread 1 running" << endl;
     int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
     totalObjectsFileStruct = totalObjectsInMsg; //set message total objects to total objects in file struct
     if (DEBUG_addObjectLocationsToStruct) {
@@ -216,7 +215,6 @@ void resetMatchingPoints() {
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
-    cout << "thread 2 running" << endl;
     cache.add(obLoc);
     if (DEBUG_detectedObjectsCallback) {
         std::cout << "Oldest time cached is " << cache.getOldestTime() << std::endl;
@@ -579,12 +577,12 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getPointCloudTimestamp(dpth);
     //addObjectLocationsToStruct(obLoc);
 
-    /*findMatchingPoints(dpth);
-    calculateMissingObjects();*/
+    findMatchingPoints(dpth);
+    calculateMissingObjects();
     //print array of objects
-    /*printAllObjects();
+    printAllObjects();
     printRedetectedObjects();
-    printMissingObjects();*/
+    printMissingObjects();
     //publish array of objects
     /*publishAllObjects();
     publishRedetectedObjects();
@@ -628,8 +626,8 @@ int main (int argc, char **argv) {
         ros::SingleThreadedSpinner spinner_objectsList;
         spinner_objectsList.spin(&callback_queue_objectsList);
     });
-/*
-    ros::Subscriber pc2_sub = n.subscribe("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);*/
+
+    ros::Subscriber pc2_sub = n.subscribe("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
 
 
     //get transformed pointcloud
