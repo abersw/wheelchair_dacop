@@ -24,7 +24,7 @@
 using namespace std;
 
 const int DEBUG_forwardCameraTimestamp = 0;
-const int DEBUG_objectsListToStruct = 1;
+const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
 const int DEBUG_printObjectLocation = 0;
