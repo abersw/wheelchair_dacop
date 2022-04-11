@@ -437,7 +437,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
                 }
                 //add corresponding transform to array
-                transformsFoundInPointcloud(isObject);
+                transformsFoundInPointcloudDistance(isObject);
                 //check to see if object has been detected from publish objects node
                 getCorrespondingObjectFrame(isObject);
             }
@@ -488,6 +488,7 @@ void calculateMissingObjects() {
 
 void printAllObjects() {
     if (DEBUG_printAllObjects) {
+        tofToolBox->printSeparator(0);
         cout << "objectsList array: all objects that should be found" << endl;
         for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
             cout <<
