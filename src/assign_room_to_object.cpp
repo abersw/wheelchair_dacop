@@ -750,7 +750,7 @@ int main (int argc, char **argv) {
     //publish all of objects and rooms struct
 
     
-    ros::Rate rate(25.0);
+    ros::Rate rate(10.0);
     while(ros::ok()) {
         //n.getParam("/wheelchair_robot/param/user/room_name", userRoomName);
         //cout << "room param is " << userRoomName << endl;
