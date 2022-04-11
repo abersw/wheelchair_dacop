@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
     //point this local pub variable to global status, so the publish function can access it.
     ptr_publish_objectLocations = &local_publish_objectLocations;
 
-    ros::Rate rate(25.0);
+    ros::Rate rate(10.0);
 
     while (ros::ok()) {
         tf::TransformListener listener;

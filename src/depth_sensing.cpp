@@ -313,7 +313,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "object_depth");
     ros::NodeHandle n;
 
-    ros::Rate rate(25.0);
+    ros::Rate rate(10.0);
     //message_filters::Subscriber<sensor_msgs::Image> depth_sub(n, "zed_node/depth/depth_registered", 10);
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "zed_node/point_cloud/cloud_registered", 10);
     message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 100); //get transformed pointcloud
