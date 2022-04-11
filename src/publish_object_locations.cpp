@@ -155,6 +155,19 @@ void objectsListToStruct(std::string objects_file_loc) {
                         objectsFileStruct[objectNumber].quat_w << endl;
                 tofToolBox->printSeparator(0);
             }
+            //add data to ros msg
+            allObjects_rosMsg.id.push_back(objectsFileStruct[objectNumber].id);
+            allObjects_rosMsg.object_name.push_back(objectsFileStruct[objectNumber].object_name);
+            allObjects_rosMsg.object_confidence.push_back(objectsFileStruct[objectNumber].object_confidence);
+
+            allObjects_rosMsg.point_x.push_back(objectsFileStruct[objectNumber].point_x);
+            allObjects_rosMsg.point_y.push_back(objectsFileStruct[objectNumber].point_y);
+            allObjects_rosMsg.point_z.push_back(objectsFileStruct[objectNumber].point_z);
+
+            allObjects_rosMsg.quat_x.push_back(objectsFileStruct[objectNumber].quat_x);
+            allObjects_rosMsg.quat_y.push_back(objectsFileStruct[objectNumber].quat_y);
+            allObjects_rosMsg.quat_z.push_back(objectsFileStruct[objectNumber].quat_z);
+            allObjects_rosMsg.quat_w.push_back(objectsFileStruct[objectNumber].quat_w);
             objectNumber++; //iterate to next object in list
         }
     }
