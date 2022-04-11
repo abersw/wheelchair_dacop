@@ -22,6 +22,9 @@
 
 #include "tf/transform_listener.h"
 
+#include <thread>
+#include <ros/callback_queue.h>
+
 #include <math.h>
 
 using namespace std;
@@ -59,8 +62,6 @@ struct Objects { //struct for publishing topic
 struct Objects objectsFileStruct[100000]; //array for storing object data
 int totalObjectsFileStruct = 0; //total objects inside struct
 
-
-struct Objects *matchingsPoints[100000];
 
 ros::Time camera_timestamp;
 double camera_timestamp_sec;
@@ -139,13 +140,13 @@ void rosPrintSequence(const sensor_msgs::PointCloud2::ConstPtr& dpth, const whee
     tofToolBox->printSeparator(0);
 }
 
-void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
+void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr& obLoc) {
     int totalObjectsInMsg = obLoc->totalObjects; //total detected objects in ROS msg
     totalObjectsFileStruct = totalObjectsInMsg; //set message total objects to total objects in file struct
     cout << "total objects in msg are " << totalObjectsFileStruct << endl;
-    //cout << "first element in array is " << currentObjLoc->object_name[0] << endl;
+    cout << "first element in array is " << obLoc->object_name[0] << endl;
     for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire msg topic array
-        /*objectsFileStruct[isObject].id = obLoc->id[isObject]; //assign object id to struct
+        objectsFileStruct[isObject].id = obLoc->id[isObject]; //assign object id to struct
         objectsFileStruct[isObject].object_name = obLoc->object_name[isObject]; //assign object name to struct
         objectsFileStruct[isObject].object_confidence = obLoc->object_confidence[isObject]; //assign object confidence to struct
 
@@ -157,7 +158,7 @@ void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr
         objectsFileStruct[isObject].quat_y = obLoc->quat_y[isObject]; //assign object quaternion y to struct
         objectsFileStruct[isObject].quat_z = obLoc->quat_z[isObject]; //assign object quaternion z to struct
         objectsFileStruct[isObject].quat_w = obLoc->quat_w[isObject]; //assign object quaternion w to struct
-        */
+
         if (DEBUG_addObjectLocationsToStruct) { //print off debug lines
             cout << "array element in id " << isObject << endl;
             cout << objectsFileStruct[isObject].id << "," <<
@@ -562,14 +563,14 @@ void publishMissingObjects() {
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
-void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
+void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     //calculate field of view
     //calcualte the orientation of the robot, filter transforms within field of view of the robot
     //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
     //see if transform exists within a range
     if (DEBUG_rosPrintSequence) {
         cout << "inside callback" << endl;
-        rosPrintSequence(dpth, obLoc);
+        //rosPrintSequence(dpth, obLoc);
     }
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
@@ -597,13 +598,41 @@ int main (int argc, char **argv) {
     ros::Rate rate(10.0);
 
     cache.setCacheSize(1000);
-    ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+    //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/objects", 1000, addObjectLocationsToStruct);
+
+    //set detected objects through separate thread
+    /*ros::NodeHandle nh_detectedObjects;
+    ros::CallbackQueue callback_queue_detectedObjects;
+    nh_detectedObjects.setCallbackQueue(&callback_queue_detectedObjects);
+    ros::Subscriber detected_objects_sub = nh_detectedObjects.subscribe(
+                                            "/wheelchair_robot/dacop/publish_object_locations/detected_objects",
+                                            1000,
+                                            detectedObjectsCallback);
+    std::thread spinner_thread_delay([&callback_queue_detectedObjects]() {
+        ros::SingleThreadedSpinner spinner_detectedObjects;
+        spinner_detectedObjects.spin(&callback_queue_detectedObjects);
+    });*/
+
+    //add list of all objects to separate thread
+    ros::NodeHandle nh_objectsList;
+    ros::CallbackQueue callback_queue_objectsList;
+    nh_objectsList.setCallbackQueue(&callback_queue_objectsList);
+    ros::Subscriber objects_sub = nh_objectsList.subscribe(
+                                            "/wheelchair_robot/dacop/publish_object_locations/objects",
+                                            1000,
+                                            addObjectLocationsToStruct);
+    std::thread spinner_objectsList([&callback_queue_objectsList]() {
+        ros::SingleThreadedSpinner spinner_objectsList;
+        spinner_objectsList.spin(&callback_queue_objectsList);
+    });
+/*
+    ros::Subscriber pc2_sub = n.subscribe("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);*/
 
 
     //get transformed pointcloud
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1000);
     //get transformed pointcloud
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
+    /*message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
     //get mobilenet objects detected
     message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "/wheelchair_robot/dacop/publish_object_locations/objects", 1000);
     //approximately sync the topic rate
@@ -611,7 +640,7 @@ int main (int argc, char **argv) {
     //set sync policy
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(20), depth_sub, objects_sub);
     //set callback for synced topics
-    depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));
+    depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));*/
 
     //publish all objects that should be detected within frame
     ros::Publisher pub_objectsList = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/all", 1000);
