@@ -52,7 +52,7 @@ struct Objects { //struct for publishing topic
     float quat_z; //get transform rotation quaternion z
     float quat_w; //get transform rotation quaternion w
 };
-struct Objects objectsLocationStruct[1000]; //array for storing object data
+struct Objects objectsLocationStruct[10000]; //array for storing object data
 int totalObjectsLocationStruct = 0; //total objects inside struct
 
 tf::TransformListener *ptrListener; //global pointer for transform listener
