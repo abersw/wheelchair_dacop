@@ -38,9 +38,9 @@ static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
-static const int DEBUG_printAllObjects = 1;
-static const int DEBUG_printRedetectedObjects = 1;
-static const int DEBUG_printMissingObjects = 1;
+static const int DEBUG_printAllObjects = 0;
+static const int DEBUG_printRedetectedObjects = 0;
+static const int DEBUG_printMissingObjects = 0;
 static const int DEBUG_main = 0;
 
 TofToolBox *tofToolBox;
@@ -585,9 +585,9 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     printRedetectedObjects();
     printMissingObjects();
     //publish array of objects
-    /*publishAllObjects();
+    publishAllObjects();
     publishRedetectedObjects();
-    publishMissingObjects();*/
+    publishMissingObjects();
 }
 
 int main (int argc, char **argv) {
