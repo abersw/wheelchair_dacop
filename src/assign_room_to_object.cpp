@@ -1,8 +1,8 @@
 /*
  * assign_room_to_object.cpp
  * wheelchair_dacop
- * version: 0.1.0 Majestic Maidenhair
- * Status: Alpha
+ * version: 1.0.0 Majestic Maidenhair
+ * Status: Gamma
 */
 
 #include "tof_tool/tof_tool_box.h"
