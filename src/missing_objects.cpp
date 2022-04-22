@@ -33,6 +33,7 @@ static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
+static const int DEBUG_getCameraTranslation = 1;
 static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
@@ -120,6 +121,8 @@ ros::Publisher *ptr_pub_objectsList;
 ros::Publisher *ptr_pub_objectsRedetected;
 ros::Publisher *ptr_pub_objectsNotRedetected;
 
+tf::StampedTransform cameraTranslation;
+
 //get resolution of rectified pointcloud image
 void getResolutionOnStartup(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     if (!fov.gotResolution) {
@@ -206,6 +209,22 @@ void resetMatchingPoints() {
     matchingPoints.totalObjectsList = 0;
     matchingPoints.totalObjectsRedetected = 0;
     matchingPoints.totalObjectsNotRedetected = 0;
+}
+
+void getCameraTranslation() {
+    tf::TransformListener listener;
+    try{
+        listener.waitForTransform("map", "base_link", camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        listener.lookupTransform("map", "base_link", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
+        if (DEBUG_getCameraTranslation) {
+            cout << "camera translation: " << cameraTranslation.getOrigin().x() << ", " << cameraTranslation.getOrigin().y() << endl;
+        }
+    }
+    catch (tf::TransformException ex){
+            cout << "Couldn't get camera translation..." << endl; //catchment function if it can't get a translation from the map
+            ROS_ERROR("%s",ex.what()); //print error
+            ros::Duration(1.0).sleep();
+        }
 }
 
 /**
@@ -577,6 +596,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
     //addObjectLocationsToStruct(obLoc);
+    getCameraTranslation();
 
     findMatchingPoints(dpth);
     calculateMissingObjects();
