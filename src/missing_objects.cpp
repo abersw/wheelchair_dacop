@@ -353,6 +353,14 @@ void transformsFoundInPointcloud(int isObject) {
  * iterated through findMatchingPoints
  */
 void transformsFoundInPointcloudDistance(int isObject) {
+    double cameraX = cameraTranslation.getOrigin().x();
+    double cameraY = cameraTranslation.getOrigin().y();
+    double cameraZ = cameraTranslation.getOrigin().z();
+    double cameraXObjectDist = std::abs(cameraX - objectsFileStruct[isObject].point_x);
+    double cameraYObjectDist = std::abs(cameraY - objectsFileStruct[isObject].point_y);
+    cout << cameraXObjectDist << ", " << cameraYObjectDist << endl;
+
+
     tf::TransformListener listener;
     tf::StampedTransform translation; //initiate translation for transform object
     if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
