@@ -39,6 +39,7 @@ static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
+static const int DEBUG_transformsFoundInPointcloudDistance = 0;
 static const int DEBUG_printAllObjects = 0;
 static const int DEBUG_printRedetectedObjects = 0;
 static const int DEBUG_printMissingObjects = 0;
@@ -358,8 +359,9 @@ void transformsFoundInPointcloudDistance(int isObject) {
     double cameraZ = cameraTranslation.getOrigin().z();
     double cameraXObjectDist = std::abs(cameraX - objectsFileStruct[isObject].point_x);
     double cameraYObjectDist = std::abs(cameraY - objectsFileStruct[isObject].point_y);
-    cout << cameraXObjectDist << ", " << cameraYObjectDist << endl;
-
+    if (DEBUG_transformsFoundInPointcloudDistance) {
+        cout << "dist between camera and object is " << cameraXObjectDist << ", " << cameraYObjectDist << endl;
+    }
 
     tf::TransformListener listener;
     tf::StampedTransform translation; //initiate translation for transform object
