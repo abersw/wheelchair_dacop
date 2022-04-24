@@ -111,7 +111,7 @@ void translateObjectToMapFrame(const wheelchair_msgs::foundObjects objects_msg, 
     }
     catch (tf::TransformException ex){
         cout << "Couldn't get translation..." << endl; //catchment function if it can't get a translation from the map
-        ROS_ERROR("%s",ex.what()); //print error
+        ROS_ERROR_ONCE("%s",ex.what()); //print error
         ros::Duration(1.0).sleep();
     }
 }
@@ -141,11 +141,11 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
         nanDetected = 1;
     }
     else {
-        /*br.sendTransform(
+        br.sendTransform(
                 tf::StampedTransform(localTransform,
                                     camera_timestamp,
                                     "zed_camera_center",
-                                    DETframename)); //broadcast transform frame from zed camera link*/
+                                    DETframename)); //broadcast transform frame from zed camera link
     }
     //end the temporary frame publishing
     return std::make_pair(DETframename, nanDetected);
@@ -205,7 +205,7 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
         std::string DETframename = localDetTransform.first; //get transform name
         int nanDetectedLocalTransform = localDetTransform.second; //return 1 if nan, 0 if normal
         if (!nanDetectedLocalTransform) { //if no nan detected
-            //translateObjectToMapFrame(objects_msg, isObject, DETframename); //transofrm to map frame
+            translateObjectToMapFrame(objects_msg, isObject, DETframename); //transofrm to map frame
         }
     }
     if (totalObjectsLocationStruct > 0) {
