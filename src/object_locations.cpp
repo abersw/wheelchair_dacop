@@ -205,7 +205,7 @@ void objectsDetectedCallback(const wheelchair_msgs::foundObjects objects_msg) {
         std::string DETframename = localDetTransform.first; //get transform name
         int nanDetectedLocalTransform = localDetTransform.second; //return 1 if nan, 0 if normal
         if (!nanDetectedLocalTransform) { //if no nan detected
-            translateObjectToMapFrame(objects_msg, isObject, DETframename); //transofrm to map frame
+            //translateObjectToMapFrame(objects_msg, isObject, DETframename); //transofrm to map frame
         }
     }
     if (totalObjectsLocationStruct > 0) {
