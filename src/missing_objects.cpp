@@ -33,7 +33,7 @@ static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
-static const int DEBUG_getCameraTranslation = 1;
+static const int DEBUG_getCameraTranslation = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
@@ -85,7 +85,8 @@ struct FOV {
 struct FOV fov;
 
 struct Boundary {
-    double visualMaxBoundary = 1.5; //objects must be within this distance of camera detection
+    double visualMaxBoundaryX = 1.5; //objects must be within this distance of camera detection
+    double visualMaxBoundaryY = 1.5;
 
     double pointBoundaryX = 0.1;
     double pointBoundaryY = 0.1;
@@ -215,8 +216,8 @@ void resetMatchingPoints() {
 void getCameraTranslation() {
     tf::TransformListener listener;
     try{
-        listener.waitForTransform("map", "base_link", camera_timestamp, ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        listener.lookupTransform("map", "base_link", camera_timestamp, cameraTranslation); //lookup translation of object from map frame
+        listener.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        listener.lookupTransform("map", "base_link", ros::Time(0), cameraTranslation); //lookup translation of object from map frame
         if (DEBUG_getCameraTranslation) {
             cout << "camera translation: " << cameraTranslation.getOrigin().x() << ", " << cameraTranslation.getOrigin().y() << endl;
         }
@@ -364,7 +365,7 @@ void transformsFoundInPointcloudDistance(int isObject) {
     }
 
     //if objects are distance away from camera
-    if ((cameraXObjectDist < boundary.visualMaxBoundary) && (cameraYObjectDist < boundary.visualMaxBoundary)) {
+    if ((cameraXObjectDist < boundary.visualMaxBoundaryX) && (cameraYObjectDist < boundary.visualMaxBoundaryY)) {
         if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
             matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
             matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
