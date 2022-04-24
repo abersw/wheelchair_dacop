@@ -141,11 +141,11 @@ std::pair<std::string , int> publishLocalDetectionTransform(const wheelchair_msg
         nanDetected = 1;
     }
     else {
-        br.sendTransform(
+        /*br.sendTransform(
                 tf::StampedTransform(localTransform,
                                     camera_timestamp,
                                     "zed_camera_center",
-                                    DETframename)); //broadcast transform frame from zed camera link
+                                    DETframename)); //broadcast transform frame from zed camera link*/
     }
     //end the temporary frame publishing
     return std::make_pair(DETframename, nanDetected);
