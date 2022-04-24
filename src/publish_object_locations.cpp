@@ -268,7 +268,7 @@ void broadcastTransformStruct() {
             br.sendTransform(
                     tf::StampedTransform(
                             mapTransform,
-                            camera_timestamp,
+                            ros::Time::now(),
                             "map",
                             OBframename));
             //end the map frame object publishing
