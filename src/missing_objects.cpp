@@ -33,13 +33,13 @@ static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
-static const int DEBUG_getCameraTranslation = 1;
+static const int DEBUG_getCameraTranslation = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
-static const int DEBUG_transformsFoundInPointcloudDistance = 0;
+static const int DEBUG_transformsFoundInPointcloudDistance = 1;
 static const int DEBUG_printAllObjects = 0;
 static const int DEBUG_printRedetectedObjects = 0;
 static const int DEBUG_printMissingObjects = 0;
@@ -366,6 +366,9 @@ void transformsFoundInPointcloudDistance(int isObject) {
 
     //if objects are distance away from camera
     if ((cameraXObjectDist < boundary.visualMaxBoundaryX) && (cameraYObjectDist < boundary.visualMaxBoundaryY)) {
+        if (DEBUG_transformsFoundInPointcloudDistance) {
+            cout << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << " inside range" << endl;
+        }
         if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
             matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
             matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
