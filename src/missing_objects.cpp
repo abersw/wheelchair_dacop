@@ -31,7 +31,7 @@ using namespace std;
 
 static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
-static const int DEBUG_addObjectLocationsToStruct = 0;
+static const int DEBUG_addObjectLocationsToStruct = 1;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_getCameraTranslation = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
@@ -605,7 +605,7 @@ int main (int argc, char **argv) {
     //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
 
     //set detected objects through separate thread
-    ros::NodeHandle nh_detectedObjects;
+    /*ros::NodeHandle nh_detectedObjects;
     ros::CallbackQueue callback_queue_detectedObjects;
     nh_detectedObjects.setCallbackQueue(&callback_queue_detectedObjects);
     ros::Subscriber detected_objects_sub = nh_detectedObjects.subscribe(
@@ -615,7 +615,7 @@ int main (int argc, char **argv) {
     std::thread spinner_thread_delay([&callback_queue_detectedObjects]() {
         ros::SingleThreadedSpinner spinner_detectedObjects;
         spinner_detectedObjects.spin(&callback_queue_detectedObjects);
-    });
+    });*/
 
     //add list of all objects to separate thread
     ros::NodeHandle nh_objectsList;
