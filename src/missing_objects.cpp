@@ -31,7 +31,7 @@ using namespace std;
 
 static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
-static const int DEBUG_addObjectLocationsToStruct = 1;
+static const int DEBUG_addObjectLocationsToStruct = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_getCameraTranslation = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
@@ -618,7 +618,7 @@ int main (int argc, char **argv) {
     });*/
 
     //add list of all objects to separate thread
-    ros::NodeHandle nh_objectsList;
+    /*ros::NodeHandle nh_objectsList;
     ros::CallbackQueue callback_queue_objectsList;
     nh_objectsList.setCallbackQueue(&callback_queue_objectsList);
     ros::Subscriber objects_sub = nh_objectsList.subscribe(
@@ -628,7 +628,7 @@ int main (int argc, char **argv) {
     std::thread spinner_objectsList([&callback_queue_objectsList]() {
         ros::SingleThreadedSpinner spinner_objectsList;
         spinner_objectsList.spin(&callback_queue_objectsList);
-    });
+    });*/
 
     ros::Subscriber pc2_sub = n.subscribe("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
 
