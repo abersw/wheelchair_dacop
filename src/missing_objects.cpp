@@ -566,7 +566,7 @@ void publishMissingObjects() {
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
-void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
+void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
     //calculate field of view
     //calcualte the orientation of the robot, filter transforms within field of view of the robot
     //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
@@ -577,7 +577,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     }
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
-    //addObjectLocationsToStruct(obLoc);
+    addObjectLocationsToStruct(obLoc);
     getCameraTranslation();
 
     findMatchingPoints(dpth);
@@ -602,7 +602,7 @@ int main (int argc, char **argv) {
     ros::Rate rate(10.0);
 
     cache.setCacheSize(1000);
-    //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+    ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
 
     //set detected objects through separate thread
     /*ros::NodeHandle nh_detectedObjects;
@@ -630,13 +630,13 @@ int main (int argc, char **argv) {
         spinner_objectsList.spin(&callback_queue_objectsList);
     });*/
 
-    ros::Subscriber pc2_sub = n.subscribe("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
+    //ros::Subscriber pc2_sub = n.subscribe("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
 
 
     //get transformed pointcloud
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1000);
     //get transformed pointcloud
-    /*message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
+    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
     //get mobilenet objects detected
     message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "/wheelchair_robot/dacop/publish_object_locations/objects", 1000);
     //approximately sync the topic rate
@@ -644,7 +644,7 @@ int main (int argc, char **argv) {
     //set sync policy
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(20), depth_sub, objects_sub);
     //set callback for synced topics
-    depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));*/
+    depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));
 
     //publish all objects that should be detected within frame
     ros::Publisher pub_objectsList = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/all", 1000);
