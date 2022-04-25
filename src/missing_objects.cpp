@@ -39,7 +39,8 @@ static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
-static const int DEBUG_transformsFoundInPointcloudDistance = 1;
+static const int DEBUG_transformsFoundInPointcloudDistance = 0;
+static const int DEBUG_transformsFoundInPointcloudDistance_detections = 1;
 static const int DEBUG_printAllObjects = 0;
 static const int DEBUG_printRedetectedObjects = 0;
 static const int DEBUG_printMissingObjects = 0;
@@ -366,7 +367,7 @@ void transformsFoundInPointcloudDistance(int isObject) {
 
     //if objects are distance away from camera
     if ((cameraXObjectDist < boundary.visualMaxBoundaryX) && (cameraYObjectDist < boundary.visualMaxBoundaryY)) {
-        if (DEBUG_transformsFoundInPointcloudDistance) {
+        if (DEBUG_transformsFoundInPointcloudDistance_detections) {
             cout << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << " inside range" << endl;
         }
         if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
