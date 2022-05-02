@@ -94,7 +94,7 @@ struct Boundary {
     double pointBoundaryX = 0.1;
     double pointBoundaryY = 0.1;
 
-    double timeRangeReverseValue = 0.1;
+    double timeRangeReverseValue = 0.3;
     double timeRangeForwardValue = 0.5;
 };
 struct Boundary boundary;
