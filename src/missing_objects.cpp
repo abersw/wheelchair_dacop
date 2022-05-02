@@ -120,6 +120,9 @@ tf::TransformListener *ptrListener; //global pointer for transform listener
 //https://docs.ros.org/en/api/message_filters/html/c++/classmessage__filters_1_1Cache.html
 message_filters::Cache<wheelchair_msgs::objectLocations> cache; //buffer incoming detected objects
 
+boost::shared_ptr<ros::AsyncSpinner> detected_objects_spinner;
+boost::shared_ptr<ros::AsyncSpinner> listed_objects_spinner;
+
 ros::Publisher *ptr_pub_objectsList;
 ros::Publisher *ptr_pub_objectsRedetected;
 ros::Publisher *ptr_pub_objectsNotRedetected;
@@ -606,7 +609,7 @@ int main (int argc, char **argv) {
     ros::Rate rate(10.0);
 
     cache.setCacheSize(1000);
-    ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
+    //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
 
     //set detected objects through separate thread
     /*ros::NodeHandle nh_detectedObjects;
@@ -634,13 +637,34 @@ int main (int argc, char **argv) {
         spinner_objectsList.spin(&callback_queue_objectsList);
     });*/
 
-    //ros::Subscriber pc2_sub = n.subscribe("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
+    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
 
+    ros::CallbackQueue detected_objects_queue;
+    ros::CallbackQueue listed_objects_queue;
+
+    ros::NodeHandle do_n;
+    ros::NodeHandle lo_n;
+
+    do_n.setCallbackQueue(&detected_objects_queue);
+    lo_n.setCallbackQueue(&listed_objects_queue);
+
+    ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
+                                            "/wheelchair_robot/dacop/publish_object_locations/detected_objects",
+                                            1000,
+                                            detectedObjectsCallback);
+    ros::Subscriber listed_objects_sub = lo_n.subscribe<wheelchair_msgs::objectLocations>(
+                                            "/wheelchair_robot/dacop/publish_object_locations/objects",
+                                            1000,
+                                            addObjectLocationsToStruct);
+
+    // Create AsyncSpinner, run it on all available cores and make it process custom callback queue
+    detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
+    listed_objects_spinner.reset(new ros::AsyncSpinner(0, &listed_objects_queue));
 
     //get transformed pointcloud
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1000);
     //get transformed pointcloud
-    message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
+    /*message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
     //get mobilenet objects detected
     message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "/wheelchair_robot/dacop/publish_object_locations/objects", 1000);
     //approximately sync the topic rate
@@ -648,7 +672,7 @@ int main (int argc, char **argv) {
     //set sync policy
     message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(20), depth_sub, objects_sub);
     //set callback for synced topics
-    depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));
+    depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));*/
 
     //publish all objects that should be detected within frame
     ros::Publisher pub_objectsList = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/all", 1000);
@@ -665,10 +689,25 @@ int main (int argc, char **argv) {
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
 
+        // Clear old callback from the queue
+        //detected_objects_queue.clear();
+        //listed_objects_queue.clear();
+        // Start the spinner
+        detected_objects_spinner->start();
+        listed_objects_spinner->start();
+        //ROS_INFO("detected_objects Spinner enabled");
+
         if (DEBUG_main) {
             cout << "spin \n";
         }
         ros::spinOnce();
         rate.sleep();
     }
+    detected_objects_spinner->stop();
+    listed_objects_spinner->stop();
+    ROS_INFO("detected_objects_Spinner disabled");
+    detected_objects_spinner.reset();
+    listed_objects_spinner.reset();
+    // Wait for ROS threads to terminate
+    ros::waitForShutdown();
 }
