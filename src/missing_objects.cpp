@@ -39,7 +39,7 @@ static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
-static const int DEBUG_getCorrespondingObjectFrame_cache = 1;
+static const int DEBUG_getCorrespondingObjectFrame_cache = 0;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
 static const int DEBUG_transformsFoundInPointcloudDistance = 0;
 static const int DEBUG_transformsFoundInPointcloudDistance_detections = 0;
@@ -432,7 +432,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         cout << "find matching points" << endl;
         cout << "number of pixels " << fov.numberOfPixels << endl;
     }
-    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=10) {
+    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=5) {
         double pcloudX = it[0];
         double pcloudY = it[1];
         double pcloudZ = it[2];
