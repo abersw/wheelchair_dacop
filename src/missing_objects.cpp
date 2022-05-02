@@ -542,39 +542,45 @@ void printMissingObjects() {
 }
 
 void publishAllObjects() {
-    wheelchair_msgs::missingObjects misObj;
-    misObj.camera_timestamp = camera_timestamp;
-    misObj.totalObjects = matchingPoints.totalObjectsList;
-    for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
-        misObj.id.push_back(matchingPoints.objectsList[isObject].id);
-        misObj.object_name.push_back(matchingPoints.objectsList[isObject].object_name);
-        misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsList[isObject].totalCorrespondingPoints);
+    if (matchingPoints.totalObjectsList != 0) {
+        wheelchair_msgs::missingObjects misObj;
+        misObj.camera_timestamp = camera_timestamp;
+        misObj.totalObjects = matchingPoints.totalObjectsList;
+        for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
+            misObj.id.push_back(matchingPoints.objectsList[isObject].id);
+            misObj.object_name.push_back(matchingPoints.objectsList[isObject].object_name);
+            misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsList[isObject].totalCorrespondingPoints);
+        }
+        ptr_pub_objectsList->publish(misObj);
     }
-    ptr_pub_objectsList->publish(misObj);
 }
 
 void publishRedetectedObjects() {
-    wheelchair_msgs::missingObjects misObj;
-    misObj.camera_timestamp = camera_timestamp;
-    misObj.totalObjects = matchingPoints.totalObjectsRedetected;
-    for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
-        misObj.id.push_back(matchingPoints.objectsRedetected[isObject].id);
-        misObj.object_name.push_back(matchingPoints.objectsRedetected[isObject].object_name);
-        misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints);
+    if (matchingPoints.totalObjectsRedetected != 0) {
+        wheelchair_msgs::missingObjects misObj;
+        misObj.camera_timestamp = camera_timestamp;
+        misObj.totalObjects = matchingPoints.totalObjectsRedetected;
+        for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
+            misObj.id.push_back(matchingPoints.objectsRedetected[isObject].id);
+            misObj.object_name.push_back(matchingPoints.objectsRedetected[isObject].object_name);
+            misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsRedetected[isObject].totalCorrespondingPoints);
+        }
+        ptr_pub_objectsRedetected->publish(misObj);
     }
-    ptr_pub_objectsRedetected->publish(misObj);
 }
 
 void publishMissingObjects() {
-    wheelchair_msgs::missingObjects misObj;
-    misObj.camera_timestamp = camera_timestamp;
-    misObj.totalObjects = matchingPoints.totalObjectsNotRedetected;
-    for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
-        misObj.id.push_back(matchingPoints.objectsNotRedetected[isObject].id);
-        misObj.object_name.push_back(matchingPoints.objectsNotRedetected[isObject].object_name);
-        misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints);
+    if (matchingPoints.totalObjectsNotRedetected != 0) {
+        wheelchair_msgs::missingObjects misObj;
+        misObj.camera_timestamp = camera_timestamp;
+        misObj.totalObjects = matchingPoints.totalObjectsNotRedetected;
+        for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
+            misObj.id.push_back(matchingPoints.objectsNotRedetected[isObject].id);
+            misObj.object_name.push_back(matchingPoints.objectsNotRedetected[isObject].object_name);
+            misObj.totalCorrespondingPoints.push_back(matchingPoints.objectsNotRedetected[isObject].totalCorrespondingPoints);
+        }
+        ptr_pub_objectsNotRedetected->publish(misObj);
     }
-    ptr_pub_objectsNotRedetected->publish(misObj);
 }
 
 /**
