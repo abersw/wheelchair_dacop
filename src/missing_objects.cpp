@@ -432,7 +432,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         cout << "find matching points" << endl;
         cout << "number of pixels " << fov.numberOfPixels << endl;
     }
-    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=20) {
+    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=10) {
         double pcloudX = it[0];
         double pcloudY = it[1];
         double pcloudZ = it[2];
