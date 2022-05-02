@@ -32,15 +32,17 @@ using namespace std;
 static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
+static const int DEBUG_addObjectLocationsToStruct_objects = 0;
 static const int DEBUG_getPointCloudTimestamp = 0;
 static const int DEBUG_getCameraTranslation = 0;
 static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
+static const int DEBUG_getCorrespondingObjectFrame_cache = 1;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
 static const int DEBUG_transformsFoundInPointcloudDistance = 0;
-static const int DEBUG_transformsFoundInPointcloudDistance_detections = 1;
+static const int DEBUG_transformsFoundInPointcloudDistance_detections = 0;
 static const int DEBUG_printAllObjects = 0;
 static const int DEBUG_printRedetectedObjects = 0;
 static const int DEBUG_printMissingObjects = 0;
@@ -169,7 +171,7 @@ void addObjectLocationsToStruct(const wheelchair_msgs::objectLocations::ConstPtr
         objectsFileStruct[isObject].quat_z = obLoc->quat_z[isObject]; //assign object quaternion z to struct
         objectsFileStruct[isObject].quat_w = obLoc->quat_w[isObject]; //assign object quaternion w to struct
 
-        if (DEBUG_addObjectLocationsToStruct) { //print off debug lines
+        if (DEBUG_addObjectLocationsToStruct_objects) { //print off debug lines
             cout << "array element in id " << isObject << endl;
             cout << objectsFileStruct[isObject].id << "," <<
                     objectsFileStruct[isObject].object_name << ", " <<
@@ -315,6 +317,12 @@ void getCorrespondingObjectFrame(int isObject) {
             }
         }
     }
+    else {
+        //couldn't get ROS detected objects msg from cache
+        if (DEBUG_getCorrespondingObjectFrame_cache) {
+            cout << "couldn't get detected objects from cache" << endl;
+        }
+    }
 }
 
 /**
@@ -399,6 +407,8 @@ void transformsFoundInPointcloudDistance(int isObject) {
                 //ignore, object already in struct
             }
         }
+        //check to see if object has been detected from publish objects node
+        getCorrespondingObjectFrame(isObject);
     }
     else {
         //ignoring objects further than boundary.visualMaxBoundary
@@ -446,8 +456,6 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                 }
                 //add corresponding transform to array
                 transformsFoundInPointcloudDistance(isObject);
-                //check to see if object has been detected from publish objects node
-                getCorrespondingObjectFrame(isObject);
             }
         }
     }
@@ -573,7 +581,7 @@ void publishMissingObjects() {
  * @param parameter 'obLoc' is the array of messages from the publish_object_locations node
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
-void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
+void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     //calculate field of view
     //calcualte the orientation of the robot, filter transforms within field of view of the robot
     //iterate through pointcloud and find nearest point to transform, probably in xy coordinate
@@ -584,7 +592,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth, con
     }
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
-    addObjectLocationsToStruct(obLoc);
+    //addObjectLocationsToStruct(obLoc);
     getCameraTranslation();
 
     findMatchingPoints(dpth);
