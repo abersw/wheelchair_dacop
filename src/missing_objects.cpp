@@ -544,6 +544,7 @@ void printMissingObjects() {
 void publishAllObjects() {
     if (matchingPoints.totalObjectsList != 0) {
         wheelchair_msgs::missingObjects misObj;
+        misObj.header.stamp = ros::Time::now();
         misObj.camera_timestamp = camera_timestamp;
         misObj.totalObjects = matchingPoints.totalObjectsList;
         for (int isObject = 0; isObject < matchingPoints.totalObjectsList; isObject++) {
@@ -558,6 +559,7 @@ void publishAllObjects() {
 void publishRedetectedObjects() {
     if (matchingPoints.totalObjectsRedetected != 0) {
         wheelchair_msgs::missingObjects misObj;
+        misObj.header.stamp = ros::Time::now();
         misObj.camera_timestamp = camera_timestamp;
         misObj.totalObjects = matchingPoints.totalObjectsRedetected;
         for (int isObject = 0; isObject < matchingPoints.totalObjectsRedetected; isObject++) {
@@ -572,6 +574,7 @@ void publishRedetectedObjects() {
 void publishMissingObjects() {
     if (matchingPoints.totalObjectsNotRedetected != 0) {
         wheelchair_msgs::missingObjects misObj;
+        misObj.header.stamp = ros::Time::now();
         misObj.camera_timestamp = camera_timestamp;
         misObj.totalObjects = matchingPoints.totalObjectsNotRedetected;
         for (int isObject = 0; isObject < matchingPoints.totalObjectsNotRedetected; isObject++) {
