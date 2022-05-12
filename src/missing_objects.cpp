@@ -664,20 +664,20 @@ int main (int argc, char **argv) {
     ros::NodeHandle do_n;
     ros::NodeHandle lo_n;
 
-    //do_n.setCallbackQueue(&detected_objects_queue);
+    do_n.setCallbackQueue(&detected_objects_queue);
     lo_n.setCallbackQueue(&listed_objects_queue);
 
-    /*ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
+    ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
                                             "/wheelchair_robot/dacop/publish_object_locations/detected_objects",
                                             1000,
-                                            detectedObjectsCallback);*/
+                                            detectedObjectsCallback);
     ros::Subscriber listed_objects_sub = lo_n.subscribe<wheelchair_msgs::objectLocations>(
                                             "/wheelchair_robot/dacop/publish_object_locations/objects",
                                             1000,
                                             addObjectLocationsToStruct);
 
     // Create AsyncSpinner, run it on all available cores and make it process custom callback queue
-    //detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
+    detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
     listed_objects_spinner.reset(new ros::AsyncSpinner(0, &listed_objects_queue));
 
     //get transformed pointcloud
@@ -712,7 +712,7 @@ int main (int argc, char **argv) {
         //detected_objects_queue.clear();
         //listed_objects_queue.clear();
         // Start the spinner
-        //detected_objects_spinner->start();
+        detected_objects_spinner->start();
         listed_objects_spinner->start();
         //ROS_INFO("detected_objects Spinner enabled");
 
@@ -722,10 +722,10 @@ int main (int argc, char **argv) {
         ros::spinOnce();
         rate.sleep();
     }
-    //detected_objects_spinner->stop();
+    detected_objects_spinner->stop();
     listed_objects_spinner->stop();
     ROS_INFO("detected_objects_Spinner disabled");
-    //detected_objects_spinner.reset();
+    detected_objects_spinner.reset();
     listed_objects_spinner.reset();
     // Wait for ROS threads to terminate
     ros::waitForShutdown();
