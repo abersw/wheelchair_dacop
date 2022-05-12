@@ -656,7 +656,7 @@ int main (int argc, char **argv) {
         spinner_objectsList.spin(&callback_queue_objectsList);
     });*/
 
-    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
+    //ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
 
     ros::CallbackQueue detected_objects_queue;
     ros::CallbackQueue listed_objects_queue;
@@ -664,20 +664,20 @@ int main (int argc, char **argv) {
     ros::NodeHandle do_n;
     ros::NodeHandle lo_n;
 
-    do_n.setCallbackQueue(&detected_objects_queue);
+    //do_n.setCallbackQueue(&detected_objects_queue);
     lo_n.setCallbackQueue(&listed_objects_queue);
 
-    ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
+    /*ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
                                             "/wheelchair_robot/dacop/publish_object_locations/detected_objects",
                                             1000,
-                                            detectedObjectsCallback);
+                                            detectedObjectsCallback);*/
     ros::Subscriber listed_objects_sub = lo_n.subscribe<wheelchair_msgs::objectLocations>(
                                             "/wheelchair_robot/dacop/publish_object_locations/objects",
                                             1000,
                                             addObjectLocationsToStruct);
 
     // Create AsyncSpinner, run it on all available cores and make it process custom callback queue
-    detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
+    //detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
     listed_objects_spinner.reset(new ros::AsyncSpinner(0, &listed_objects_queue));
 
     //get transformed pointcloud
