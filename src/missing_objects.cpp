@@ -604,18 +604,18 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
     //addObjectLocationsToStruct(obLoc);
-    getCameraTranslation();
+    //getCameraTranslation();
 
-    findMatchingPoints(dpth);
-    calculateMissingObjects();
+    /*findMatchingPoints(dpth);
+    calculateMissingObjects();*/
     //print array of objects
-    printAllObjects();
+    /*printAllObjects();
     printRedetectedObjects();
-    printMissingObjects();
+    printMissingObjects();*/
     //publish array of objects
-    publishAllObjects();
+    /*publishAllObjects();
     publishRedetectedObjects();
-    publishMissingObjects();
+    publishMissingObjects();*/
 }
 
 int main (int argc, char **argv) {
@@ -656,7 +656,7 @@ int main (int argc, char **argv) {
         spinner_objectsList.spin(&callback_queue_objectsList);
     });*/
 
-    //ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
+    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
 
     ros::CallbackQueue detected_objects_queue;
     ros::CallbackQueue listed_objects_queue;
