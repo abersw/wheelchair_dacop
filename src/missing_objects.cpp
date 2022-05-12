@@ -712,7 +712,7 @@ int main (int argc, char **argv) {
         //detected_objects_queue.clear();
         //listed_objects_queue.clear();
         // Start the spinner
-        detected_objects_spinner->start();
+        //detected_objects_spinner->start();
         listed_objects_spinner->start();
         //ROS_INFO("detected_objects Spinner enabled");
 
@@ -722,10 +722,10 @@ int main (int argc, char **argv) {
         ros::spinOnce();
         rate.sleep();
     }
-    detected_objects_spinner->stop();
+    //detected_objects_spinner->stop();
     listed_objects_spinner->stop();
     ROS_INFO("detected_objects_Spinner disabled");
-    detected_objects_spinner.reset();
+    //detected_objects_spinner.reset();
     listed_objects_spinner.reset();
     // Wait for ROS threads to terminate
     ros::waitForShutdown();
