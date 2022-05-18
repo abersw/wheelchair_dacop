@@ -220,10 +220,9 @@ void resetMatchingPoints() {
 }
 
 void getCameraTranslation() {
-    tf::TransformListener listener;
     try{
-        listener.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        listener.lookupTransform("map", "base_link", ros::Time(0), cameraTranslation); //lookup translation of object from map frame
+        ptrListener->waitForTransform("map", "base_link", ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        ptrListener->lookupTransform("map", "base_link", ros::Time(0), cameraTranslation); //lookup translation of object from map frame
         if (DEBUG_getCameraTranslation) {
             cout << "camera translation: " << cameraTranslation.getOrigin().x() << ", " << cameraTranslation.getOrigin().y() << endl;
         }
@@ -707,6 +706,8 @@ int main (int argc, char **argv) {
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
+        tf::TransformListener listener;
+        ptrListener = &listener;
 
         // Clear old callback from the queue
         //detected_objects_queue.clear();
