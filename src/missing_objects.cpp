@@ -605,8 +605,8 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     //addObjectLocationsToStruct(obLoc);
     getCameraTranslation();
 
-    /*findMatchingPoints(dpth);
-    calculateMissingObjects();*/
+    findMatchingPoints(dpth);
+    /*calculateMissingObjects();*/
     //print array of objects
     /*printAllObjects();
     printRedetectedObjects();
