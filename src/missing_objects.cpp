@@ -370,7 +370,7 @@ void transformsFoundInPointcloud(int isObject) {
         }
     }
     //check to see if object has been detected from publish objects node
-    getCorrespondingObjectFrame(isObject);
+    //getCorrespondingObjectFrame(isObject);
 }
 
 /**
