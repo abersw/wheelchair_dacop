@@ -263,7 +263,7 @@ void getCorrespondingObjectFrame(int isObject) {
     ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
 
     //check to see if cache will not return a null
-    if (cache.getElemBeforeTime(camera_timestamp) != NULL) {
+    /*if (cache.getElemBeforeTime(camera_timestamp) != NULL) {
         if (DEBUG_getCorrespondingObjectFrame_cache) {
             cout << "successfully received message" << endl;
         }
@@ -333,7 +333,7 @@ void getCorrespondingObjectFrame(int isObject) {
         if (DEBUG_getCorrespondingObjectFrame_cache) {
             cout << "couldn't get detected objects from cache" << endl;
         }
-    }
+    }*/
 }
 
 /**
@@ -370,7 +370,7 @@ void transformsFoundInPointcloud(int isObject) {
         }
     }
     //check to see if object has been detected from publish objects node
-    //getCorrespondingObjectFrame(isObject);
+    getCorrespondingObjectFrame(isObject);
 }
 
 /**
