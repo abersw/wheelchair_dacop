@@ -270,7 +270,7 @@ void getCorrespondingObjectFrame(int isObject) {
         //get ros msg after the specified time 'reverseTime'
         const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemBeforeTime(camera_timestamp);
         //double check to see msg header stamp isn't too far away from specified time
-        //if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
+        if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
             if (DEBUG_getCorrespondingObjectFrame_boundary) {
                 cout << "cached object is within boundary" << endl;
             }
@@ -321,12 +321,12 @@ void getCorrespondingObjectFrame(int isObject) {
                     }
                 }
             }
-        /*}
+        }
         else {
             if (DEBUG_getCorrespondingObjectFrame_boundary) {
                 cout << "cached object is out of bounds (time)" << endl;
             }
-        }*/
+        }
     }
     else {
         //couldn't get ROS detected objects msg from cache
