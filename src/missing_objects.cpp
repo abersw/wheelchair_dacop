@@ -39,8 +39,8 @@ static const int DEBUG_detectedObjectsCallback = 0;
 static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
-static const int DEBUG_getCorrespondingObjectFrame_cache = 1;
-static const int DEBUG_getCorrespondingObjectFrame_boundary = 1;
+static const int DEBUG_getCorrespondingObjectFrame_cache = 0;
+static const int DEBUG_getCorrespondingObjectFrame_boundary = 0;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
 static const int DEBUG_transformsFoundInPointcloudDistance = 0;
 static const int DEBUG_transformsFoundInPointcloudDistance_detections = 0;
@@ -95,8 +95,8 @@ struct Boundary {
     double pointBoundaryX = 0.1;
     double pointBoundaryY = 0.1;
 
-    double timeRangeReverseValue = 0.3;
-    double timeRangeForwardValue = 0.5;
+    double timeRangeReverseValue = 1.0;
+    double timeRangeForwardValue = 1.0;
 };
 struct Boundary boundary;
 
@@ -263,13 +263,15 @@ void getCorrespondingObjectFrame(int isObject) {
     ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
 
     //check to see if cache will not return a null
-    if (cache.getElemBeforeTime(camera_timestamp) != NULL) {
+    if (cache.getElemBeforeTime(forwardTime) != NULL) {
         if (DEBUG_getCorrespondingObjectFrame_cache) {
             cout << "successfully received message" << endl;
         }
         //get ros msg after the specified time 'reverseTime'
-        const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemBeforeTime(camera_timestamp);
-        cout << "cache time is " << obLoc->header.stamp << "camera timestamp is " << camera_timestamp << endl;
+        const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemBeforeTime(forwardTime);
+        if (DEBUG_getCorrespondingObjectFrame_cache) {
+            cout << "cache time is " << obLoc->header.stamp << " camera timestamp is " << camera_timestamp << endl;
+        }
         //double check to see msg header stamp isn't too far away from specified time
         if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
             if (DEBUG_getCorrespondingObjectFrame_boundary) {
