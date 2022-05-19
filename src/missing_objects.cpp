@@ -456,7 +456,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
                     cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
                 }
                 //add corresponding transform to array
-                transformsFoundInPointcloudDistance(isObject);
+                transformsFoundInPointcloud(isObject);
             }
         }
     }
@@ -603,7 +603,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
     //addObjectLocationsToStruct(obLoc);
-    getCameraTranslation();
+    //getCameraTranslation();
 
     findMatchingPoints(dpth);
     calculateMissingObjects();
