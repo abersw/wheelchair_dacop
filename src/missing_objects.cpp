@@ -263,7 +263,7 @@ void getCorrespondingObjectFrame(int isObject) {
     ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
 
     //check to see if cache will not return a null
-    if (cache.getElemAfterTime(camera_timestamp) != NULL) {
+    if (cache.getElemBeforeTime(camera_timestamp) != NULL) {
         if (DEBUG_getCorrespondingObjectFrame_cache) {
             cout << "successfully received message" << endl;
         }
