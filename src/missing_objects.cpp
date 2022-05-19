@@ -315,6 +315,9 @@ void getCorrespondingObjectFrame(int isObject) {
                 }
             }
         }
+        else {
+            cout << "cache is out of bounds" << endl;
+        }
     }
     else {
         //couldn't get ROS detected objects msg from cache
