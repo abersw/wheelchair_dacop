@@ -40,6 +40,7 @@ static const int DEBUG_findMatchingPoints = 0;
 static const int DEBUG_findMatchingPoints_rawValues = 0;
 static const int DEBUG_findMatchingPoints_detectedPoints = 0;
 static const int DEBUG_getCorrespondingObjectFrame_cache = 1;
+static const int DEBUG_getCorrespondingObjectFrame_boundary = 1;
 static const int DEBUG_getCorrespondingObjectFrame_redetectedObjects = 0;
 static const int DEBUG_transformsFoundInPointcloudDistance = 0;
 static const int DEBUG_transformsFoundInPointcloudDistance_detections = 0;
@@ -270,6 +271,9 @@ void getCorrespondingObjectFrame(int isObject) {
         const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemAfterTime(reverseTime);
         //double check to see msg header stamp isn't too far away from specified time
         if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
+            if (DEBUG_getCorrespondingObjectFrame_boundary) {
+                cout << "cached object is within boundary" << endl;
+            }
             int totalDet = obLoc->totalObjects; //get total number of objects detected
             for (int isDetObject = 0; isDetObject < totalDet; isDetObject++) {
                 int detObjectID = obLoc->id[isDetObject]; //get object ID detected
@@ -319,7 +323,9 @@ void getCorrespondingObjectFrame(int isObject) {
             }
         }
         else {
-            cout << "cache is out of bounds" << endl;
+            if (DEBUG_getCorrespondingObjectFrame_boundary) {
+                cout << "cached object is out of bounds (time)" << endl;
+            }
         }
     }
     else {
