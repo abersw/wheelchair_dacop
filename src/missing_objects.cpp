@@ -269,6 +269,7 @@ void getCorrespondingObjectFrame(int isObject) {
         }
         //get ros msg after the specified time 'reverseTime'
         const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemBeforeTime(camera_timestamp);
+        cout << "cache time is " << obLoc->header.stamp << "camera timestamp is " << camera_timestamp << endl;
         //double check to see msg header stamp isn't too far away from specified time
         if ((obLoc->header.stamp > reverseTime) && (obLoc->header.stamp < forwardTime)) {
             if (DEBUG_getCorrespondingObjectFrame_boundary) {
