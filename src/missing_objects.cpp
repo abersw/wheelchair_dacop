@@ -85,7 +85,7 @@ struct FOV {
     int imageHeight;
     int imageWidth;
     long numberOfPixels;
-    int pointStep = 100;
+    int pointStep = 75;
 };
 struct FOV fov;
 
