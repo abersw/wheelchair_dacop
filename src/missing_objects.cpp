@@ -85,6 +85,7 @@ struct FOV {
     int imageHeight;
     int imageWidth;
     long numberOfPixels;
+    int pointStep = 100;
 };
 struct FOV fov;
 
@@ -446,7 +447,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         cout << "find matching points" << endl;
         cout << "number of pixels " << fov.numberOfPixels << endl;
     }
-    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=5) {
+    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=fov.pointStep) {
         double pcloudX = it[0];
         double pcloudY = it[1];
         double pcloudZ = it[2];
