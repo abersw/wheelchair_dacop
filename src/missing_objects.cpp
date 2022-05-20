@@ -619,7 +619,7 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getResolutionOnStartup(dpth); //get pointcloud image size
     getPointCloudTimestamp(dpth);
     //addObjectLocationsToStruct(obLoc);
-    //getCameraTranslation();
+    getCameraTranslation();
 
     findMatchingPoints(dpth);
     calculateMissingObjects();
