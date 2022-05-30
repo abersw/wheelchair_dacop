@@ -90,8 +90,8 @@ struct FOV {
 struct FOV fov;
 
 struct Boundary {
-    double visualMaxBoundaryX = 2.0; //objects must be within this distance from the camera - X axis
-    double visualMaxBoundaryY = 2.0; //objects must be within this distance from the camera - Y axis
+    double visualMaxBoundaryX = 1.5; //objects must be within this distance from the camera - X axis
+    double visualMaxBoundaryY = 1.5; //objects must be within this distance from the camera - Y axis
 
     double pointBoundaryX = 0.1;
     double pointBoundaryY = 0.1;
