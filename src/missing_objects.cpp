@@ -107,6 +107,7 @@ struct TransformPoints {
     int64_t totalCorrespondingPoints = 0;
 
     int foundFlag = 0;
+    int withinVisualBoundary = 0;
 };
 
 struct MatchingPoints {
@@ -393,42 +394,62 @@ void transformsFoundInPointcloudDistance(int isObject) {
         cout << "dist between camera and object is " << cameraXObjectDist << ", " << cameraYObjectDist << endl;
     }
 
-    //if objects are distance away from camera
-    if ((cameraXObjectDist < boundary.visualMaxBoundaryX) && (cameraYObjectDist < boundary.visualMaxBoundaryY)) {
-        if (DEBUG_transformsFoundInPointcloudDistance_detections) {
-            cout << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << " inside range" << endl;
+    if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
+        matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
+        matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
+        matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
+
+        //check to see if point is within visual boundary, if so set flag to 1
+        if ((cameraXObjectDist < boundary.visualMaxBoundaryX) && (cameraYObjectDist < boundary.visualMaxBoundaryY)) {
+            if (DEBUG_transformsFoundInPointcloudDistance_detections) {
+                cout << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << " inside range" << endl;
+            }
+            matchingPoints.objectsList[matchingPoints.totalObjectsList].withinVisualBoundary = 1;
         }
-        if (matchingPoints.totalObjectsList == 0) { //set object id to first element in array
+        //if point is not within visual boundary, set flag to 0
+        else {
+            if (DEBUG_transformsFoundInPointcloudDistance_detections) {
+                cout << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << " outside of boundary" << endl;
+            }
+            matchingPoints.objectsList[matchingPoints.totalObjectsList].withinVisualBoundary = 0;
+        }
+        matchingPoints.totalObjectsList++; //iterate to next item in array
+    }
+    //if object is not the first element in the array
+    else {
+        int objectAlreadyInList = 0; //flag changes to 1 if object already in lists
+        for (int inList = 0; inList < matchingPoints.totalObjectsList; inList++) { //run through entire list of objects
+            if (objectsFileStruct[isObject].id == matchingPoints.objectsList[inList].id) {
+                //id is already in list, set variable to 1
+                objectAlreadyInList = 1;
+                //add 1 to total points with corresponding transform
+                matchingPoints.objectsList[inList].totalCorrespondingPoints++;
+            }
+        } //finished checking for item existing in list
+        if (objectAlreadyInList == 0) { //transform not found in list
             matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
             matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
             matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
+
+            //check to see if point is within visual boundary, if so set flag to 1
+            if ((cameraXObjectDist < boundary.visualMaxBoundaryX) && (cameraYObjectDist < boundary.visualMaxBoundaryY)) {
+                if (DEBUG_transformsFoundInPointcloudDistance_detections) {
+                    cout << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << " inside range" << endl;
+                }
+                matchingPoints.objectsList[matchingPoints.totalObjectsList].withinVisualBoundary = 1;
+            }
+            //if point is not within visual boundary, set flag to 0
+            else {
+                if (DEBUG_transformsFoundInPointcloudDistance_detections) {
+                    cout << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << " outside of boundary" << endl;
+                }
+                matchingPoints.objectsList[matchingPoints.totalObjectsList].withinVisualBoundary = 0;
+            }
             matchingPoints.totalObjectsList++; //iterate to next item in array
         }
-        else {
-            int objectAlreadyInList = 0; //flag changes to 1 if object already in lists
-            for (int inList = 0; inList < matchingPoints.totalObjectsList; inList++) { //run through entire list of objects
-                if (objectsFileStruct[isObject].id == matchingPoints.objectsList[inList].id) {
-                    //id is already in list, set variable to 1
-                    objectAlreadyInList = 1;
-                    //add 1 to total points with corresponding transform
-                    matchingPoints.objectsList[inList].totalCorrespondingPoints++;
-                }
-            }
-            if (objectAlreadyInList == 0) { //transform not found in list
-                matchingPoints.objectsList[matchingPoints.totalObjectsList].id = objectsFileStruct[isObject].id;
-                matchingPoints.objectsList[matchingPoints.totalObjectsList].object_name = objectsFileStruct[isObject].object_name;
-                matchingPoints.objectsList[matchingPoints.totalObjectsList].totalCorrespondingPoints++;
-                matchingPoints.totalObjectsList++; //iterate to next item in array
-            }
-            else if (objectAlreadyInList == 1) { //transform already in list
-                //ignore, object already in struct
-            }
+        else if (objectAlreadyInList == 1) { //transform already in list
+            //ignore, object already in struct
         }
-        //check to see if object has been detected from publish objects node
-        getCorrespondingObjectFrame(isObject);
-    }
-    else {
-        //ignoring objects further than boundary.visualMaxBoundary
     }
 }
 
@@ -507,14 +528,18 @@ void calculateMissingObjects() {
     for (int isDetection = 0; isDetection < matchingPoints.totalObjectsList; isDetection++) {
         int getDetectedObjectID = matchingPoints.objectsList[isDetection].id;
         std::string getDetectedObjectName = matchingPoints.objectsList[isDetection].object_name;
-        if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
-            //add missing/non detected object to array
-            matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].id = getDetectedObjectID;
-            matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].object_name = getDetectedObjectName;
-            matchingPoints.totalObjectsNotRedetected++;
-        }
-        else if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
-            //ignore objects that have already been redetected
+        //use objects which are closer than the camera visual boundary
+        if (matchingPoints.objectsList[isDetection].withinVisualBoundary == 1) {
+            //use objects which were not found in the redetected objects array
+            if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
+                //add missing/non detected object to array
+                matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].id = getDetectedObjectID;
+                matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].object_name = getDetectedObjectName;
+                matchingPoints.totalObjectsNotRedetected++;
+            }
+            else if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
+                //ignore objects that have already been redetected
+            }
         }
     }
 }
