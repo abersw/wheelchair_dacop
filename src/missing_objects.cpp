@@ -451,6 +451,8 @@ void transformsFoundInPointcloudDistance(int isObject) {
             //ignore, object already in struct
         }
     }
+    //check to see if object has been detected from publish objects node
+    getCorrespondingObjectFrame(isObject);
 }
 
 /**
