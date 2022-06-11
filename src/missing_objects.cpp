@@ -418,12 +418,12 @@ void transformsFoundInPointcloudDistance(int isObject) {
     //if object is not the first element in the array
     else {
         int objectAlreadyInList = 0; //flag changes to 1 if object already in lists
+        int objectAlreadyInListIndex = 0; //position of object already in list
         for (int inList = 0; inList < matchingPoints.totalObjectsList; inList++) { //run through entire list of objects
             if (objectsFileStruct[isObject].id == matchingPoints.objectsList[inList].id) {
                 //id is already in list, set variable to 1
                 objectAlreadyInList = 1;
-                //add 1 to total points with corresponding transform
-                matchingPoints.objectsList[inList].totalCorrespondingPoints++;
+                objectAlreadyInListIndex = inList;
             }
         } //finished checking for item existing in list
         if (objectAlreadyInList == 0) { //transform not found in list
@@ -449,6 +449,8 @@ void transformsFoundInPointcloudDistance(int isObject) {
         }
         else if (objectAlreadyInList == 1) { //transform already in list
             //ignore, object already in struct
+            //add 1 to total points with corresponding transform
+            matchingPoints.objectsList[objectAlreadyInListIndex].totalCorrespondingPoints++;
         }
     }
     //check to see if object has been detected from publish objects node
