@@ -201,15 +201,15 @@ void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int obje
  * Function publishes an array of objects detected in the current frame
  *
  * @param 'detectedObjects' is an array of all objects detected in the current frame
- * @param 'totalDetectedObjects' is the total number of detected objects in the current frame
+ * @param 'totalDetectedObjectsMsg' is the total number of detected objects in the current frame
  */
-void publishDetectedObjects(const struct Objects detectedObjects[1000], int totalDetectedObjects) { //publish detected objects with new (static) UIDs
+void publishDetectedObjects(const struct Objects detectedObjects[1000], int totalDetectedObjectsMsg) { //publish detected objects with new (static) UIDs
     if (DEBUG_publishDetectedObjects) {
         tofToolBox->printSeparator(0);
     }
     wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
     exisObLoc.header.stamp = camera_timestamp;
-    for (int isExistingObject = 0; isExistingObject < totalDetectedObjects; isExistingObject++) { //run through loop of detected objects
+    for (int isExistingObject = 0; isExistingObject < totalDetectedObjectsMsg; isExistingObject++) { //run through loop of detected objects
         if (DEBUG_publishDetectedObjects) {
             cout << detectedObjects[isExistingObject].id << ", " << detectedObjects[isExistingObject].object_name << endl;
         }
@@ -226,7 +226,7 @@ void publishDetectedObjects(const struct Objects detectedObjects[1000], int tota
         exisObLoc.quat_z.push_back(detectedObjects[isExistingObject].quat_z);
         exisObLoc.quat_w.push_back(detectedObjects[isExistingObject].quat_w);
     }
-    exisObLoc.totalObjects = totalDetectedObjects; //set total objects detected
+    exisObLoc.totalObjects = totalDetectedObjectsMsg; //set total objects detected
     ptr_publish_objectUID->publish(exisObLoc); //publish objects detected with new UIDs
 }
 
@@ -351,12 +351,12 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         cout << "starting new detection ROS array" << endl;
     }
     forwardCameraTimestamp(obLoc); //get camera timestamp via message
-    int totalDetectedObjects = obLoc.totalObjects; //get total objects in ROS msg array
+    int totalDetectedObjectsMsg = obLoc.totalObjects; //get total objects in ROS msg array
 
     struct Objects detectedObjects[1000]; //struct array for returning objects with correct UID
     int objectID = 0;
 
-    for (int detectedObject = 0; detectedObject < totalDetectedObjects; detectedObject++) { //run through detected objects array
+    for (int detectedObject = 0; detectedObject < totalDetectedObjectsMsg; detectedObject++) { //run through detected objects array
         std::string msg_object_name = obLoc.object_name[detectedObject]; //get detected object name
         double msg_object_confidence = obLoc.object_confidence[detectedObject]; //get detected object confidence
 
@@ -456,7 +456,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectID++; //iterate to next object in detectedObjects
         }
     }
-    publishDetectedObjects(detectedObjects, totalDetectedObjects); //publish detected objects
+    publishDetectedObjects(detectedObjects, totalDetectedObjectsMsg); //publish detected objects
 }
 
 
