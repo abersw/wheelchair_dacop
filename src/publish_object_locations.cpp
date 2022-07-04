@@ -372,7 +372,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             printObjectLocation(obLoc, detectedObject);
         }
 
-        int objectAlreadyInStruct = 0; //set found corresponding object to 0 - not found object
+        int objectAlreadyInObjectsFileStruct = 0; //set found corresponding object to 0 - not found object
         int objectArrayPos = 0; //variable to set when object in struct is a match with object in ROS msg
 
         for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
@@ -394,7 +394,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 if (DEBUG_doesObjectAlreadyExist) {
                     cout << "found same object in this location" << endl; //print out found object
                 }
-                objectAlreadyInStruct = 1; //set found object match to 1 - true
+                objectAlreadyInObjectsFileStruct = 1; //set found object match to 1 - true
                 objectArrayPos = isObject;
             }
             else {
@@ -404,7 +404,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 }
             }
         }
-        if (objectAlreadyInStruct == 1) {
+        if (objectAlreadyInObjectsFileStruct == 1) {
             //object already exists in objectsFileStruct, send matched object details to detected_objects struct array if it doesn't exist already
             detectedObjects[detectedObjectCounter].id = objectsFileStruct[objectArrayPos].id;
             detectedObjects[detectedObjectCounter].object_name = objectsFileStruct[objectArrayPos].object_name;
