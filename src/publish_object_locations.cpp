@@ -203,13 +203,13 @@ void printObjectLocation(const wheelchair_msgs:: objectLocations obLoc, int obje
  * @param 'detectedObjects' is an array of all objects detected in the current frame
  * @param 'totalDetectedObjectsMsg' is the total number of detected objects in the current frame
  */
-void publishDetectedObjects(const struct Objects detectedObjects[1000], int totalDetectedObjectsMsg) { //publish detected objects with new (static) UIDs
+void publishDetectedObjects(const struct Objects detectedObjects[1000], int detectedObjectCounter) { //publish detected objects with new (static) UIDs
     if (DEBUG_publishDetectedObjects) {
         tofToolBox->printSeparator(0);
     }
     wheelchair_msgs::objectLocations exisObLoc; //create another objects locations ROS msg
     exisObLoc.header.stamp = camera_timestamp;
-    for (int isExistingObject = 0; isExistingObject < totalDetectedObjectsMsg; isExistingObject++) { //run through loop of detected objects
+    for (int isExistingObject = 0; isExistingObject < detectedObjectCounter; isExistingObject++) { //run through loop of detected objects
         if (DEBUG_publishDetectedObjects) {
             cout << detectedObjects[isExistingObject].id << ", " << detectedObjects[isExistingObject].object_name << endl;
         }
@@ -226,7 +226,7 @@ void publishDetectedObjects(const struct Objects detectedObjects[1000], int tota
         exisObLoc.quat_z.push_back(detectedObjects[isExistingObject].quat_z);
         exisObLoc.quat_w.push_back(detectedObjects[isExistingObject].quat_w);
     }
-    exisObLoc.totalObjects = totalDetectedObjectsMsg; //set total objects detected
+    exisObLoc.totalObjects = detectedObjectCounter; //set total objects detected
     ptr_publish_objectUID->publish(exisObLoc); //publish objects detected with new UIDs
 }
 
@@ -406,19 +406,52 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
         }
         if (objectAlreadyInObjectsFileStruct == 1) {
             //object already exists in objectsFileStruct, send matched object details to detected_objects struct array if it doesn't exist already
-            detectedObjects[detectedObjectCounter].id = objectsFileStruct[objectArrayPos].id;
-            detectedObjects[detectedObjectCounter].object_name = objectsFileStruct[objectArrayPos].object_name;
-            detectedObjects[detectedObjectCounter].object_confidence = objectsFileStruct[objectArrayPos].object_confidence;
+            if (detectedObjectCounter == 0) {
+                detectedObjects[detectedObjectCounter].id = objectsFileStruct[objectArrayPos].id;
+                detectedObjects[detectedObjectCounter].object_name = objectsFileStruct[objectArrayPos].object_name;
+                detectedObjects[detectedObjectCounter].object_confidence = objectsFileStruct[objectArrayPos].object_confidence;
 
-            detectedObjects[detectedObjectCounter].point_x = objectsFileStruct[objectArrayPos].point_x;
-            detectedObjects[detectedObjectCounter].point_y = objectsFileStruct[objectArrayPos].point_y;
-            detectedObjects[detectedObjectCounter].point_z = objectsFileStruct[objectArrayPos].point_z;
+                detectedObjects[detectedObjectCounter].point_x = objectsFileStruct[objectArrayPos].point_x;
+                detectedObjects[detectedObjectCounter].point_y = objectsFileStruct[objectArrayPos].point_y;
+                detectedObjects[detectedObjectCounter].point_z = objectsFileStruct[objectArrayPos].point_z;
 
-            detectedObjects[detectedObjectCounter].quat_x = objectsFileStruct[objectArrayPos].quat_x;
-            detectedObjects[detectedObjectCounter].quat_y = objectsFileStruct[objectArrayPos].quat_y;
-            detectedObjects[detectedObjectCounter].quat_z = objectsFileStruct[objectArrayPos].quat_z;
-            detectedObjects[detectedObjectCounter].quat_w = objectsFileStruct[objectArrayPos].quat_w;
-            detectedObjectCounter++;
+                detectedObjects[detectedObjectCounter].quat_x = objectsFileStruct[objectArrayPos].quat_x;
+                detectedObjects[detectedObjectCounter].quat_y = objectsFileStruct[objectArrayPos].quat_y;
+                detectedObjects[detectedObjectCounter].quat_z = objectsFileStruct[objectArrayPos].quat_z;
+                detectedObjects[detectedObjectCounter].quat_w = objectsFileStruct[objectArrayPos].quat_w;
+                detectedObjectCounter++;
+            }
+            else {
+                int foundMatchingDetectedObject = 0;
+                for (int isDetectedObject = 0; isDetectedObject < detectedObjectCounter; isDetectedObject++) {
+                    //if object ID already exists in objects detected struct
+                    if (objectsFileStruct[objectArrayPos].id == detectedObjects[isDetectedObject].id) {
+                        cout << "found matching object in detected struct" << endl;
+                        foundMatchingDetectedObject = 1; //set object match found to 1 - true
+                    }
+                    else {
+                        //foundMatchingDetectedObject will remain at 0 - false
+                    }
+                }
+                if (foundMatchingDetectedObject == 0) {
+                    detectedObjects[detectedObjectCounter].id = objectsFileStruct[objectArrayPos].id;
+                    detectedObjects[detectedObjectCounter].object_name = objectsFileStruct[objectArrayPos].object_name;
+                    detectedObjects[detectedObjectCounter].object_confidence = objectsFileStruct[objectArrayPos].object_confidence;
+
+                    detectedObjects[detectedObjectCounter].point_x = objectsFileStruct[objectArrayPos].point_x;
+                    detectedObjects[detectedObjectCounter].point_y = objectsFileStruct[objectArrayPos].point_y;
+                    detectedObjects[detectedObjectCounter].point_z = objectsFileStruct[objectArrayPos].point_z;
+
+                    detectedObjects[detectedObjectCounter].quat_x = objectsFileStruct[objectArrayPos].quat_x;
+                    detectedObjects[detectedObjectCounter].quat_y = objectsFileStruct[objectArrayPos].quat_y;
+                    detectedObjects[detectedObjectCounter].quat_z = objectsFileStruct[objectArrayPos].quat_z;
+                    detectedObjects[detectedObjectCounter].quat_w = objectsFileStruct[objectArrayPos].quat_w;
+                    detectedObjectCounter++;
+                }
+                else {
+                    //object already detected in struct, do not add duplicate object to struct
+                }
+            }
         }
         else {
             //add object main storage struct array
@@ -456,7 +489,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             detectedObjectCounter++; //iterate to next object in detectedObjects
         }
     }
-    publishDetectedObjects(detectedObjects, totalDetectedObjectsMsg); //publish detected objects
+    publishDetectedObjects(detectedObjects, detectedObjectCounter); //publish detected objects
 }
 
 
