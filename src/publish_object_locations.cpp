@@ -27,6 +27,7 @@ const int DEBUG_forwardCameraTimestamp = 0;
 const int DEBUG_objectsListToStruct = 0;
 const int DEBUG_publishDetectedObjects = 0;
 const int DEBUG_doesObjectAlreadyExist = 0;
+const int DEBUG_filterDetectedObjectDuplicates = 0;
 const int DEBUG_printObjectLocation = 0;
 const int DEBUG_broadcastTransformStruct = 0;
 const int DEBUG_appendObjectToRosMsg = 0;
@@ -426,7 +427,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 for (int isDetectedObject = 0; isDetectedObject < detectedObjectCounter; isDetectedObject++) {
                     //if object ID already exists in objects detected struct
                     if (objectsFileStruct[objectArrayPos].id == detectedObjects[isDetectedObject].id) {
-                        cout << "found matching object in detected struct" << endl;
+                        if (DEBUG_filterDetectedObjectDuplicates) {
+                            cout << "found duplicate object in detected struct" << endl;
+                        }
                         foundMatchingDetectedObject = 1; //set object match found to 1 - true
                     }
                     else {
@@ -434,6 +437,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                     }
                 }
                 if (foundMatchingDetectedObject == 0) {
+                    if (DEBUG_filterDetectedObjectDuplicates) {
+                        cout << "no object duplicate in detected struct" << endl;
+                    }
                     detectedObjects[detectedObjectCounter].id = objectsFileStruct[objectArrayPos].id;
                     detectedObjects[detectedObjectCounter].object_name = objectsFileStruct[objectArrayPos].object_name;
                     detectedObjects[detectedObjectCounter].object_confidence = objectsFileStruct[objectArrayPos].object_confidence;
