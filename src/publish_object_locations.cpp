@@ -354,7 +354,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
     int totalDetectedObjectsMsg = obLoc.totalObjects; //get total objects in ROS msg array
 
     struct Objects detectedObjects[1000]; //struct array for returning objects with correct UID
-    int objectID = 0;
+    int detectedObjectCounter = 0;
 
     for (int detectedObject = 0; detectedObject < totalDetectedObjectsMsg; detectedObject++) { //run through detected objects array
         std::string msg_object_name = obLoc.object_name[detectedObject]; //get detected object name
@@ -405,20 +405,20 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             }
         }
         if (objectAlreadyInStruct == 1) {
-            //don't do anything, but send matched object details to detected_objects struct array
-            detectedObjects[objectID].id = objectsFileStruct[objectArrayPos].id;
-            detectedObjects[objectID].object_name = objectsFileStruct[objectArrayPos].object_name;
-            detectedObjects[objectID].object_confidence = objectsFileStruct[objectArrayPos].object_confidence;
+            //object already exists in objectsFileStruct, send matched object details to detected_objects struct array if it doesn't exist already
+            detectedObjects[detectedObjectCounter].id = objectsFileStruct[objectArrayPos].id;
+            detectedObjects[detectedObjectCounter].object_name = objectsFileStruct[objectArrayPos].object_name;
+            detectedObjects[detectedObjectCounter].object_confidence = objectsFileStruct[objectArrayPos].object_confidence;
 
-            detectedObjects[objectID].point_x = objectsFileStruct[objectArrayPos].point_x;
-            detectedObjects[objectID].point_y = objectsFileStruct[objectArrayPos].point_y;
-            detectedObjects[objectID].point_z = objectsFileStruct[objectArrayPos].point_z;
+            detectedObjects[detectedObjectCounter].point_x = objectsFileStruct[objectArrayPos].point_x;
+            detectedObjects[detectedObjectCounter].point_y = objectsFileStruct[objectArrayPos].point_y;
+            detectedObjects[detectedObjectCounter].point_z = objectsFileStruct[objectArrayPos].point_z;
 
-            detectedObjects[objectID].quat_x = objectsFileStruct[objectArrayPos].quat_x;
-            detectedObjects[objectID].quat_y = objectsFileStruct[objectArrayPos].quat_y;
-            detectedObjects[objectID].quat_z = objectsFileStruct[objectArrayPos].quat_z;
-            detectedObjects[objectID].quat_w = objectsFileStruct[objectArrayPos].quat_w;
-            objectID++;
+            detectedObjects[detectedObjectCounter].quat_x = objectsFileStruct[objectArrayPos].quat_x;
+            detectedObjects[detectedObjectCounter].quat_y = objectsFileStruct[objectArrayPos].quat_y;
+            detectedObjects[detectedObjectCounter].quat_z = objectsFileStruct[objectArrayPos].quat_z;
+            detectedObjects[detectedObjectCounter].quat_w = objectsFileStruct[objectArrayPos].quat_w;
+            detectedObjectCounter++;
         }
         else {
             //add object main storage struct array
@@ -438,22 +438,22 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             appendObjectToRosMsg();
 
             //add object to detected objects struct array
-            detectedObjects[objectID].id = objectsFileStruct[totalObjectsFileStruct].id;
-            detectedObjects[objectID].object_name = objectsFileStruct[totalObjectsFileStruct].object_name;
-            detectedObjects[objectID].object_confidence = objectsFileStruct[totalObjectsFileStruct].object_confidence;
+            detectedObjects[detectedObjectCounter].id = objectsFileStruct[totalObjectsFileStruct].id;
+            detectedObjects[detectedObjectCounter].object_name = objectsFileStruct[totalObjectsFileStruct].object_name;
+            detectedObjects[detectedObjectCounter].object_confidence = objectsFileStruct[totalObjectsFileStruct].object_confidence;
 
-            detectedObjects[objectID].point_x = objectsFileStruct[totalObjectsFileStruct].point_x;
-            detectedObjects[objectID].point_y = objectsFileStruct[totalObjectsFileStruct].point_y;
-            detectedObjects[objectID].point_z = objectsFileStruct[totalObjectsFileStruct].point_z;
+            detectedObjects[detectedObjectCounter].point_x = objectsFileStruct[totalObjectsFileStruct].point_x;
+            detectedObjects[detectedObjectCounter].point_y = objectsFileStruct[totalObjectsFileStruct].point_y;
+            detectedObjects[detectedObjectCounter].point_z = objectsFileStruct[totalObjectsFileStruct].point_z;
 
-            detectedObjects[objectID].quat_x = objectsFileStruct[totalObjectsFileStruct].quat_x;
-            detectedObjects[objectID].quat_y = objectsFileStruct[totalObjectsFileStruct].quat_y;
-            detectedObjects[objectID].quat_z = objectsFileStruct[totalObjectsFileStruct].quat_z;
-            detectedObjects[objectID].quat_w = objectsFileStruct[totalObjectsFileStruct].quat_w;
+            detectedObjects[detectedObjectCounter].quat_x = objectsFileStruct[totalObjectsFileStruct].quat_x;
+            detectedObjects[detectedObjectCounter].quat_y = objectsFileStruct[totalObjectsFileStruct].quat_y;
+            detectedObjects[detectedObjectCounter].quat_z = objectsFileStruct[totalObjectsFileStruct].quat_z;
+            detectedObjects[detectedObjectCounter].quat_w = objectsFileStruct[totalObjectsFileStruct].quat_w;
 
 
             totalObjectsFileStruct++; //iterate after assigning the detectedObjects array 
-            objectID++; //iterate to next object in detectedObjects
+            detectedObjectCounter++; //iterate to next object in detectedObjects
         }
     }
     publishDetectedObjects(detectedObjects, totalDetectedObjectsMsg); //publish detected objects
