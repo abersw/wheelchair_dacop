@@ -15,4 +15,6 @@
 </node>-->
 <!--node to assign room to object and publish associated links-->
 <node pkg="wheelchair_dacop" name="assign_room_to_object" type="assign_room_to_object" output="screen" launch-prefix=""></node>
+<!--node to detect missing objects from locations on map-->
+<node pkg="wheelchair_dacop" name="missing_objects" type="missing_objects" output="screen" launch-prefix=""></node>
 </launch>
