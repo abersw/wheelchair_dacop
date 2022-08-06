@@ -280,7 +280,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations::ConstPtr& o
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations obLoc) {
     if (totalLinkFileStruct != 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(350)); //wait 200 milliseconds in thread for all objects to update
+        std::this_thread::sleep_for(std::chrono::milliseconds(350)); //increase time if object is missing allocated room
         //run through entire list of objects
         //add object to struct
         //get ID of object and name
