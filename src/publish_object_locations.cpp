@@ -329,7 +329,7 @@ void publishObjectStructMsg() {
     obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
     ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
 
-    ptr_publish_objectLocations->publish(allObjects_rosMsg); //publish struct as ros msg array
+    //ptr_publish_objectLocations->publish(allObjects_rosMsg); //publish struct as ros msg array
 }
 
 /**
