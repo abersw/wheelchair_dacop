@@ -359,7 +359,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
 
     for (int detectedObject = 0; detectedObject < totalDetectedObjectsMsg; detectedObject++) { //run through detected objects array
         std::string msg_object_name = obLoc.object_name[detectedObject]; //get detected object name
-        double msg_object_confidence = obLoc.object_confidence[detectedObject]; //get detected object confidence
+        float msg_object_confidence = obLoc.object_confidence[detectedObject]; //get detected object confidence
 
         float msg_translation_x = obLoc.point_x[detectedObject]; //set translation x to local variable
         float msg_translation_y = obLoc.point_y[detectedObject]; //set translation y to local variable
@@ -397,6 +397,9 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
                 }
                 objectAlreadyInObjectsFileStruct = 1; //set found object match to 1 - true
                 objectArrayPos = isObject;
+
+                //updated confidence threshold from detection
+                objectsFileStruct[objectArrayPos].object_confidence = msg_object_confidence;
             }
             else {
                 //no match found in list, leave at 0
