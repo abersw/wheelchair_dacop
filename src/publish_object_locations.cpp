@@ -303,10 +303,32 @@ void appendObjectToRosMsg() {
  *
  */
 void publishObjectStructMsg() {
-    allObjects_rosMsg.header.stamp = ros::Time::now();
+    /*allObjects_rosMsg.header.stamp = ros::Time::now();
     allObjects_rosMsg.camera_timestamp = camera_timestamp;
     //objects are dynamically allocated upon discovery to object locations ros msg
-    allObjects_rosMsg.totalObjects = totalObjectsFileStruct;
+    allObjects_rosMsg.totalObjects = totalObjectsFileStruct;*/
+
+    wheelchair_msgs::objectLocations obLoc;
+    obLoc.header.stamp = ros::Time::now();
+    obLoc.camera_timestamp = camera_timestamp;
+    //publish all objects inside struct
+    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
+        obLoc.id.push_back(objectsFileStruct[isObject].id);
+        obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
+        obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
+
+        obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
+        obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
+        obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
+
+        obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
+        obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
+        obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
+        obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
+    }
+    obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
+    ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
+
     ptr_publish_objectLocations->publish(allObjects_rosMsg); //publish struct as ros msg array
 }
 
@@ -477,7 +499,7 @@ void objectLocationsCallback(const wheelchair_msgs::objectLocations obLoc) {
             objectsFileStruct[totalObjectsFileStruct].quat_z = msg_rotation_z;
             objectsFileStruct[totalObjectsFileStruct].quat_w = msg_rotation_w;
 
-            appendObjectToRosMsg();
+            //appendObjectToRosMsg();
 
             //add object to detected objects struct array
             detectedObjects[detectedObjectCounter].id = objectsFileStruct[totalObjectsFileStruct].id;
