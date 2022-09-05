@@ -472,8 +472,8 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         cout << "find matching points" << endl;
         cout << "number of pixels " << fov.numberOfPixels << endl;
     }
-    double noPoints = (dpth->row_step * dpth->height) / 16;
-    cout << noPoints << endl;
+    double noPoints = (dpth->row_step * dpth->height) / dpth->point_step;
+    //cout << noPoints << endl;
     static const int pc2_is_filtered = 1; //variable to switch between filtered cropbox pointcloud
     if (pc2_is_filtered == 0) {
         for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=fov.pointStep) {
