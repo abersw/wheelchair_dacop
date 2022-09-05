@@ -1,0 +1,24 @@
+<launch>
+
+    <!-- PCL Manager -->
+    <node pkg="nodelet" type="nodelet" name="cropbox_filter_pcl_manager" args="manager" output="screen"/>
+
+    <!-- A CropBox filter to avoid self-detection -->
+    <node pkg="nodelet" type="nodelet" name="self_removal" args="load pcl/CropBox cropbox_filter_pcl_manager" output="screen">
+      <remap from="~input" to="/zed/zed_node/point_cloud/cloud_registered" />
+      <remap from="~output" to="/wheelchair_robot/point_cloud_filter" />
+      <rosparam>
+        input_frame: zed_left_camera_frame
+        output_frame: zed_left_camera_frame
+        # true: no points in the box, false: no points outside the box
+        negative: false
+        min_x: 0 # behind camera
+        max_x: 3.0 # in front of camera
+        min_y: -1.2 # left of camera
+        max_y: 1.2 # right of camera
+        min_z: -5.5 # above camera
+        max_z: 5.5 # below camera
+      </rosparam>
+    </node>
+
+</launch>
