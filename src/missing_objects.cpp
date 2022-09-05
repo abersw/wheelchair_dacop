@@ -85,7 +85,7 @@ struct FOV {
     int imageHeight;
     int imageWidth;
     long numberOfPixels;
-    int pointStep = 75;
+    int pointStep = 5;
 };
 struct FOV fov;
 
@@ -472,32 +472,79 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         cout << "find matching points" << endl;
         cout << "number of pixels " << fov.numberOfPixels << endl;
     }
-    for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=fov.pointStep) {
-        double pcloudX = it[0];
-        double pcloudY = it[1];
-        double pcloudZ = it[2];
-        if (DEBUG_findMatchingPoints_rawValues) {
-            //std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
-            std::cout << pcloudX << ", " << pcloudY << ", " << pcloudZ << '\n';
-        }
-        //run through entire struct of objects
-        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
-            double objectPointX = objectsFileStruct[isObject].point_x;
-            double objectPointY = objectsFileStruct[isObject].point_y;
-            double minObjectPointX = objectPointX - boundary.pointBoundaryX;
-            double maxObjectPointX = objectPointX + boundary.pointBoundaryX;
-            double minObjectPointY = objectPointY - boundary.pointBoundaryY;
-            double maxObjectPointY = objectPointY + boundary.pointBoundaryY;
-            if ((pcloudX > minObjectPointX) &&
-                (pcloudX < maxObjectPointX) &&
-                (pcloudY > minObjectPointY) &&
-                (pcloudY < maxObjectPointY)) {
-                //transform detected close to pc2 point
-                if (DEBUG_findMatchingPoints_detectedPoints) {
-                    cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
+    double noPoints = (dpth->row_step * dpth->height) / 16;
+    cout << noPoints << endl;
+    static const int pc2_is_filtered = 1; //variable to switch between filtered cropbox pointcloud
+    if (pc2_is_filtered == 0) {
+        for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=fov.pointStep) {
+            double pcloudX = it[0];
+            double pcloudY = it[1];
+            double pcloudZ = it[2];
+            if (DEBUG_findMatchingPoints_rawValues) {
+                //std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
+                std::cout << pcloudX << ", " << pcloudY << ", " << pcloudZ << '\n';
+            }
+            //run through entire struct of objects
+            for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+                double objectPointX = objectsFileStruct[isObject].point_x;
+                double objectPointY = objectsFileStruct[isObject].point_y;
+                double minObjectPointX = objectPointX - boundary.pointBoundaryX;
+                double maxObjectPointX = objectPointX + boundary.pointBoundaryX;
+                double minObjectPointY = objectPointY - boundary.pointBoundaryY;
+                double maxObjectPointY = objectPointY + boundary.pointBoundaryY;
+                if ((pcloudX > minObjectPointX) &&
+                    (pcloudX < maxObjectPointX) &&
+                    (pcloudY > minObjectPointY) &&
+                    (pcloudY < maxObjectPointY)) {
+                    //transform detected close to pc2 point
+                    if (DEBUG_findMatchingPoints_detectedPoints) {
+                        cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
+                    }
+                    //add corresponding transform to array
+                    transformsFoundInPointcloudDistance(isObject);
                 }
-                //add corresponding transform to array
-                transformsFoundInPointcloudDistance(isObject);
+            }
+        }
+    }
+    else if (pc2_is_filtered == 1) {
+        //for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=fov.pointStep) {
+        for (int it = 0; it < noPoints; it+=50) {
+
+            double pcloudX;
+            double pcloudY;
+            double pcloudZ;
+
+            int arrayPosX = it + dpth->fields[0].offset; // X has an offset of 0
+            int arrayPosY = it + dpth->fields[1].offset; // Y has an offset of 4
+            int arrayPosZ = it + dpth->fields[2].offset; // Z has an offset of 8
+
+            memcpy(&pcloudX, &dpth->data[arrayPosX], sizeof(double)); //add value from depth point to X
+            memcpy(&pcloudY, &dpth->data[arrayPosY], sizeof(double)); //add value from depth point to Y
+            memcpy(&pcloudZ, &dpth->data[arrayPosZ], sizeof(double)); //add value from depth point to Z
+
+            if (DEBUG_findMatchingPoints_rawValues) {
+                //std::cout << it[0] << ", " << it[1] << ", " << it[2] << '\n';
+                std::cout << pcloudX << ", " << pcloudY << ", " << pcloudZ << '\n';
+            }
+            //run through entire struct of objects
+            for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) {
+                double objectPointX = objectsFileStruct[isObject].point_x;
+                double objectPointY = objectsFileStruct[isObject].point_y;
+                double minObjectPointX = objectPointX - boundary.pointBoundaryX;
+                double maxObjectPointX = objectPointX + boundary.pointBoundaryX;
+                double minObjectPointY = objectPointY - boundary.pointBoundaryY;
+                double maxObjectPointY = objectPointY + boundary.pointBoundaryY;
+                if ((pcloudX > minObjectPointX) &&
+                    (pcloudX < maxObjectPointX) &&
+                    (pcloudY > minObjectPointY) &&
+                    (pcloudY < maxObjectPointY)) {
+                    //transform detected close to pc2 point
+                    if (DEBUG_findMatchingPoints_detectedPoints) {
+                        cout << "found " << objectsFileStruct[isObject].id << objectsFileStruct[isObject].object_name << endl;
+                    }
+                    //add corresponding transform to array
+                    transformsFoundInPointcloudDistance(isObject);
+                }
             }
         }
     }
