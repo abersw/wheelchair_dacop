@@ -15,6 +15,8 @@
 </node>-->
 <!--node to assign room to object and publish associated links-->
 <node pkg="wheelchair_dacop" name="assign_room_to_object" type="assign_room_to_object" output="screen" launch-prefix=""></node>
+<!--node creates a pcl cropbox filter to shrink pointcloud from map frame-->
+<include file="$(find wheelchair_dacop)/launch/cropbox.launch"/>
 <!--node to detect missing objects from locations on map-->
 <node pkg="wheelchair_dacop" name="missing_objects" type="missing_objects" output="screen" launch-prefix=""></node>
 </launch>
