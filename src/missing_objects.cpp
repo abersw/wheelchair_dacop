@@ -700,7 +700,7 @@ int main (int argc, char **argv) {
         spinner_objectsList.spin(&callback_queue_objectsList);
     });*/
 
-    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map", 1000, objectLocationsCallback);
+    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map_filter", 1000, objectLocationsCallback);
 
     ros::CallbackQueue detected_objects_queue;
     ros::CallbackQueue listed_objects_queue;
