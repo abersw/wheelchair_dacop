@@ -757,6 +757,7 @@ int main (int argc, char **argv) {
         pointcloudTopic = "/wheelchair_robot/point_cloud_map_filter";
     }
     else {
+        cout << "error: PC2 filter mumber invalid" << endl;
         pointcloudTopic = "/wheelchair_robot/point_cloud_map";
     }
     ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>(pointcloudTopic, 1000, objectLocationsCallback);
