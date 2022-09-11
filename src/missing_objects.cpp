@@ -29,6 +29,8 @@
 
 using namespace std;
 
+static const int PC2_IS_FILTERED = 0; //variable to switch between filtered cropbox pointcloud
+
 static const int DEBUG_getResolutionOnStartup = 0;
 static const int DEBUG_rosPrintSequence = 0;
 static const int DEBUG_addObjectLocationsToStruct = 0;
@@ -474,8 +476,8 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     }
     double noPoints = (dpth->row_step * dpth->height) / dpth->point_step;
     //cout << noPoints << endl;
-    static const int pc2_is_filtered = 1; //variable to switch between filtered cropbox pointcloud
-    if (pc2_is_filtered == 0) {
+
+    if (PC2_IS_FILTERED == 0) {
         for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=fov.pointStep) {
             double pcloudX = it[0];
             double pcloudY = it[1];
@@ -506,7 +508,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
             }
         }
     }
-    else if (pc2_is_filtered == 1) {
+    else if (PC2_IS_FILTERED == 1) {
         //for (sensor_msgs::PointCloud2ConstIterator<float> it(*dpth, "x"); it != it.end(); it+=fov.pointStep) {
         for (int it = 0; it < noPoints; it+=50) {
 
@@ -747,7 +749,17 @@ int main (int argc, char **argv) {
         spinner_objectsList.spin(&callback_queue_objectsList);
     });*/
 
-    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>("/wheelchair_robot/point_cloud_map_filter", 1000, objectLocationsCallback);
+    std::string pointcloudTopic = "";
+    if (PC2_IS_FILTERED == 0) {
+        pointcloudTopic = "/wheelchair_robot/point_cloud_map";
+    }
+    else if (PC2_IS_FILTERED == 1) {
+        pointcloudTopic = "/wheelchair_robot/point_cloud_map_filter";
+    }
+    else {
+        pointcloudTopic = "/wheelchair_robot/point_cloud_map";
+    }
+    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>(pointcloudTopic, 1000, objectLocationsCallback);
 
     ros::CallbackQueue detected_objects_queue;
     ros::CallbackQueue listed_objects_queue;
