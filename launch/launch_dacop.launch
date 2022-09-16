@@ -1,5 +1,6 @@
 <launch>
 <!--add valgrind -v to launch prefix-->
+<include file="$(find mobilenet)/launch/detect_and_transform.launch"/>
 <!--node to convert point cloud to map frame coordinates-->
 <node pkg="wheelchair_dacop" name="transform_pc2map" type="transform_pc2map" output="screen" launch-prefix=""></node>
 <!--node to grab object detection data, and grab the 3D coordinates - to whatever frame is stated in the node above-->

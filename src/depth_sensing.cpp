@@ -34,7 +34,7 @@ const int DEBUG_getNodeTimestamp = 0;
 const int DEBUG_forwardCameraTimestamp = 0;
 const int DEBUG_publishObjectLocations = 0;
 const int DEBUG_getPointDepth = 0;
-const int DEBUG_nan_detector = 1;
+const int DEBUG_nan_detector = 0;
 const int DEBUG_objectDepthCallback = 0;
 const int DEBUG_main = 0;
 
