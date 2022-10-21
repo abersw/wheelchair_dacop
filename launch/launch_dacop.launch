@@ -1,23 +1,34 @@
 <launch>
 <!--add valgrind -v to launch prefix-->
-<include file="$(find mobilenet)/launch/detect_and_transform.launch"/>
+
+<!--run mobilenet dnn-->
+<!--<include file="$(find mobilenet)/launch/detect_and_transform.launch"/>-->
+
 <!--node to convert point cloud to map frame coordinates-->
 <node pkg="wheelchair_dacop" name="transform_pc2map" type="transform_pc2map" output="screen" launch-prefix=""></node>
+
 <!--node to grab object detection data, and grab the 3D coordinates - to whatever frame is stated in the node above-->
 <node pkg="wheelchair_dacop" name="depth_sensing" type="depth_sensing" output="screen" launch-prefix=""></node>
+
 <!--node to calculate if the object has been detected before-->
 <node pkg="wheelchair_dacop" name="object_locations" type="object_locations" output="screen" launch-prefix=""></node>
+
 <!--node to centralise and save to dump dacop file-->
 <node pkg="wheelchair_dacop" name="publish_object_locations" type="publish_object_locations" output="screen" launch-prefix=""></node>
+
 <!--node to save images of annotated objects coming from mobilenet node-->
 <!--<node name="image_saver_object_annotation" ns="wheelchair_robot" pkg="image_view" type="image_saver">
     <remap from="image" to="/wheelchair_robot/mobilenet/annotated_image" />
     <param name="save_all_image" value="false" />
 </node>-->
+
 <!--node to assign room to object and publish associated links-->
 <node pkg="wheelchair_dacop" name="assign_room_to_object" type="assign_room_to_object" output="screen" launch-prefix=""></node>
+
 <!--node creates a pcl cropbox filter to shrink pointcloud from map frame-->
-<include file="$(find wheelchair_dacop)/launch/cropbox.launch"/>
+<!--<include file="$(find wheelchair_dacop)/launch/cropbox.launch"/>-->
+
 <!--node to detect missing objects from locations on map-->
-<node pkg="wheelchair_dacop" name="missing_objects" type="missing_objects" output="screen" launch-prefix=""></node>
+<!--<node pkg="wheelchair_dacop" name="missing_objects" type="missing_objects" output="screen" launch-prefix=""></node>-->
+
 </launch>
