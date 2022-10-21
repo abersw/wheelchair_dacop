@@ -113,11 +113,11 @@ struct TransformPoints {
 };
 
 struct MatchingPoints {
-    struct TransformPoints objectsList[1000]; //all objects to be added to list for filtering
+    struct TransformPoints objectsList[10000]; //all objects to be added to list for filtering
     int totalObjectsList = 0; //total objects found in pointcloud
-    struct TransformPoints objectsRedetected[1000]; //filtered list of objects classified as redetected
+    struct TransformPoints objectsRedetected[10000]; //filtered list of objects classified as redetected
     int totalObjectsRedetected = 0; //total of objects redetected
-    struct TransformPoints objectsNotRedetected[1000]; //filtered list of objects classified as not redetected
+    struct TransformPoints objectsNotRedetected[10000]; //filtered list of objects classified as not redetected
     int totalObjectsNotRedetected = 0; //total of objects not redetected
 };
 struct MatchingPoints matchingPoints;
