@@ -49,7 +49,7 @@ static const int DEBUG_transformsFoundInPointcloudDistance_detections = 0;
 static const int DEBUG_printAllObjects = 0;
 static const int DEBUG_printRedetectedObjects = 0;
 static const int DEBUG_printMissingObjects = 0;
-static const int DEBUG_main = 0;
+static const int DEBUG_main = 1;
 
 TofToolBox *tofToolBox;
 
