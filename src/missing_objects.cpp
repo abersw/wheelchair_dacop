@@ -474,7 +474,7 @@ void findMatchingPoints(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
         cout << "find matching points" << endl;
         cout << "number of pixels " << fov.numberOfPixels << endl;
     }
-    double noPoints = (dpth->row_step * dpth->height) / dpth->point_step;
+    double noPoints = (dpth->row_step * dpth->height) / 16;
     //cout << noPoints << endl;
 
     if (PC2_IS_FILTERED == 0) {
@@ -700,15 +700,15 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getCameraTranslation();
 
     findMatchingPoints(dpth);
-    //calculateMissingObjects();
+    calculateMissingObjects();
     //print array of objects
     printAllObjects();
     printRedetectedObjects();
     printMissingObjects();
     //publish array of objects
-    //publishAllObjects();
-    //publishRedetectedObjects();
-    //publishMissingObjects();
+    publishAllObjects();
+    publishRedetectedObjects();
+    publishMissingObjects();
 }
 
 int main (int argc, char **argv) {
