@@ -125,10 +125,11 @@ struct MatchingPoints matchingPoints;
 tf::TransformListener *ptrListener; //global pointer for transform listener
 
 //https://docs.ros.org/en/api/message_filters/html/c++/classmessage__filters_1_1Cache.html
-message_filters::Cache<wheelchair_msgs::objectLocations> cache; //buffer incoming detected objects
+message_filters::Cache<wheelchair_msgs::objectLocations> *cache_ptr; //buffer incoming detected objects
 
 boost::shared_ptr<ros::AsyncSpinner> detected_objects_spinner;
 boost::shared_ptr<ros::AsyncSpinner> listed_objects_spinner;
+boost::shared_ptr<ros::AsyncSpinner> pc2_spinner;
 
 ros::Publisher *ptr_pub_objectsList;
 ros::Publisher *ptr_pub_objectsRedetected;
@@ -246,10 +247,10 @@ void getCameraTranslation() {
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
-    cache.add(obLoc);
+    //cache.add(obLoc);
     if (DEBUG_detectedObjectsCallback) {
-        std::cout << "Oldest time cached is " << cache.getOldestTime() << std::endl;
-        std::cout << "Last time received is " << cache.getLatestTime() << std::endl << std::endl;
+        std::cout << "Oldest time cached is " << cache_ptr->getOldestTime() << std::endl;
+        std::cout << "Last time received is " << cache_ptr->getLatestTime() << std::endl << std::endl;
     }
 }
 
@@ -267,12 +268,12 @@ void getCorrespondingObjectFrame(int isObject) {
     ros::Time forwardTime(camera_timestamp + timeRangeForward); //create boundary forward in time
 
     //check to see if cache will not return a null
-    if (cache.getElemBeforeTime(forwardTime) != NULL) {
+    if (cache_ptr->getElemBeforeTime(forwardTime) != NULL) {
         if (DEBUG_getCorrespondingObjectFrame_cache) {
             cout << "successfully received message" << endl;
         }
         //get ros msg after the specified time 'reverseTime'
-        const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache.getElemBeforeTime(forwardTime);
+        const wheelchair_msgs::objectLocations::ConstPtr &obLoc = cache_ptr->getElemBeforeTime(forwardTime);
         if (DEBUG_getCorrespondingObjectFrame_cache) {
             cout << "cache time is " << obLoc->header.stamp << " camera timestamp is " << camera_timestamp << endl;
         }
@@ -700,15 +701,15 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getCameraTranslation();
 
     findMatchingPoints(dpth);
-    //calculateMissingObjects();
+    calculateMissingObjects();
     //print array of objects
     printAllObjects();
     printRedetectedObjects();
     printMissingObjects();
     //publish array of objects
-    /*publishAllObjects();
+    publishAllObjects();
     publishRedetectedObjects();
-    publishMissingObjects();*/
+    publishMissingObjects();
 }
 
 int main (int argc, char **argv) {
@@ -720,7 +721,8 @@ int main (int argc, char **argv) {
 
     ros::Rate rate(10.0);
 
-    cache.setCacheSize(1000);
+    
+    //cache_ptr->setCacheSize(100);
     //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
 
     //set detected objects through separate thread
@@ -760,29 +762,47 @@ int main (int argc, char **argv) {
         cout << "error: PC2 filter mumber invalid" << endl;
         pointcloudTopic = "/wheelchair_robot/point_cloud_map";
     }
-    ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>(pointcloudTopic, 1000, objectLocationsCallback);
+    //ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>(pointcloudTopic, 1000, objectLocationsCallback);
 
     ros::CallbackQueue detected_objects_queue;
     ros::CallbackQueue listed_objects_queue;
+    ros::CallbackQueue pc2_queue;
 
     ros::NodeHandle do_n;
     ros::NodeHandle lo_n;
+    ros::NodeHandle po_n;
 
     do_n.setCallbackQueue(&detected_objects_queue);
     lo_n.setCallbackQueue(&listed_objects_queue);
+    po_n.setCallbackQueue(&pc2_queue);
 
-    ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
+    /*message_filters::Subscriber<wheelchair_msgs::objectLocations> sub(n, "/wheelchair_robot/dacop/publish_object_locations/detected_objects", 20);
+    cache_ptr = new message_filters::Cache<wheelchair_msgs::objectLocations> (sub, 20);
+cache_ptr->setCacheSize(20);
+    cache_ptr->registerCallback(detectedObjectsCallback);*/
+    message_filters::Subscriber<wheelchair_msgs::objectLocations> sub(n, "/wheelchair_robot/dacop/publish_object_locations/detected_objects", 10);
+    message_filters::Cache<wheelchair_msgs::objectLocations> cache(sub, 10);
+    cache.setCacheSize(10);
+    cache.registerCallback(detectedObjectsCallback);
+    
+
+    /*ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
                                             "/wheelchair_robot/dacop/publish_object_locations/detected_objects",
                                             1000,
-                                            detectedObjectsCallback);
+                                            detectedObjectsCallback);*/
+    ros::Subscriber pc2_sub = do_n.subscribe<sensor_msgs::PointCloud2>(
+                                            pointcloudTopic,
+                                            1000,
+                                            objectLocationsCallback);
     ros::Subscriber listed_objects_sub = lo_n.subscribe<wheelchair_msgs::objectLocations>(
                                             "/wheelchair_robot/dacop/publish_object_locations/objects",
                                             1000,
                                             addObjectLocationsToStruct);
 
     // Create AsyncSpinner, run it on all available cores and make it process custom callback queue
-    detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
+    //detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
     listed_objects_spinner.reset(new ros::AsyncSpinner(0, &listed_objects_queue));
+    pc2_spinner.reset(new ros::AsyncSpinner(0, &pc2_queue));
 
     //get transformed pointcloud
     //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1000);
@@ -818,8 +838,9 @@ int main (int argc, char **argv) {
         //detected_objects_queue.clear();
         //listed_objects_queue.clear();
         // Start the spinner
-        detected_objects_spinner->start();
+        //detected_objects_spinner->start();
         listed_objects_spinner->start();
+        pc2_spinner->start();
         //ROS_INFO("detected_objects Spinner enabled");
 
         if (DEBUG_main) {
@@ -828,11 +849,13 @@ int main (int argc, char **argv) {
         ros::spinOnce();
         rate.sleep();
     }
-    detected_objects_spinner->stop();
+    //detected_objects_spinner->stop();
     listed_objects_spinner->stop();
+    pc2_spinner->stop();
     ROS_INFO("detected_objects_Spinner disabled");
-    detected_objects_spinner.reset();
+    //detected_objects_spinner.reset();
     listed_objects_spinner.reset();
+    pc2_spinner.reset();
     // Wait for ROS threads to terminate
     ros::waitForShutdown();
 }
