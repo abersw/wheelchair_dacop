@@ -700,15 +700,15 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     getCameraTranslation();
 
     findMatchingPoints(dpth);
-    calculateMissingObjects();
+    //calculateMissingObjects();
     //print array of objects
     printAllObjects();
     printRedetectedObjects();
     printMissingObjects();
     //publish array of objects
-    publishAllObjects();
+    /*publishAllObjects();
     publishRedetectedObjects();
-    publishMissingObjects();
+    publishMissingObjects();*/
 }
 
 int main (int argc, char **argv) {
