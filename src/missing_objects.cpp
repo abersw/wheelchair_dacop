@@ -2,7 +2,7 @@
  * missing_objects.cpp
  * wheelchair_dacop
  * version: 1.0.0 Majestic Maidenhair
- * Status: Alpha
+ * Status: Beta
  *
 */
 
@@ -125,10 +125,6 @@ struct MatchingPoints matchingPoints;
 //https://docs.ros.org/en/api/message_filters/html/c++/classmessage__filters_1_1Cache.html
 message_filters::Cache<wheelchair_msgs::objectLocations> *cache_ptr; //buffer incoming detected objects
 
-boost::shared_ptr<ros::AsyncSpinner> detected_objects_spinner;
-boost::shared_ptr<ros::AsyncSpinner> listed_objects_spinner;
-boost::shared_ptr<ros::AsyncSpinner> pc2_spinner;
-
 ros::Publisher *ptr_pub_objectsList;
 ros::Publisher *ptr_pub_objectsRedetected;
 ros::Publisher *ptr_pub_objectsNotRedetected;
@@ -246,7 +242,7 @@ void getCameraTranslation() {
  *        message belongs to wheelchair_msgs objectLocations.msg
  */
 void detectedObjectsCallback(const wheelchair_msgs::objectLocations::ConstPtr &obLoc) {
-    //cache.add(obLoc);
+    //cache_ptr->add(obLoc);
     if (DEBUG_detectedObjectsCallback) {
         std::cout << "Oldest time cached is " << cache_ptr->getOldestTime() << std::endl;
         std::cout << "Last time received is " << cache_ptr->getLatestTime() << std::endl << std::endl;
@@ -711,6 +707,13 @@ void objectLocationsCallback(const sensor_msgs::PointCloud2::ConstPtr& dpth) {
     publishMissingObjects();
 }
 
+/**
+ * Main function that contains ROS info, subscriber callback trigger and while loop to get room name
+ *
+ * @param argc - number of arguments
+ * @param argv - content of arguments
+ * @return 0 - end of program
+ */
 int main (int argc, char **argv) {
     TofToolBox tofToolBox_local;
     tofToolBox = &tofToolBox_local;
@@ -719,36 +722,6 @@ int main (int argc, char **argv) {
     ros::NodeHandle n;
 
     ros::Rate rate(10.0);
-
-    
-    //cache_ptr->setCacheSize(100);
-    //ros::Subscriber det_sub = n.subscribe("/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000, detectedObjectsCallback);
-
-    //set detected objects through separate thread
-    /*ros::NodeHandle nh_detectedObjects;
-    ros::CallbackQueue callback_queue_detectedObjects;
-    nh_detectedObjects.setCallbackQueue(&callback_queue_detectedObjects);
-    ros::Subscriber detected_objects_sub = nh_detectedObjects.subscribe(
-                                            "/wheelchair_robot/dacop/publish_object_locations/detected_objects",
-                                            1000,
-                                            detectedObjectsCallback);
-    std::thread spinner_thread_delay([&callback_queue_detectedObjects]() {
-        ros::SingleThreadedSpinner spinner_detectedObjects;
-        spinner_detectedObjects.spin(&callback_queue_detectedObjects);
-    });*/
-
-    //add list of all objects to separate thread
-    /*ros::NodeHandle nh_objectsList;
-    ros::CallbackQueue callback_queue_objectsList;
-    nh_objectsList.setCallbackQueue(&callback_queue_objectsList);
-    ros::Subscriber objects_sub = nh_objectsList.subscribe(
-                                            "/wheelchair_robot/dacop/publish_object_locations/objects",
-                                            1000,
-                                            addObjectLocationsToStruct);
-    std::thread spinner_objectsList([&callback_queue_objectsList]() {
-        ros::SingleThreadedSpinner spinner_objectsList;
-        spinner_objectsList.spin(&callback_queue_objectsList);
-    });*/
 
     std::string pointcloudTopic = "";
     if (PC2_IS_FILTERED == 0) {
@@ -761,60 +734,34 @@ int main (int argc, char **argv) {
         cout << "error: PC2 filter mumber invalid" << endl;
         pointcloudTopic = "/wheelchair_robot/point_cloud_map";
     }
-    //ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>(pointcloudTopic, 1000, objectLocationsCallback);
+    //ros::Subscriber pc2_sub = n.subscribe<sensor_msgs::PointCloud2>(pointcloudTopic, 20, objectLocationsCallback);
 
-    ros::CallbackQueue detected_objects_queue;
-    ros::CallbackQueue listed_objects_queue;
-    ros::CallbackQueue pc2_queue;
+    //single spinner
+    ros::NodeHandle n_pc2;
+    ros::CallbackQueue callback_queue_pc2;
+    n_pc2.setCallbackQueue(&callback_queue_pc2);
+    ros::Subscriber pc2_sub = n_pc2.subscribe(pointcloudTopic, 50, objectLocationsCallback); //detected objects in frame
+    std::thread spinner_thread_pc2([&callback_queue_pc2]() {
+        ros::SingleThreadedSpinner spinner_pc2;
+        spinner_pc2.spin(&callback_queue_pc2);
+    });
 
-    ros::NodeHandle do_n;
-    ros::NodeHandle lo_n;
-    ros::NodeHandle po_n;
+    //single spinner all objects
+    ros::NodeHandle n_ao;
+    ros::CallbackQueue callback_queue_ao;
+    n_ao.setCallbackQueue(&callback_queue_ao);
+    ros::Subscriber ao_sub = n_ao.subscribe("/wheelchair_robot/dacop/publish_object_locations/objects", 1000, addObjectLocationsToStruct); //detected objects in frame
+    std::thread spinner_thread_ao([&callback_queue_ao]() {
+        ros::SingleThreadedSpinner spinner_ao;
+        spinner_ao.spin(&callback_queue_ao);
+    });
 
-    do_n.setCallbackQueue(&detected_objects_queue);
-    lo_n.setCallbackQueue(&listed_objects_queue);
-    po_n.setCallbackQueue(&pc2_queue);
+    message_filters::Subscriber<wheelchair_msgs::objectLocations> sub(n, "/wheelchair_robot/dacop/publish_object_locations/detected_objects", 1000);
+    //message_filters::Cache<wheelchair_msgs::objectLocations> cache(sub, 100);
+    cache_ptr = new message_filters::Cache<wheelchair_msgs::objectLocations> (sub, 1000);
+    cache_ptr->setCacheSize(100);
+    cache_ptr->registerCallback(detectedObjectsCallback);
 
-    /*message_filters::Subscriber<wheelchair_msgs::objectLocations> sub(n, "/wheelchair_robot/dacop/publish_object_locations/detected_objects", 20);
-    cache_ptr = new message_filters::Cache<wheelchair_msgs::objectLocations> (sub, 20);
-cache_ptr->setCacheSize(20);
-    cache_ptr->registerCallback(detectedObjectsCallback);*/
-    message_filters::Subscriber<wheelchair_msgs::objectLocations> sub(n, "/wheelchair_robot/dacop/publish_object_locations/detected_objects", 10);
-    message_filters::Cache<wheelchair_msgs::objectLocations> cache(sub, 10);
-    cache.setCacheSize(10);
-    cache.registerCallback(detectedObjectsCallback);
-    
-
-    /*ros::Subscriber detected_objects_sub = do_n.subscribe<wheelchair_msgs::objectLocations>(
-                                            "/wheelchair_robot/dacop/publish_object_locations/detected_objects",
-                                            1000,
-                                            detectedObjectsCallback);*/
-    ros::Subscriber pc2_sub = do_n.subscribe<sensor_msgs::PointCloud2>(
-                                            pointcloudTopic,
-                                            1000,
-                                            objectLocationsCallback);
-    ros::Subscriber listed_objects_sub = lo_n.subscribe<wheelchair_msgs::objectLocations>(
-                                            "/wheelchair_robot/dacop/publish_object_locations/objects",
-                                            1000,
-                                            addObjectLocationsToStruct);
-
-    // Create AsyncSpinner, run it on all available cores and make it process custom callback queue
-    //detected_objects_spinner.reset(new ros::AsyncSpinner(0, &detected_objects_queue));
-    listed_objects_spinner.reset(new ros::AsyncSpinner(0, &listed_objects_queue));
-    pc2_spinner.reset(new ros::AsyncSpinner(0, &pc2_queue));
-
-    //get transformed pointcloud
-    //message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/zed/zed_node/point_cloud/cloud_registered", 1000);
-    //get transformed pointcloud
-    /*message_filters::Subscriber<sensor_msgs::PointCloud2> depth_sub(n, "/wheelchair_robot/point_cloud_map", 1000);
-    //get mobilenet objects detected
-    message_filters::Subscriber<wheelchair_msgs::objectLocations> objects_sub(n, "/wheelchair_robot/dacop/publish_object_locations/objects", 1000);
-    //approximately sync the topic rate
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::PointCloud2, wheelchair_msgs::objectLocations> MySyncPolicy;
-    //set sync policy
-    message_filters::Synchronizer<MySyncPolicy> depth_sync(MySyncPolicy(20), depth_sub, objects_sub);
-    //set callback for synced topics
-    depth_sync.registerCallback(boost::bind(&objectLocationsCallback, _1, _2));*/
 
     //publish all objects that should be detected within frame
     ros::Publisher pub_objectsList = n.advertise<wheelchair_msgs::missingObjects>("/wheelchair_robot/dacop/missing_objects/all", 1000);
@@ -831,28 +778,13 @@ cache_ptr->setCacheSize(20);
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
 
-        // Clear old callback from the queue
-        //detected_objects_queue.clear();
-        //listed_objects_queue.clear();
-        // Start the spinner
-        //detected_objects_spinner->start();
-        listed_objects_spinner->start();
-        pc2_spinner->start();
-        //ROS_INFO("detected_objects Spinner enabled");
-
         if (DEBUG_main) {
             cout << "spin \n";
         }
         ros::spinOnce();
         rate.sleep();
     }
-    //detected_objects_spinner->stop();
-    listed_objects_spinner->stop();
-    pc2_spinner->stop();
-    ROS_INFO("detected_objects_Spinner disabled");
-    //detected_objects_spinner.reset();
-    listed_objects_spinner.reset();
-    pc2_spinner.reset();
     // Wait for ROS threads to terminate
     ros::waitForShutdown();
+    return 0;
 }
