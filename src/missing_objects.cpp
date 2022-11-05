@@ -122,8 +122,6 @@ struct MatchingPoints {
 };
 struct MatchingPoints matchingPoints;
 
-tf::TransformListener *ptrListener; //global pointer for transform listener
-
 //https://docs.ros.org/en/api/message_filters/html/c++/classmessage__filters_1_1Cache.html
 message_filters::Cache<wheelchair_msgs::objectLocations> *cache_ptr; //buffer incoming detected objects
 
@@ -227,8 +225,9 @@ void resetMatchingPoints() {
 
 void getCameraTranslation() {
     try{
-        ptrListener->waitForTransform("map", "base_link", ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
-        ptrListener->lookupTransform("map", "base_link", ros::Time(0), cameraTranslation); //lookup translation of object from map frame
+        tf::TransformListener listener;
+        listener.waitForTransform("map", "base_link", ros::Time(0), ros::Duration(3.0)); //wait a few seconds for ROS to respond
+        listener.lookupTransform("map", "base_link", ros::Time(0), cameraTranslation); //lookup translation of object from map frame
         if (DEBUG_getCameraTranslation) {
             cout << "camera translation: " << cameraTranslation.getOrigin().x() << ", " << cameraTranslation.getOrigin().y() << endl;
         }
@@ -831,8 +830,6 @@ cache_ptr->setCacheSize(20);
 
     while(ros::ok()) {
         //tofToolBox->sayHello(); //test function for tof toolbox
-        tf::TransformListener listener;
-        ptrListener = &listener;
 
         // Clear old callback from the queue
         //detected_objects_queue.clear();
