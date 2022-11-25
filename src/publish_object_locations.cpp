@@ -311,24 +311,26 @@ void publishObjectStructMsg() {
     wheelchair_msgs::objectLocations obLoc;
     obLoc.header.stamp = ros::Time::now();
     obLoc.camera_timestamp = camera_timestamp;
-    //publish all objects inside struct
-    for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
-        obLoc.id.push_back(objectsFileStruct[isObject].id);
-        obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
-        obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
+    if (totalObjectsFileStruct > 0) { //don't publish the full objects list, until there's data in it!
+        //publish all objects inside struct
+        for (int isObject = 0; isObject < totalObjectsFileStruct; isObject++) { //iterate through entire struct
+            obLoc.id.push_back(objectsFileStruct[isObject].id);
+            obLoc.object_name.push_back(objectsFileStruct[isObject].object_name);
+            obLoc.object_confidence.push_back(objectsFileStruct[isObject].object_confidence);
 
-        obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
-        obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
-        obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
+            obLoc.point_x.push_back(objectsFileStruct[isObject].point_x);
+            obLoc.point_y.push_back(objectsFileStruct[isObject].point_y);
+            obLoc.point_z.push_back(objectsFileStruct[isObject].point_z);
 
-        obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
-        obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
-        obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
-        obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
+            obLoc.quat_x.push_back(objectsFileStruct[isObject].quat_x);
+            obLoc.quat_y.push_back(objectsFileStruct[isObject].quat_y);
+            obLoc.quat_z.push_back(objectsFileStruct[isObject].quat_z);
+            obLoc.quat_w.push_back(objectsFileStruct[isObject].quat_w);
+        }
+        obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
+        ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
     }
-    obLoc.totalObjects = totalObjectsFileStruct; //set total objects found in struct
-    ptr_publish_objectLocations->publish(obLoc); //publish struct as ros msg array
-
+    
     //ptr_publish_objectLocations->publish(allObjects_rosMsg); //publish struct as ros msg array
 }
 
