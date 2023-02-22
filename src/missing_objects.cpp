@@ -586,7 +586,7 @@ void calculateMissingObjects() {
                 matchingPoints.objectsNotRedetected[matchingPoints.totalObjectsNotRedetected].object_name = getDetectedObjectName;
                 matchingPoints.totalObjectsNotRedetected++;
             }
-            else if (matchingPoints.objectsList[isDetection].foundFlag == 0) {
+            else if (matchingPoints.objectsList[isDetection].foundFlag == 0) { //need to change this to 1
                 //ignore objects that have already been redetected
             }
         }
